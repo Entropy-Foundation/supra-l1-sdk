@@ -2,8 +2,8 @@ import * as aptos from "aptos";
 import * as supraSDK from "./index";
 
 (async () => {
-  let supraClient = await supraSDK.SupraClient.init(
-    "https://rpc-devnet.supraoracles.com/rpc/v1"
+  let supraClient = new supraSDK.SupraClient(
+    "https://rpc-devnet.supraoracles.com/rpc/v1/"
   );
 
   let senderAccount = new aptos.AptosAccount(
@@ -60,17 +60,11 @@ import * as supraSDK from "./index";
     )
   );
 
-  //// To Get Hashes Of Transactions Associated With Defined Account
-  // console.log(
-  //   "Sender Transactions Hashes: ",
-  //   await supraClient.getAccountTransactionHashes(senderAccount.address())
-  // );
-
-  //// To Get Transaction's Detail Using Transaction Hash
-  // console.log(
-  //   "Transaction Detail: ",
-  //   await supraClient.getTransactionDetail(
-  //     "e2d823912292724da53d694362b452d70bb7d526030e7fdd9d5e7e423894c7a2"
-  //   )
-  // );
+  // To Get Transaction's Detail Using Transaction Hash
+  console.log(
+    "Transaction Detail: ",
+    await supraClient.getTransactionDetail(
+      "c42a0d856ac78c4e4286d1353f242c1824b3d17d3af8db1285eda989441c967c"
+    )
+  );
 })();

@@ -52,9 +52,12 @@ export class SupraClient {
   maxRetryForTransactionCompletion = 20;
   delayBetweenPoolingRequest = 1000; // 1 Second
 
-  private constructor(url: string) {
+  constructor(
+    url: string,
+    chainId: TxnBuilderTypes.ChainId = new TxnBuilderTypes.ChainId(Number(4))
+  ) {
     this.supraNodeURL = url;
-    this.chainId = new TxnBuilderTypes.ChainId(Number(4));
+    this.chainId = chainId;
   }
 
   static async init(url: string): Promise<SupraClient> {
@@ -67,7 +70,7 @@ export class SupraClient {
     let resData = await axios({
       method: "get",
       baseURL: this.supraNodeURL,
-      url: "/move/chain_id",
+      url: "/transactions/chain_id",
       timeout: this.requestTimeout,
     });
     return new TxnBuilderTypes.ChainId(Number(resData.data.id));
@@ -77,7 +80,7 @@ export class SupraClient {
     let resData = await axios({
       method: "get",
       baseURL: this.supraNodeURL,
-      url: "/move/gas_price",
+      url: "/transactions/estimate_gas_price",
       timeout: this.requestTimeout,
     });
     return BigInt(resData.data.mean_gas_price);
@@ -87,7 +90,7 @@ export class SupraClient {
     let resData = await axios({
       method: "get",
       baseURL: this.supraNodeURL,
-      url: `/move/faucet/${account.toString()}`,
+      url: `/wallet/airdrop/${account.toString()}`,
       timeout: this.requestTimeout,
     });
     return resData.data.transactions;
@@ -97,7 +100,7 @@ export class SupraClient {
     let resData = await axios({
       method: "get",
       baseURL: this.supraNodeURL,
-      url: `/move/account/${account.toString()}`,
+      url: `/accounts/${account.toString()}`,
       timeout: this.requestTimeout,
     });
     if (resData.data.account == null) {
@@ -106,23 +109,13 @@ export class SupraClient {
     return BigInt(resData.data.account.sequence_number);
   }
 
-  async getAccountTransactionHashes(account: HexString): Promise<string[]> {
-    let resData = await axios({
-      method: "get",
-      baseURL: this.supraNodeURL,
-      url: `/tx/by-address/${account.toString()}`,
-      timeout: this.requestTimeout,
-    });
-    return resData.data.transactions;
-  }
-
   async getTransactionDetail(
     transactionHash: string
   ): Promise<TransactionDetail> {
     let resData = await axios({
       method: "get",
       baseURL: this.supraNodeURL,
-      url: `/tx/by-hash/${transactionHash}`,
+      url: `/transactions/${transactionHash}`,
       timeout: this.requestTimeout,
     });
     return {
@@ -144,7 +137,7 @@ export class SupraClient {
     let resData = await axios({
       method: "get",
       baseURL: this.supraNodeURL,
-      url: `/tx/account_statement/${account.toString()}?count=${count}&last_seen=${fromTx}`,
+      url: `/accounts/${account.toString()}/transactions?count=${count}&last_seen=${fromTx}`,
       timeout: this.requestTimeout,
     });
     if (resData.data.record == null) {
@@ -157,7 +150,7 @@ export class SupraClient {
     let resData = await axios({
       method: "get",
       baseURL: this.supraNodeURL,
-      url: `/move/coin/${account.toString()}`,
+      url: `/accounts/${account.toString()}/coin`,
       timeout: this.requestTimeout,
     });
     if (resData.data.coins == null) {
@@ -177,7 +170,7 @@ export class SupraClient {
     let resData = await axios({
       method: "get",
       baseURL: this.supraNodeURL,
-      url: `/tx_status/${transactionHash}`,
+      url: `/transactions/${transactionHash}/status`,
       timeout: this.requestTimeout,
     });
     return resData.data.status;
@@ -185,7 +178,7 @@ export class SupraClient {
 
   private async waitForTransactionCompletion(
     txHash: string
-  ): Promise<TransactionStatus> {
+  ): Promise<TransactionStatus> {    
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
       let txStatus = await this.getTransactionStatus(txHash);
       if (
@@ -247,9 +240,9 @@ export class SupraClient {
     let resData = await axios({
       method: "post",
       baseURL: this.supraNodeURL,
-      url: "/send_tx",
+      url: "/transactions/submit",
       data: {
-        Apt: {
+        Move: {
           raw_txn: {
             sender: senderAccount.address().toString(),
             sequence_number: Number(rawTxn.sequence_number),
@@ -285,10 +278,10 @@ export class SupraClient {
         "Content-Type": "application/json",
       },
       timeout: this.requestTimeout,
-    });
+    });    
     return {
-      txHash: resData.data.tx_hash,
-      result: await this.waitForTransactionCompletion(resData.data.tx_hash),
+      txHash: resData.data.txn_hash,
+      result: await this.waitForTransactionCompletion(resData.data.txn_hash),
     };
   }
 
