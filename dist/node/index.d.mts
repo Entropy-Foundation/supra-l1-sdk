@@ -39,13 +39,12 @@ declare class SupraClient {
     requestTimeout: number;
     maxRetryForTransactionCompletion: number;
     delayBetweenPoolingRequest: number;
-    private constructor();
+    constructor(url: string, chainId?: TxnBuilderTypes.ChainId);
     static init(url: string): Promise<SupraClient>;
     getChainId(): Promise<TxnBuilderTypes.ChainId>;
     getGasPrice(): Promise<bigint>;
     fundAccountWithFaucet(account: HexString): Promise<string[]>;
     getAccountSequenceNumber(account: HexString): Promise<bigint>;
-    getAccountTransactionHashes(account: HexString): Promise<string[]>;
     getTransactionDetail(transactionHash: string): Promise<TransactionDetail>;
     getSupraTransferHistory(account: HexString, count?: number, fromTx?: string): Promise<SupraTransferHistoryResponse[]>;
     getAccountSupraCoinBalance(account: HexString): Promise<bigint>;
