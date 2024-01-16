@@ -13,58 +13,48 @@ import * as supraSDK from "./index";
     )
   );
   console.log("Sender", senderAccount.address());
-  console.log(
-    "Funding Sender With Faucet: ",
-    await supraClient.fundAccountWithFaucet(senderAccount.address())
-  );
+  // console.log(
+  //   "Funding Sender With Faucet: ",
+  //   await supraClient.fundAccountWithFaucet(senderAccount.address())
+  // );
 
-  /// Random Receiver
-  // let receiverAccount = new aptos.AptosAccount();
-  // console.log("Receiver", receiverAccount.address());
-  let tempReceiver = new aptos.HexString(
+  let receiverAddress = new aptos.HexString(
     "0x668d1a46c8b111cd8dc9cf92c5bda1356537349bf4f7d4c579bdd829a2054a30"
   );
-  console.log("Receiver", tempReceiver);
+  console.log("Receiver", receiverAddress);
 
   console.log(
     "Sender Balance Before TX: ",
     await supraClient.getAccountSupraCoinBalance(senderAccount.address())
   );
   console.log(
-    "Transfer Account TxHash: ",
-    await supraClient.transferSupraCoin(
-      senderAccount,
-      // receiverAccount.address().toString(),
-      tempReceiver,
-      BigInt(10000)
-    )
+    "Receiver Balance Before TX: ",
+    await supraClient.getAccountSupraCoinBalance(receiverAddress)
   );
+  let txResData = await supraClient.transferSupraCoin(
+    senderAccount,
+    receiverAddress,
+    BigInt(10000)
+  );
+  console.log("Transfer SupraCoin TxRes: ", txResData);
+  // To Get Transaction's Detail Using Transaction Hash
+  console.log(
+    "Transaction Detail: ",
+    await supraClient.getTransactionDetail(txResData.txHash)
+  );
+
   console.log(
     "Sender Balance After TX: ",
     await supraClient.getAccountSupraCoinBalance(senderAccount.address())
   );
   console.log(
     "Receiver Balance After TX: ",
-    await supraClient.getAccountSupraCoinBalance(
-      // receiverAccount.address().toString()
-      tempReceiver
-    )
+    await supraClient.getAccountSupraCoinBalance(receiverAddress)
   );
 
   // To Get Detail Of Transactions Related To SupraCoin Transfer And Which Are Associated With Defined Account
   console.log(
     "Sender Supra Transfer History: ",
-    await supraClient.getSupraTransferHistory(
-      senderAccount.address()
-      // 5
-    )
-  );
-
-  // To Get Transaction's Detail Using Transaction Hash
-  console.log(
-    "Transaction Detail: ",
-    await supraClient.getTransactionDetail(
-      "c42a0d856ac78c4e4286d1353f242c1824b3d17d3af8db1285eda989441c967c"
-    )
+    await supraClient.getSupraTransferHistory(senderAccount.address(), 5)
   );
 })();
