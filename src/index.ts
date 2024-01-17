@@ -21,28 +21,21 @@ interface TransactionResponse {
   result: TransactionStatus;
 }
 
-interface SupraTransferHistoryResponse {
-  recipient: string;
-  amount: number;
-  txn_hash: string;
-  raw: {
-    sender: string;
-    sequence_number: number;
-    max_gas_amount: number;
-    gas_unit_price: number;
-    expiration_timestamp_secs: number;
-    payload: any; // We will be not requiring payload because module and function is deterministic and we are getting args in API response
-  };
-}
-
 interface TransactionDetail {
   sender: string;
   receiver: string;
   amount: number;
+  sequenceNumber: number;
+  maxGasAmount: number;
   gasUnitPrice: number;
   gasUsed: number;
   transactionCost: number;
+  txConfirmationTime: number;
   status: TransactionStatus;
+  action: string;
+  events: any;
+  blockNumber: number;
+  blockHash: string;
 }
 
 export class SupraClient {
@@ -118,14 +111,22 @@ export class SupraClient {
       url: `/transactions/${transactionHash}`,
       timeout: this.requestTimeout,
     });
+
     return {
       sender: resData.data.sender,
       receiver: resData.data.receiver,
       amount: resData.data.amount,
-      gasUnitPrice: 100, // Currently The Gas Unit Price Is 100
+      sequenceNumber: resData.data.sequence_number,
+      maxGasAmount: resData.data.max_gas_amount,
+      gasUnitPrice: resData.data.gas_unit_price,
       gasUsed: resData.data.gas_used,
-      transactionCost: 100 * resData.data.gas_used,
+      transactionCost: resData.data.gas_unit_price * resData.data.gas_used,
+      txConfirmationTime: resData.data.confirmation_time,
       status: resData.data.status,
+      action: resData.data.action,
+      events: resData.data.events,
+      blockNumber: resData.data.block_number,
+      blockHash: resData.data.block_hash,
     };
   }
 
@@ -133,7 +134,7 @@ export class SupraClient {
     account: HexString,
     count: number = 15,
     fromTx = "0000000000000000000000000000000000000000000000000000000000000000"
-  ): Promise<SupraTransferHistoryResponse[]> {
+  ): Promise<TransactionDetail[]> {
     let resData = await axios({
       method: "get",
       baseURL: this.supraNodeURL,
@@ -143,7 +144,26 @@ export class SupraClient {
     if (resData.data.record == null) {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
     }
-    return resData.data.record;
+    let supraCoinTransferHistory: TransactionDetail[] = [];
+    resData.data.record.forEach((data: any) => {
+      supraCoinTransferHistory.push({
+        sender: data.sender,
+        receiver: data.receiver,
+        amount: data.amount,
+        sequenceNumber: data.sequence_number,
+        maxGasAmount: data.max_gas_amount,
+        gasUnitPrice: data.gas_unit_price,
+        gasUsed: data.gas_used,
+        transactionCost: data.gas_unit_price * data.gas_used,
+        txConfirmationTime: data.confirmation_time,
+        status: data.status,
+        action: data.action,
+        events: data.events,
+        blockNumber: data.block_number,
+        blockHash: data.block_hash,
+      });
+    });
+    return supraCoinTransferHistory;
   }
 
   async getAccountSupraCoinBalance(account: HexString): Promise<bigint> {
@@ -178,7 +198,7 @@ export class SupraClient {
 
   private async waitForTransactionCompletion(
     txHash: string
-  ): Promise<TransactionStatus> {    
+  ): Promise<TransactionStatus> {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
       let txStatus = await this.getTransactionStatus(txHash);
       if (
@@ -278,7 +298,7 @@ export class SupraClient {
         "Content-Type": "application/json",
       },
       timeout: this.requestTimeout,
-    });    
+    });
     return {
       txHash: resData.data.txn_hash,
       result: await this.waitForTransactionCompletion(resData.data.txn_hash),

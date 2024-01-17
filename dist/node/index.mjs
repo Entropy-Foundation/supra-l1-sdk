@@ -13880,11 +13880,17 @@ var SupraClient = class _SupraClient {
       sender: resData.data.sender,
       receiver: resData.data.receiver,
       amount: resData.data.amount,
-      gasUnitPrice: 100,
-      // Currently The Gas Unit Price Is 100
+      sequenceNumber: resData.data.sequence_number,
+      maxGasAmount: resData.data.max_gas_amount,
+      gasUnitPrice: resData.data.gas_unit_price,
       gasUsed: resData.data.gas_used,
-      transactionCost: 100 * resData.data.gas_used,
-      status: resData.data.status
+      transactionCost: resData.data.gas_unit_price * resData.data.gas_used,
+      txConfirmationTime: resData.data.confirmation_time,
+      status: resData.data.status,
+      action: resData.data.action,
+      events: resData.data.events,
+      blockNumber: resData.data.block_number,
+      blockHash: resData.data.block_hash
     };
   }
   async getSupraTransferHistory(account, count = 15, fromTx = "0000000000000000000000000000000000000000000000000000000000000000") {
@@ -13897,7 +13903,26 @@ var SupraClient = class _SupraClient {
     if (resData.data.record == null) {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
     }
-    return resData.data.record;
+    let supraCoinTransferHistory = [];
+    resData.data.record.forEach((data) => {
+      supraCoinTransferHistory.push({
+        sender: data.sender,
+        receiver: data.receiver,
+        amount: data.amount,
+        sequenceNumber: data.sequence_number,
+        maxGasAmount: data.max_gas_amount,
+        gasUnitPrice: data.gas_unit_price,
+        gasUsed: data.gas_used,
+        transactionCost: data.gas_unit_price * data.gas_used,
+        txConfirmationTime: data.confirmation_time,
+        status: data.status,
+        action: data.action,
+        events: data.events,
+        blockNumber: data.block_number,
+        blockHash: data.block_hash
+      });
+    });
+    return supraCoinTransferHistory;
   }
   async getAccountSupraCoinBalance(account) {
     let resData = await axios_default({

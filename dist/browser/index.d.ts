@@ -11,27 +11,21 @@ interface TransactionResponse {
     txHash: string;
     result: TransactionStatus;
 }
-interface SupraTransferHistoryResponse {
-    recipient: string;
-    amount: number;
-    txn_hash: string;
-    raw: {
-        sender: string;
-        sequence_number: number;
-        max_gas_amount: number;
-        gas_unit_price: number;
-        expiration_timestamp_secs: number;
-        payload: any;
-    };
-}
 interface TransactionDetail {
     sender: string;
     receiver: string;
     amount: number;
+    sequenceNumber: number;
+    maxGasAmount: number;
     gasUnitPrice: number;
     gasUsed: number;
     transactionCost: number;
+    txConfirmationTime: number;
     status: TransactionStatus;
+    action: string;
+    events: any;
+    blockNumber: number;
+    blockHash: string;
 }
 declare class SupraClient {
     supraNodeURL: string;
@@ -46,7 +40,7 @@ declare class SupraClient {
     fundAccountWithFaucet(account: HexString): Promise<string[]>;
     getAccountSequenceNumber(account: HexString): Promise<bigint>;
     getTransactionDetail(transactionHash: string): Promise<TransactionDetail>;
-    getSupraTransferHistory(account: HexString, count?: number, fromTx?: string): Promise<SupraTransferHistoryResponse[]>;
+    getSupraTransferHistory(account: HexString, count?: number, fromTx?: string): Promise<TransactionDetail[]>;
     getAccountSupraCoinBalance(account: HexString): Promise<bigint>;
     getTransactionStatus(transactionHash: string): Promise<TransactionStatus>;
     private waitForTransactionCompletion;

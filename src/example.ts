@@ -27,10 +27,10 @@ import * as supraSDK from "./index";
     "Sender Balance Before TX: ",
     await supraClient.getAccountSupraCoinBalance(senderAccount.address())
   );
-  console.log(
-    "Receiver Balance Before TX: ",
-    await supraClient.getAccountSupraCoinBalance(receiverAddress)
-  );
+  // console.log(
+  //   "Receiver Balance Before TX: ",
+  //   await supraClient.getAccountSupraCoinBalance(receiverAddress)
+  // );
   let txResData = await supraClient.transferSupraCoin(
     senderAccount,
     receiverAddress,
@@ -57,4 +57,8 @@ import * as supraSDK from "./index";
     "Sender Supra Transfer History: ",
     await supraClient.getSupraTransferHistory(senderAccount.address(), 5)
   );
+
+  // console.log(
+  //   "Transaction Detail: ",
+  //   (await supraClient.getTransactionDetail("a3547cfee53d83cb79b3d003c5dd98968ef380d6647422efa376118af9b3c145")));
 })();
