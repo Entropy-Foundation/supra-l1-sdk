@@ -13877,6 +13877,7 @@ var SupraClient = class _SupraClient {
       timeout: this.requestTimeout
     });
     return {
+      txHash: transactionHash,
       sender: resData.data.sender,
       receiver: resData.data.receiver,
       amount: resData.data.amount,
@@ -13906,6 +13907,7 @@ var SupraClient = class _SupraClient {
     let supraCoinTransferHistory = [];
     resData.data.record.forEach((data) => {
       supraCoinTransferHistory.push({
+        txHash: data.txn_hash,
         sender: data.sender,
         receiver: data.receiver,
         amount: data.amount,

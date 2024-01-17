@@ -12,6 +12,7 @@ interface TransactionResponse {
     result: TransactionStatus;
 }
 interface TransactionDetail {
+    txHash: string;
     sender: string;
     receiver: string;
     amount: number;

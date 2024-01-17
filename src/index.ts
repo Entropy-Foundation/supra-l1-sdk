@@ -22,6 +22,7 @@ interface TransactionResponse {
 }
 
 interface TransactionDetail {
+  txHash: string;
   sender: string;
   receiver: string;
   amount: number;
@@ -113,6 +114,7 @@ export class SupraClient {
     });
 
     return {
+      txHash: transactionHash,
       sender: resData.data.sender,
       receiver: resData.data.receiver,
       amount: resData.data.amount,
@@ -147,6 +149,7 @@ export class SupraClient {
     let supraCoinTransferHistory: TransactionDetail[] = [];
     resData.data.record.forEach((data: any) => {
       supraCoinTransferHistory.push({
+        txHash:data.txn_hash,
         sender: data.sender,
         receiver: data.receiver,
         amount: data.amount,
