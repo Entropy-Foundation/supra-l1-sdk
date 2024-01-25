@@ -39,6 +39,7 @@ declare class SupraClient {
     getChainId(): Promise<TxnBuilderTypes.ChainId>;
     getGasPrice(): Promise<bigint>;
     fundAccountWithFaucet(account: HexString): Promise<string[]>;
+    isAccountExists(account: HexString): Promise<boolean>;
     getAccountSequenceNumber(account: HexString): Promise<bigint>;
     getTransactionDetail(transactionHash: string): Promise<TransactionDetail>;
     getSupraTransferHistory(account: HexString, count?: number, fromTx?: string): Promise<TransactionDetail[]>;

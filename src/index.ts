@@ -87,7 +87,21 @@ export class SupraClient {
       url: `/wallet/airdrop/${account.toString()}`,
       timeout: this.requestTimeout,
     });
+    await this.waitForTransactionCompletion(resData.data.transactions[1]);
     return resData.data.transactions;
+  }
+
+  async isAccountExists(account: HexString): Promise<boolean> {
+    let resData = await axios({
+      method: "get",
+      baseURL: this.supraNodeURL,
+      url: `/accounts/${account.toString()}`,
+      timeout: this.requestTimeout,
+    });
+    if (resData.data.account == null) {
+      return false;
+    }
+    return true;
   }
 
   async getAccountSequenceNumber(account: HexString): Promise<bigint> {
@@ -112,7 +126,11 @@ export class SupraClient {
       url: `/transactions/${transactionHash}`,
       timeout: this.requestTimeout,
     });
-
+    if (resData.data.transaction == null) {
+      throw new Error(
+        "Transaction Not Found, May Be Transaction Hash Is Invalid"
+      );
+    }
     return {
       txHash: transactionHash,
       sender: resData.data.sender,
@@ -149,7 +167,7 @@ export class SupraClient {
     let supraCoinTransferHistory: TransactionDetail[] = [];
     resData.data.record.forEach((data: any) => {
       supraCoinTransferHistory.push({
-        txHash:data.txn_hash,
+        txHash: data.txn_hash,
         sender: data.sender,
         receiver: data.receiver,
         amount: data.amount,
@@ -244,7 +262,7 @@ export class SupraClient {
           functionArgs
         )
       ),
-      BigInt(500000),
+      BigInt(5000), // Setting MaxGasAmount As 5000 Because In Devnet Only Those Transactions Will Be Executing Using This Method Whose Gas Consumption Will Always Less Than 5000
       // await this.getGasPrice(),
       BigInt(100),
       BigInt(4000000 * 10000),
@@ -302,6 +320,7 @@ export class SupraClient {
       },
       timeout: this.requestTimeout,
     });
+
     return {
       txHash: resData.data.txn_hash,
       result: await this.waitForTransactionCompletion(resData.data.txn_hash),

@@ -13855,7 +13855,20 @@ var SupraClient = class _SupraClient {
       url: `/wallet/airdrop/${account.toString()}`,
       timeout: this.requestTimeout
     });
+    await this.waitForTransactionCompletion(resData.data.transactions[1]);
     return resData.data.transactions;
+  }
+  async isAccountExists(account) {
+    let resData = await axios_default({
+      method: "get",
+      baseURL: this.supraNodeURL,
+      url: `/accounts/${account.toString()}`,
+      timeout: this.requestTimeout
+    });
+    if (resData.data.account == null) {
+      return false;
+    }
+    return true;
   }
   async getAccountSequenceNumber(account) {
     let resData = await axios_default({
@@ -13876,6 +13889,11 @@ var SupraClient = class _SupraClient {
       url: `/transactions/${transactionHash}`,
       timeout: this.requestTimeout
     });
+    if (resData.data.transaction == null) {
+      throw new Error(
+        "Transaction Not Found, May Be Transaction Hash Is Invalid"
+      );
+    }
     return {
       txHash: transactionHash,
       sender: resData.data.sender,
@@ -13980,7 +13998,8 @@ var SupraClient = class _SupraClient {
           functionArgs
         )
       ),
-      BigInt(5e5),
+      BigInt(5e3),
+      // Setting MaxGasAmount As 5000 Because In Devnet Only Those Transactions Will Be Executing Using This Method Whose Gas Consumption Will Always Less Than 5000
       // await this.getGasPrice(),
       BigInt(100),
       BigInt(4e6 * 1e4),
