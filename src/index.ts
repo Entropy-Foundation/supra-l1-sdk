@@ -39,6 +39,36 @@ interface TransactionDetail {
   blockHash: string;
 }
 
+interface SendTxPayload {
+  Move: {
+    raw_txn: {
+      sender: string;
+      sequence_number: number;
+      payload: {
+        EntryFunction: {
+          module: {
+            address: string;
+            name: string;
+          };
+          function: string;
+          ty_args: Array<any>;
+          args: Array<Array<number>>;
+        };
+      };
+      max_gas_amount: number;
+      gas_unit_price: number;
+      expiration_timestamp_secs: number;
+      chain_id: number;
+    };
+    authenticator: {
+      Ed25519: {
+        public_key: string;
+        signature: string;
+      };
+    };
+  };
+}
+
 export class SupraClient {
   supraNodeURL: string;
   chainId: TxnBuilderTypes.ChainId;
@@ -48,7 +78,7 @@ export class SupraClient {
 
   constructor(
     url: string,
-    chainId: TxnBuilderTypes.ChainId = new TxnBuilderTypes.ChainId(Number(4))
+    chainId: TxnBuilderTypes.ChainId = new TxnBuilderTypes.ChainId(Number(3))
   ) {
     this.supraNodeURL = url;
     this.chainId = chainId;
@@ -238,6 +268,67 @@ export class SupraClient {
     return TransactionStatus.Pending;
   }
 
+  private async sendTx(
+    sendTxJsonPayload: SendTxPayload
+  ): Promise<TransactionResponse> {
+    let resData = await axios({
+      method: "post",
+      baseURL: this.supraNodeURL,
+      url: "/transactions/submit",
+      data: sendTxJsonPayload,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      timeout: this.requestTimeout,
+    });
+    return {
+      txHash: resData.data.txn_hash,
+      result: await this.waitForTransactionCompletion(resData.data.txn_hash),
+    };
+  }
+
+  private async getSendTxPayload(
+    senderAccount: AptosAccount,
+    rawTxn: TxnBuilderTypes.RawTransaction
+  ): Promise<SendTxPayload> {
+    console.log("Sequence Number: ", rawTxn.sequence_number);
+
+    let txPayload = (
+      rawTxn.payload as TxnBuilderTypes.TransactionPayloadEntryFunction
+    ).value;
+    return {
+      Move: {
+        raw_txn: {
+          sender: senderAccount.address().toString(),
+          sequence_number: Number(rawTxn.sequence_number),
+          payload: {
+            EntryFunction: {
+              module: {
+                address: txPayload.module_name.address.toHexString().toString(),
+                name: txPayload.module_name.name.value,
+              },
+              function: txPayload.function_name.value,
+              ty_args: [],
+              args: fromUint8ArrayToJSArray(txPayload.args),
+            },
+          },
+          max_gas_amount: Number(rawTxn.max_gas_amount),
+          gas_unit_price: Number(rawTxn.gas_unit_price),
+          expiration_timestamp_secs: Number(rawTxn.expiration_timestamp_secs),
+          chain_id: rawTxn.chain_id.value,
+        },
+        authenticator: {
+          Ed25519: {
+            public_key: senderAccount.pubKey().toString(),
+            signature: senderAccount
+              .signBuffer(TransactionBuilder.getSigningMessage(rawTxn))
+              .toString(),
+          },
+        },
+      },
+    };
+  }
+
   private async getTxObject(
     senderAddr: HexString,
     moduleAddr: string,
@@ -249,6 +340,7 @@ export class SupraClient {
     return new TxnBuilderTypes.RawTransaction(
       new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
       await this.getAccountSequenceNumber(senderAddr),
+      // BigInt(0),
       new TxnBuilderTypes.TransactionPayloadEntryFunction(
         new TxnBuilderTypes.EntryFunction(
           new TxnBuilderTypes.ModuleId(
@@ -262,69 +354,12 @@ export class SupraClient {
           functionArgs
         )
       ),
-      BigInt(5000), // Setting MaxGasAmount As 5000 Because In Devnet Only Those Transactions Will Be Executing Using This Method Whose Gas Consumption Will Always Less Than 5000
+      BigInt(2000), // Setting MaxGasAmount As 2000 Because In Devnet Only Those Transactions Will Be Executing Using This Method Whose Gas Consumption Will Always Less Than 2000
       // await this.getGasPrice(),
       BigInt(100),
-      BigInt(4000000 * 10000),
+      BigInt(999999999999999),
       this.chainId
     );
-  }
-
-  private async sendTx(
-    senderAccount: AptosAccount,
-    rawTxn: TxnBuilderTypes.RawTransaction
-  ): Promise<TransactionResponse> {
-    console.log("Sequence Number: ", rawTxn.sequence_number);
-    let txPayload = (
-      rawTxn.payload as TxnBuilderTypes.TransactionPayloadEntryFunction
-    ).value;
-    let resData = await axios({
-      method: "post",
-      baseURL: this.supraNodeURL,
-      url: "/transactions/submit",
-      data: {
-        Move: {
-          raw_txn: {
-            sender: senderAccount.address().toString(),
-            sequence_number: Number(rawTxn.sequence_number),
-            payload: {
-              EntryFunction: {
-                module: {
-                  address: txPayload.module_name.address
-                    .toHexString()
-                    .toString(),
-                  name: txPayload.module_name.name.value,
-                },
-                function: txPayload.function_name.value,
-                ty_args: [],
-                args: fromUint8ArrayToJSArray(txPayload.args),
-              },
-            },
-            max_gas_amount: Number(rawTxn.max_gas_amount),
-            gas_unit_price: Number(rawTxn.gas_unit_price),
-            expiration_timestamp_secs: Number(rawTxn.expiration_timestamp_secs),
-            chain_id: rawTxn.chain_id.value,
-          },
-          authenticator: {
-            Ed25519: {
-              public_key: senderAccount.pubKey().toString(),
-              signature: senderAccount
-                .signBuffer(TransactionBuilder.getSigningMessage(rawTxn))
-                .toString(),
-            },
-          },
-        },
-      },
-      headers: {
-        "Content-Type": "application/json",
-      },
-      timeout: this.requestTimeout,
-    });
-
-    return {
-      txHash: resData.data.txn_hash,
-      result: await this.waitForTransactionCompletion(resData.data.txn_hash),
-    };
   }
 
   async transferSupraCoin(
@@ -332,7 +367,7 @@ export class SupraClient {
     receiverAccountAddr: HexString,
     amount: bigint
   ): Promise<TransactionResponse> {
-    return await this.sendTx(
+    let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
       await this.getTxObject(
         senderAccount.address(),
@@ -343,6 +378,8 @@ export class SupraClient {
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)]
       )
     );
+    await this.simulateTx(sendTxPayload);
+    return await this.sendTx(sendTxPayload);
   }
 
   async publishPackage(
@@ -358,7 +395,7 @@ export class SupraClient {
       );
     }
     BCS.serializeVector(modulesTypeCode, codeSerializer);
-    return await this.sendTx(
+    let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
       await this.getTxObject(
         senderAccount.address(),
@@ -369,5 +406,27 @@ export class SupraClient {
         [BCS.bcsSerializeBytes(packageMetadata), codeSerializer.getBytes()]
       )
     );
+    await this.simulateTx(sendTxPayload);
+    return await this.sendTx(sendTxPayload);
+  }
+
+  async simulateTx(sendTxPayload: SendTxPayload): Promise<void> {
+    let resData = await axios({
+      method: "post",
+      baseURL: this.supraNodeURL,
+      url: "/transactions/simulate",
+      data: sendTxPayload,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      timeout: this.requestTimeout,
+    });
+    console.log(resData.data);
+    if (resData.data.estimated_status.split(" ")[1] !== "EXECUTED") {
+      throw new Error(
+        "Transaction Can Be Failed, Reason: " + resData.data.estimated_status
+      );
+    }
+    return;
   }
 }

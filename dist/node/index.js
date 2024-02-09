@@ -13812,7 +13812,7 @@ var sleep = (timeMs) => {
 // src/index.ts
 var SupraClient = class _SupraClient {
   // 1 Second
-  constructor(url2, chainId = new import_aptos.TxnBuilderTypes.ChainId(Number(4))) {
+  constructor(url2, chainId = new import_aptos.TxnBuilderTypes.ChainId(Number(3))) {
     this.requestTimeout = 1e4;
     // 10 Seconds
     this.maxRetryForTransactionCompletion = 20;
@@ -13976,10 +13976,60 @@ var SupraClient = class _SupraClient {
     }
     return "Pending" /* Pending */;
   }
+  async sendTx(sendTxJsonPayload) {
+    let resData = await axios_default({
+      method: "post",
+      baseURL: this.supraNodeURL,
+      url: "/transactions/submit",
+      data: sendTxJsonPayload,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      timeout: this.requestTimeout
+    });
+    return {
+      txHash: resData.data.txn_hash,
+      result: await this.waitForTransactionCompletion(resData.data.txn_hash)
+    };
+  }
+  async getSendTxPayload(senderAccount, rawTxn) {
+    console.log("Sequence Number: ", rawTxn.sequence_number);
+    let txPayload = rawTxn.payload.value;
+    return {
+      Move: {
+        raw_txn: {
+          sender: senderAccount.address().toString(),
+          sequence_number: Number(rawTxn.sequence_number),
+          payload: {
+            EntryFunction: {
+              module: {
+                address: txPayload.module_name.address.toHexString().toString(),
+                name: txPayload.module_name.name.value
+              },
+              function: txPayload.function_name.value,
+              ty_args: [],
+              args: fromUint8ArrayToJSArray(txPayload.args)
+            }
+          },
+          max_gas_amount: Number(rawTxn.max_gas_amount),
+          gas_unit_price: Number(rawTxn.gas_unit_price),
+          expiration_timestamp_secs: Number(rawTxn.expiration_timestamp_secs),
+          chain_id: rawTxn.chain_id.value
+        },
+        authenticator: {
+          Ed25519: {
+            public_key: senderAccount.pubKey().toString(),
+            signature: senderAccount.signBuffer(import_aptos.TransactionBuilder.getSigningMessage(rawTxn)).toString()
+          }
+        }
+      }
+    };
+  }
   async getTxObject(senderAddr, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs) {
     return new import_aptos.TxnBuilderTypes.RawTransaction(
       new import_aptos.TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
       await this.getAccountSequenceNumber(senderAddr),
+      // BigInt(0),
       new import_aptos.TxnBuilderTypes.TransactionPayloadEntryFunction(
         new import_aptos.TxnBuilderTypes.EntryFunction(
           new import_aptos.TxnBuilderTypes.ModuleId(
@@ -13993,62 +14043,16 @@ var SupraClient = class _SupraClient {
           functionArgs
         )
       ),
-      BigInt(5e3),
-      // Setting MaxGasAmount As 5000 Because In Devnet Only Those Transactions Will Be Executing Using This Method Whose Gas Consumption Will Always Less Than 5000
+      BigInt(2e3),
+      // Setting MaxGasAmount As 2000 Because In Devnet Only Those Transactions Will Be Executing Using This Method Whose Gas Consumption Will Always Less Than 2000
       // await this.getGasPrice(),
       BigInt(100),
-      BigInt(4e6 * 1e4),
+      BigInt(999999999999999),
       this.chainId
     );
   }
-  async sendTx(senderAccount, rawTxn) {
-    console.log("Sequence Number: ", rawTxn.sequence_number);
-    let txPayload = rawTxn.payload.value;
-    let resData = await axios_default({
-      method: "post",
-      baseURL: this.supraNodeURL,
-      url: "/transactions/submit",
-      data: {
-        Move: {
-          raw_txn: {
-            sender: senderAccount.address().toString(),
-            sequence_number: Number(rawTxn.sequence_number),
-            payload: {
-              EntryFunction: {
-                module: {
-                  address: txPayload.module_name.address.toHexString().toString(),
-                  name: txPayload.module_name.name.value
-                },
-                function: txPayload.function_name.value,
-                ty_args: [],
-                args: fromUint8ArrayToJSArray(txPayload.args)
-              }
-            },
-            max_gas_amount: Number(rawTxn.max_gas_amount),
-            gas_unit_price: Number(rawTxn.gas_unit_price),
-            expiration_timestamp_secs: Number(rawTxn.expiration_timestamp_secs),
-            chain_id: rawTxn.chain_id.value
-          },
-          authenticator: {
-            Ed25519: {
-              public_key: senderAccount.pubKey().toString(),
-              signature: senderAccount.signBuffer(import_aptos.TransactionBuilder.getSigningMessage(rawTxn)).toString()
-            }
-          }
-        }
-      },
-      headers: {
-        "Content-Type": "application/json"
-      },
-      timeout: this.requestTimeout
-    });
-    return {
-      txHash: resData.data.txn_hash,
-      result: await this.waitForTransactionCompletion(resData.data.txn_hash)
-    };
-  }
   async transferSupraCoin(senderAccount, receiverAccountAddr, amount) {
-    return await this.sendTx(
+    let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
       await this.getTxObject(
         senderAccount.address(),
@@ -14059,6 +14063,8 @@ var SupraClient = class _SupraClient {
         [receiverAccountAddr.toUint8Array(), import_aptos.BCS.bcsSerializeUint64(amount)]
       )
     );
+    await this.simulateTx(sendTxPayload);
+    return await this.sendTx(sendTxPayload);
   }
   async publishPackage(senderAccount, packageMetadata, modulesCode) {
     let codeSerializer = new import_aptos.BCS.Serializer();
@@ -14069,7 +14075,7 @@ var SupraClient = class _SupraClient {
       );
     }
     import_aptos.BCS.serializeVector(modulesTypeCode, codeSerializer);
-    return await this.sendTx(
+    let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
       await this.getTxObject(
         senderAccount.address(),
@@ -14080,6 +14086,27 @@ var SupraClient = class _SupraClient {
         [import_aptos.BCS.bcsSerializeBytes(packageMetadata), codeSerializer.getBytes()]
       )
     );
+    await this.simulateTx(sendTxPayload);
+    return await this.sendTx(sendTxPayload);
+  }
+  async simulateTx(sendTxPayload) {
+    let resData = await axios_default({
+      method: "post",
+      baseURL: this.supraNodeURL,
+      url: "/transactions/simulate",
+      data: sendTxPayload,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      timeout: this.requestTimeout
+    });
+    console.log(resData.data);
+    if (resData.data.estimated_status.split(" ")[1] !== "EXECUTED") {
+      throw new Error(
+        "Transaction Can Be Failed, Reason: " + resData.data.estimated_status
+      );
+    }
+    return;
   }
 };
 // Annotate the CommonJS export names for ESM import in node:

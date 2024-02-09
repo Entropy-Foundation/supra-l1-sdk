@@ -9,11 +9,12 @@ import * as supraSDK from "./index";
   let senderAccount = new aptos.AptosAccount(
     Buffer.from(
       // "69BAD1485DA7BE75B244B12DB72C0402FF456BD443E42AD240B756BAE19968EF",
-      "86f982c4a4277cc6b41f649743c6cf07f94d3b39c2f355c064e17a0975f1de1c",
+      "86f982c4a4277cc6b41f649743c6cf07f94d3b39c2f355c064e17a0975f1de1e",
       "hex"
     )
   );
   console.log("Sender", senderAccount.address());
+
   // To Check Whether Account Exists
   if ((await supraClient.isAccountExists(senderAccount.address())) == false) {
     console.log(
@@ -24,9 +25,11 @@ import * as supraSDK from "./index";
   }
 
   let receiverAddress = new aptos.HexString(
-    "9589339bde41fc2bdd9c37292e12420e24b4c25c4f6e61bac6ae99b87ccce2f3"
+    // "9589339bde41fc2bdd9c37292e12420e24b4c25c4f6e61bac6ae99b87ccce2f3"
+    "86f982c4a4277cc6b41f649743c6cf07f94d3b39c2f355c064e17a0975f1de1e"
   );
   console.log("Receiver", receiverAddress);
+  // console.log(await supraClient.simulateTx(senderAccount,receiverAddress,BigInt(100000000000000)));  
   console.log(
     "Receiver Account Exists: ",
     await supraClient.isAccountExists(receiverAddress)
@@ -48,7 +51,7 @@ import * as supraSDK from "./index";
   let txResData = await supraClient.transferSupraCoin(
     senderAccount,
     receiverAddress,
-    BigInt(10000)
+    BigInt(1000)
   );
   console.log("Transfer SupraCoin TxRes: ", txResData);
 
