@@ -2,10 +2,13 @@ import * as aptos from "aptos";
 import * as supraSDK from "./index";
 
 (async () => {
-  let supraClient = new supraSDK.SupraClient(
+  // let supraClient = new supraSDK.SupraClient(
+  // "https://rpc-devnet.supraoracles.com/rpc/v1/"
+  // );
+
+  let supraClient = await supraSDK.SupraClient.init(
     "https://rpc-devnet.supraoracles.com/rpc/v1/"
   );
-
   let senderAccount = new aptos.AptosAccount(
     Buffer.from(
       // "69BAD1485DA7BE75B244B12DB72C0402FF456BD443E42AD240B756BAE19968EF",
@@ -29,7 +32,7 @@ import * as supraSDK from "./index";
     "86f982c4a4277cc6b41f649743c6cf07f94d3b39c2f355c064e17a0975f1de1e"
   );
   console.log("Receiver", receiverAddress);
-  // console.log(await supraClient.simulateTx(senderAccount,receiverAddress,BigInt(100000000000000)));  
+  // console.log(await supraClient.simulateTx(senderAccount,receiverAddress,BigInt(100000000000000)));
   console.log(
     "Receiver Account Exists: ",
     await supraClient.isAccountExists(receiverAddress)

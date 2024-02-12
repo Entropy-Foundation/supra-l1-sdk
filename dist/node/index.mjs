@@ -13837,7 +13837,7 @@ var SupraClient = class _SupraClient {
       url: "/transactions/chain_id",
       timeout: this.requestTimeout
     });
-    return new TxnBuilderTypes.ChainId(Number(resData.data.id));
+    return new TxnBuilderTypes.ChainId(Number(resData.data));
   }
   async getGasPrice() {
     let resData = await axios_default({
@@ -14000,6 +14000,7 @@ var SupraClient = class _SupraClient {
   async getSendTxPayload(senderAccount, rawTxn) {
     console.log("Sequence Number: ", rawTxn.sequence_number);
     let txPayload = rawTxn.payload.value;
+    console.log(rawTxn);
     return {
       Move: {
         raw_txn: {
@@ -14068,6 +14069,7 @@ var SupraClient = class _SupraClient {
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)]
       )
     );
+    console.log(sendTxPayload);
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
   }

@@ -97,7 +97,8 @@ export class SupraClient {
       url: "/transactions/chain_id",
       timeout: this.requestTimeout,
     });
-    return new TxnBuilderTypes.ChainId(Number(resData.data.id));
+
+    return new TxnBuilderTypes.ChainId(Number(resData.data));
   }
 
   async getGasPrice(): Promise<bigint> {
@@ -296,6 +297,8 @@ export class SupraClient {
     let txPayload = (
       rawTxn.payload as TxnBuilderTypes.TransactionPayloadEntryFunction
     ).value;
+    console.log(rawTxn);
+
     return {
       Move: {
         raw_txn: {
@@ -378,6 +381,8 @@ export class SupraClient {
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)]
       )
     );
+    console.log(sendTxPayload);
+
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
   }
