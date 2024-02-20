@@ -129,6 +129,7 @@ export class SupraClient {
       url: `/accounts/${account.toString()}`,
       timeout: this.requestTimeout,
     });
+    
     if (resData.data.account == null) {
       return false;
     }
