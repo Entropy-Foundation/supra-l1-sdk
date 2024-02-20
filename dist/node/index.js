@@ -13995,7 +13995,6 @@ var SupraClient = class _SupraClient {
   async getSendTxPayload(senderAccount, rawTxn) {
     console.log("Sequence Number: ", rawTxn.sequence_number);
     let txPayload = rawTxn.payload.value;
-    console.log(rawTxn);
     return {
       Move: {
         raw_txn: {
@@ -14064,7 +14063,6 @@ var SupraClient = class _SupraClient {
         [receiverAccountAddr.toUint8Array(), import_aptos.BCS.bcsSerializeUint64(amount)]
       )
     );
-    console.log(sendTxPayload);
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
   }
@@ -14102,7 +14100,6 @@ var SupraClient = class _SupraClient {
       },
       timeout: this.requestTimeout
     });
-    console.log(resData.data);
     if (resData.data.estimated_status.split(" ")[1] !== "EXECUTED") {
       throw new Error(
         "Transaction Can Be Failed, Reason: " + resData.data.estimated_status

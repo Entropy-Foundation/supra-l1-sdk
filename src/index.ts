@@ -129,7 +129,7 @@ export class SupraClient {
       url: `/accounts/${account.toString()}`,
       timeout: this.requestTimeout,
     });
-    
+
     if (resData.data.account == null) {
       return false;
     }
@@ -298,7 +298,6 @@ export class SupraClient {
     let txPayload = (
       rawTxn.payload as TxnBuilderTypes.TransactionPayloadEntryFunction
     ).value;
-    console.log(rawTxn);
 
     return {
       Move: {
@@ -382,8 +381,6 @@ export class SupraClient {
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)]
       )
     );
-    console.log(sendTxPayload);
-
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
   }
@@ -427,7 +424,6 @@ export class SupraClient {
       },
       timeout: this.requestTimeout,
     });
-    console.log(resData.data);
     if (resData.data.estimated_status.split(" ")[1] !== "EXECUTED") {
       throw new Error(
         "Transaction Can Be Failed, Reason: " + resData.data.estimated_status
