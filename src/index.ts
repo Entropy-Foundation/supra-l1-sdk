@@ -73,7 +73,7 @@ export class SupraClient {
   supraNodeURL: string;
   chainId: TxnBuilderTypes.ChainId;
   requestTimeout = 10000; // 10 Seconds
-  maxRetryForTransactionCompletion = 20;
+  maxRetryForTransactionCompletion = 60;
   delayBetweenPoolingRequest = 1000; // 1 Second
 
   constructor(
@@ -118,7 +118,9 @@ export class SupraClient {
       url: `/wallet/airdrop/${account.toString()}`,
       timeout: this.requestTimeout,
     });
-    await this.waitForTransactionCompletion(resData.data.transactions[1]);
+    this.waitForTransactionCompletion(
+      resData.data.transactions[resData.data.transactions.length - 1]
+    );
     return resData.data.transactions;
   }
 
@@ -227,7 +229,8 @@ export class SupraClient {
       timeout: this.requestTimeout,
     });
     if (resData.data.coins == null) {
-      throw new Error("Account Not Exists, Or Invalid Account Is Passed");
+      console.log("Account Not Exists, Or Invalid Account Is Passed");
+      return BigInt(0);
     }
     return BigInt(resData.data.coins.coin);
   }
@@ -338,12 +341,12 @@ export class SupraClient {
     moduleName: string,
     functionName: string,
     functionTypeArgs: [],
-    functionArgs: Uint8Array[]
+    functionArgs: Uint8Array[],
+    maxGas: bigint = BigInt(2000)
   ): Promise<TxnBuilderTypes.RawTransaction> {
     return new TxnBuilderTypes.RawTransaction(
       new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
       await this.getAccountSequenceNumber(senderAddr),
-      // BigInt(0),
       new TxnBuilderTypes.TransactionPayloadEntryFunction(
         new TxnBuilderTypes.EntryFunction(
           new TxnBuilderTypes.ModuleId(
@@ -357,7 +360,7 @@ export class SupraClient {
           functionArgs
         )
       ),
-      BigInt(2000), // Setting MaxGasAmount As 2000 Because In Devnet Only Those Transactions Will Be Executing Using This Method Whose Gas Consumption Will Always Less Than 2000
+      maxGas, // Setting MaxGasAmount As 2000 Because In Devnet Only Those Transactions Will Be Executing Using This Method Whose Gas Consumption Will Always Less Than 2000
       // await this.getGasPrice(),
       BigInt(100),
       BigInt(999999999999999),
@@ -370,6 +373,20 @@ export class SupraClient {
     receiverAccountAddr: HexString,
     amount: bigint
   ): Promise<TransactionResponse> {
+    let maxGas = BigInt(10);
+    if ((await this.isAccountExists(receiverAccountAddr)) == false) {
+      maxGas = BigInt(1020);
+    }
+    // Note: Here We Are Checking Whether User Have SupraCoin Balance More Than AmountToSend + Expected Tx Cost.
+    // As Per Our Assumption The Gas Usage For Coin Transfer Will Be 6 When Receiver Account Exists But Despite Of That We Will Set maxGas Value As 10.
+    // Along With This As Per Our Assumption Expected Gas Usage For Coin Transfer Will Be 1009 When Receiver Account Not Exists,
+    // But Despite That We Will Set maxGas Value As 1020 For That Type Of Transaction.
+    if (
+      amount + maxGas * BigInt(100) >
+      (await this.getAccountSupraCoinBalance(senderAccount.address()))
+    ) {
+      throw new Error("Insufficient Supra Coins");
+    }
     let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
       await this.getTxObject(
@@ -378,7 +395,8 @@ export class SupraClient {
         "aptos_account",
         "transfer",
         [],
-        [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)]
+        [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)],
+        maxGas
       )
     );
     await this.simulateTx(sendTxPayload);
@@ -429,6 +447,7 @@ export class SupraClient {
         "Transaction Can Be Failed, Reason: " + resData.data.estimated_status
       );
     }
+    console.log("Transaction Simulation Done");
     return;
   }
 }
