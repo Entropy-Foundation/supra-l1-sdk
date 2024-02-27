@@ -7,67 +7,12 @@ import {
 } from "aptos";
 import axios from "axios";
 import { normalizeAddress, fromUint8ArrayToJSArray, sleep } from "./utils";
-
-enum TransactionStatus {
-  Pending = "Pending",
-  Unexecuted = "Unexecuted",
-  Success = "Success",
-  Failed = "Fail",
-  Invalid = "Invalid",
-}
-
-interface TransactionResponse {
-  txHash: string;
-  result: TransactionStatus;
-}
-
-interface TransactionDetail {
-  txHash: string;
-  sender: string;
-  receiver: string;
-  amount: number;
-  sequenceNumber: number;
-  maxGasAmount: number;
-  gasUnitPrice: number;
-  gasUsed: number;
-  transactionCost: number;
-  txConfirmationTime: number;
-  status: TransactionStatus;
-  action: string;
-  events: any;
-  blockNumber: number;
-  blockHash: string;
-}
-
-interface SendTxPayload {
-  Move: {
-    raw_txn: {
-      sender: string;
-      sequence_number: number;
-      payload: {
-        EntryFunction: {
-          module: {
-            address: string;
-            name: string;
-          };
-          function: string;
-          ty_args: Array<any>;
-          args: Array<Array<number>>;
-        };
-      };
-      max_gas_amount: number;
-      gas_unit_price: number;
-      expiration_timestamp_secs: number;
-      chain_id: number;
-    };
-    authenticator: {
-      Ed25519: {
-        public_key: string;
-        signature: string;
-      };
-    };
-  };
-}
+import {
+  TransactionStatus,
+  TransactionResponse,
+  TransactionDetail,
+  SendTxPayload,
+} from "./types";
 
 export class SupraClient {
   supraNodeURL: string;
@@ -108,6 +53,7 @@ export class SupraClient {
       url: "/transactions/estimate_gas_price",
       timeout: this.requestTimeout,
     });
+
     return BigInt(resData.data.mean_gas_price);
   }
 
@@ -118,7 +64,8 @@ export class SupraClient {
       url: `/wallet/airdrop/${account.toString()}`,
       timeout: this.requestTimeout,
     });
-    this.waitForTransactionCompletion(
+
+    await this.waitForTransactionCompletion(
       resData.data.transactions[resData.data.transactions.length - 1]
     );
     return resData.data.transactions;
@@ -145,6 +92,7 @@ export class SupraClient {
       url: `/accounts/${account.toString()}`,
       timeout: this.requestTimeout,
     });
+
     if (resData.data.account == null) {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
     }
@@ -160,6 +108,7 @@ export class SupraClient {
       url: `/transactions/${transactionHash}`,
       timeout: this.requestTimeout,
     });
+
     if (resData.data.transaction == null) {
       throw new Error(
         "Transaction Not Found, May Be Transaction Hash Is Invalid"
@@ -198,6 +147,7 @@ export class SupraClient {
     if (resData.data.record == null) {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
     }
+
     let supraCoinTransferHistory: TransactionDetail[] = [];
     resData.data.record.forEach((data: any) => {
       supraCoinTransferHistory.push({

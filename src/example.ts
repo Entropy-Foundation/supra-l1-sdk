@@ -2,19 +2,22 @@ import * as aptos from "aptos";
 import * as supraSDK from "./index";
 
 (async () => {
-  // let supraClient = new supraSDK.SupraClient(
-  // "https://rpc-devnet.supraoracles.com/rpc/v1/"
-  // );
-
-  let supraClient = await supraSDK.SupraClient.init(
-    "https://rpc-wallet.supra.com/rpc/v1/"
+  // To Create Instance Of Supra Client.
+  // Note: Here We Need To Pass ChainId, Default ChainId Value Is 3
+  let supraClient = new supraSDK.SupraClient(
+    "https://rpc-wallet.supra.com/rpc/v1/",
+    new aptos.TxnBuilderTypes.ChainId(Number(3))
   );
+
+  // // To Create Instance Of Supra Client, But In This Method We Don't Need To Pass ChainId.
+  // // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
+  // let supraClient = await supraSDK.SupraClient.init(
+  //   "https://rpc-wallet.supra.com/rpc/v1/"
+  // );
 
   let senderAccount = new aptos.AptosAccount(
     Buffer.from(
-      // "69BAD1485DA7BE75B244B12DB72C0402FF456BD443E42AD240B756BAE19968EF",
-      // "86f982c4a4277cc6b41f649743c6cf07f94d3b39c2f355c064e17a0975f1de1e",
-      "86f982c4a4277cc6b41f649743c6cf07f94d3b39c2f355c064e17a0975f1de11",
+      "86f982c4a4277cc6b41f649743c6cf07f94d3b39c2f355c064e17a0975f1de16",
       "hex"
     )
   );
@@ -31,7 +34,6 @@ import * as supraSDK from "./index";
 
   let receiverAddress = new aptos.HexString(
     "9589339bde41fc2bdd9c37292e12420e24b4c25c4f6e61bac6ae99b87ccce2f2"
-    // "86f982c4a4277cc6b41f649743c6cf07f94d3b39c2f355c064e17a0975f1de1e"
   );
   console.log("Receiver", receiverAddress);
 

@@ -57,6 +57,7 @@ interface SendTxPayload {
         };
     };
 }
+
 declare class SupraClient {
     supraNodeURL: string;
     chainId: TxnBuilderTypes.ChainId;

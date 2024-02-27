@@ -13850,7 +13850,7 @@ var SupraClient = class _SupraClient {
       url: `/wallet/airdrop/${account.toString()}`,
       timeout: this.requestTimeout
     });
-    this.waitForTransactionCompletion(
+    await this.waitForTransactionCompletion(
       resData.data.transactions[resData.data.transactions.length - 1]
     );
     return resData.data.transactions;
