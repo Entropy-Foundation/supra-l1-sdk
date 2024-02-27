@@ -13812,13 +13812,13 @@ var sleep = (timeMs) => {
 // src/index.ts
 var SupraClient = class _SupraClient {
   // 1 Second
-  constructor(url2, chainId = new import_aptos.TxnBuilderTypes.ChainId(Number(3))) {
+  constructor(url2, chainId = Number(3)) {
     this.requestTimeout = 1e4;
     // 10 Seconds
     this.maxRetryForTransactionCompletion = 60;
     this.delayBetweenPoolingRequest = 1e3;
     this.supraNodeURL = url2;
-    this.chainId = chainId;
+    this.chainId = new import_aptos.TxnBuilderTypes.ChainId(chainId);
   }
   static async init(url2) {
     let supraClient = new _SupraClient(url2);

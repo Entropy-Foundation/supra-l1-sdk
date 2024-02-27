@@ -64,7 +64,7 @@ declare class SupraClient {
     requestTimeout: number;
     maxRetryForTransactionCompletion: number;
     delayBetweenPoolingRequest: number;
-    constructor(url: string, chainId?: TxnBuilderTypes.ChainId);
+    constructor(url: string, chainId?: number);
     static init(url: string): Promise<SupraClient>;
     getChainId(): Promise<TxnBuilderTypes.ChainId>;
     getGasPrice(): Promise<bigint>;
