@@ -21,12 +21,9 @@ export class SupraClient {
   maxRetryForTransactionCompletion = 60;
   delayBetweenPoolingRequest = 1000; // 1 Second
 
-  constructor(
-    url: string,
-    chainId: TxnBuilderTypes.ChainId = new TxnBuilderTypes.ChainId(Number(3))
-  ) {
+  constructor(url: string, chainId: number = Number(3)) {
     this.supraNodeURL = url;
-    this.chainId = chainId;
+    this.chainId = new TxnBuilderTypes.ChainId(chainId);
   }
 
   static async init(url: string): Promise<SupraClient> {
