@@ -58,7 +58,7 @@ export class SupraClient {
     let resData = await axios({
       method: "get",
       baseURL: this.supraNodeURL,
-      url: `/wallet/airdrop/${account.toString()}`,
+      url: `/wallet/faucet/${account.toString()}`,
       timeout: this.requestTimeout,
     });
 

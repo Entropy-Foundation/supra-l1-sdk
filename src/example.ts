@@ -41,6 +41,7 @@ import * as supraSDK from "./index";
     "Receiver Account Exists: ",
     await supraClient.isAccountExists(receiverAddress)
   );
+  // Restructuring
 
   console.log(
     "Sender Balance Before TX: ",

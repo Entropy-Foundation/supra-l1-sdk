@@ -13852,7 +13852,7 @@ var SupraClient = class _SupraClient {
     let resData = await axios_default({
       method: "get",
       baseURL: this.supraNodeURL,
-      url: `/wallet/airdrop/${account.toString()}`,
+      url: `/wallet/faucet/${account.toString()}`,
       timeout: this.requestTimeout
     });
     await this.waitForTransactionCompletion(
