@@ -30,7 +30,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aptos": "^1.21.0"
+    "aptos": "^1.21.0",
+    "https": "^1.0.0"
   },
   "devDependencies": {
     "clean-webpack-plugin": "^4.0.0",

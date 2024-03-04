@@ -9158,7 +9158,7 @@ var require_form_data = __commonJS({
     var util2 = require("util");
     var path = require("path");
     var http2 = require("http");
-    var https2 = require("https");
+    var https3 = require("https");
     var parseUrl = require("url").parse;
     var fs = require("fs");
     var Stream = require("stream").Stream;
@@ -9426,7 +9426,7 @@ var require_form_data = __commonJS({
       }
       options.headers = this.getHeaders(params.headers);
       if (options.protocol == "https:") {
-        request = https2.request(options);
+        request = https3.request(options);
       } else {
         request = http2.request(options);
       }
@@ -10329,7 +10329,7 @@ var require_follow_redirects = __commonJS({
     var url2 = require("url");
     var URL2 = url2.URL;
     var http2 = require("http");
-    var https2 = require("https");
+    var https3 = require("https");
     var Writable = require("stream").Writable;
     var assert = require("assert");
     var debug = require_debug();
@@ -10803,7 +10803,7 @@ var require_follow_redirects = __commonJS({
     function isURL(value) {
       return URL2 && value instanceof URL2;
     }
-    module2.exports = wrap({ http: http2, https: https2 });
+    module2.exports = wrap({ http: http2, https: https3 });
     module2.exports.wrap = wrap;
   }
 });
@@ -13810,6 +13810,7 @@ var sleep = (timeMs) => {
 };
 
 // src/index.ts
+var import_https2 = __toESM(require("https"));
 var SupraClient = class _SupraClient {
   // 1 Second
   constructor(url2, chainId = Number(3)) {
@@ -13825,67 +13826,79 @@ var SupraClient = class _SupraClient {
     supraClient.chainId = await supraClient.getChainId();
     return supraClient;
   }
+  async sendRequest(isGetMethod, subURL, data) {
+    if (isGetMethod == true) {
+      return await axios_default({
+        method: "get",
+        baseURL: this.supraNodeURL,
+        url: subURL,
+        timeout: this.requestTimeout,
+        httpsAgent: new import_https2.default.Agent({
+          rejectUnauthorized: false
+        })
+      });
+    } else {
+      if (data == void 0) {
+        throw new Error("For Post Request 'data' Should Not Be 'undefined'");
+      }
+      return await axios_default({
+        method: "post",
+        baseURL: this.supraNodeURL,
+        url: subURL,
+        data,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        timeout: this.requestTimeout,
+        httpsAgent: new import_https2.default.Agent({
+          rejectUnauthorized: false
+        })
+      });
+    }
+  }
   async getChainId() {
-    let resData = await axios_default({
-      method: "get",
-      baseURL: this.supraNodeURL,
-      url: "/transactions/chain_id",
-      timeout: this.requestTimeout
-    });
-    return new import_aptos.TxnBuilderTypes.ChainId(Number(resData.data));
+    return new import_aptos.TxnBuilderTypes.ChainId(
+      Number(
+        (await this.sendRequest(true, "/rpc/v1/transactions/chain_id")).data
+      )
+    );
   }
   async getGasPrice() {
-    let resData = await axios_default({
-      method: "get",
-      baseURL: this.supraNodeURL,
-      url: "/transactions/estimate_gas_price",
-      timeout: this.requestTimeout
-    });
-    return BigInt(resData.data.mean_gas_price);
+    return BigInt(
+      (await this.sendRequest(true, "/rpc/v1/transactions/estimate_gas_price")).data.mean_gas_price
+    );
   }
   async fundAccountWithFaucet(account) {
-    let resData = await axios_default({
-      method: "get",
-      baseURL: this.supraNodeURL,
-      url: `/wallet/faucet/${account.toString()}`,
-      timeout: this.requestTimeout
-    });
+    let resData = await this.sendRequest(
+      true,
+      `/rpc/v1/wallet/faucet/${account.toString()}`
+    );
     await this.waitForTransactionCompletion(
       resData.data.transactions[resData.data.transactions.length - 1]
     );
     return resData.data.transactions;
   }
   async isAccountExists(account) {
-    let resData = await axios_default({
-      method: "get",
-      baseURL: this.supraNodeURL,
-      url: `/accounts/${account.toString()}`,
-      timeout: this.requestTimeout
-    });
-    if (resData.data.account == null) {
+    if ((await this.sendRequest(true, `/rpc/v1/accounts/${account.toString()}`)).data.account == null) {
       return false;
     }
     return true;
   }
   async getAccountSequenceNumber(account) {
-    let resData = await axios_default({
-      method: "get",
-      baseURL: this.supraNodeURL,
-      url: `/accounts/${account.toString()}`,
-      timeout: this.requestTimeout
-    });
+    let resData = await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}`
+    );
     if (resData.data.account == null) {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
     }
     return BigInt(resData.data.account.sequence_number);
   }
   async getTransactionDetail(transactionHash) {
-    let resData = await axios_default({
-      method: "get",
-      baseURL: this.supraNodeURL,
-      url: `/transactions/${transactionHash}`,
-      timeout: this.requestTimeout
-    });
+    let resData = await this.sendRequest(
+      true,
+      `/rpc/v1/transactions/${transactionHash}`
+    );
     if (resData.data.transaction == null) {
       throw new Error(
         "Transaction Not Found, May Be Transaction Hash Is Invalid"
@@ -13910,12 +13923,10 @@ var SupraClient = class _SupraClient {
     };
   }
   async getSupraTransferHistory(account, count = 15, fromTx = "0000000000000000000000000000000000000000000000000000000000000000") {
-    let resData = await axios_default({
-      method: "get",
-      baseURL: this.supraNodeURL,
-      url: `/accounts/${account.toString()}/transactions?count=${count}&last_seen=${fromTx}`,
-      timeout: this.requestTimeout
-    });
+    let resData = await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}&last_seen=${fromTx}`
+    );
     if (resData.data.record == null) {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
     }
@@ -13942,12 +13953,10 @@ var SupraClient = class _SupraClient {
     return supraCoinTransferHistory;
   }
   async getAccountSupraCoinBalance(account) {
-    let resData = await axios_default({
-      method: "get",
-      baseURL: this.supraNodeURL,
-      url: `/accounts/${account.toString()}/coin`,
-      timeout: this.requestTimeout
-    });
+    let resData = await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}/coin`
+    );
     if (resData.data.coins == null) {
       console.log("Account Not Exists, Or Invalid Account Is Passed");
       return BigInt(0);
@@ -13960,13 +13969,10 @@ var SupraClient = class _SupraClient {
         "transactionHash length must be 64 or it's size must be 256 bits"
       );
     }
-    let resData = await axios_default({
-      method: "get",
-      baseURL: this.supraNodeURL,
-      url: `/transactions/${transactionHash}/status`,
-      timeout: this.requestTimeout
-    });
-    return resData.data.status;
+    return (await this.sendRequest(
+      true,
+      `/rpc/v1/transactions/${transactionHash}/status`
+    )).data.status;
   }
   async waitForTransactionCompletion(txHash) {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
@@ -13980,16 +13986,11 @@ var SupraClient = class _SupraClient {
     return "Pending" /* Pending */;
   }
   async sendTx(sendTxJsonPayload) {
-    let resData = await axios_default({
-      method: "post",
-      baseURL: this.supraNodeURL,
-      url: "/transactions/submit",
-      data: sendTxJsonPayload,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      timeout: this.requestTimeout
-    });
+    let resData = await this.sendRequest(
+      false,
+      "/rpc/v1/transactions/submit",
+      sendTxJsonPayload
+    );
     return {
       txHash: resData.data.txn_hash,
       result: await this.waitForTransactionCompletion(resData.data.txn_hash)
@@ -14100,16 +14101,11 @@ var SupraClient = class _SupraClient {
     return await this.sendTx(sendTxPayload);
   }
   async simulateTx(sendTxPayload) {
-    let resData = await axios_default({
-      method: "post",
-      baseURL: this.supraNodeURL,
-      url: "/transactions/simulate",
-      data: sendTxPayload,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      timeout: this.requestTimeout
-    });
+    let resData = await this.sendRequest(
+      false,
+      "/rpc/v1/transactions/simulate",
+      sendTxPayload
+    );
     if (resData.data.estimated_status.split(" ")[1] !== "EXECUTED") {
       throw new Error(
         "Transaction Can Be Failed, Reason: " + resData.data.estimated_status

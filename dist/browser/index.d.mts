@@ -1,4 +1,5 @@
 import { TxnBuilderTypes, HexString, AptosAccount } from 'aptos';
+import { AxiosResponse } from 'axios';
 
 declare enum TransactionStatus {
     Pending = "Pending",
@@ -66,6 +67,7 @@ declare class SupraClient {
     delayBetweenPoolingRequest: number;
     constructor(url: string, chainId?: number);
     static init(url: string): Promise<SupraClient>;
+    sendRequest(isGetMethod: boolean, subURL: string, data?: any): Promise<AxiosResponse<any, any>>;
     getChainId(): Promise<TxnBuilderTypes.ChainId>;
     getGasPrice(): Promise<bigint>;
     fundAccountWithFaucet(account: HexString): Promise<string[]>;
