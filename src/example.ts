@@ -13,7 +13,7 @@ import * as supraSDK from "./index";
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await supraSDK.SupraClient.init(
     // "https://rpc-wallet.supra.com/rpc/v1/"
-    "https://34.39.12.6:26000/",
+    "https://rpc-devnet.supraoracles.com/",
   );
 
   let senderAccount = new aptos.AptosAccount(

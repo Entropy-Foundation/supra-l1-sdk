@@ -13,7 +13,6 @@ import {
   TransactionDetail,
   SendTxPayload,
 } from "./types";
-import https from "https";
 
 export class SupraClient {
   supraNodeURL: string;
@@ -38,21 +37,19 @@ export class SupraClient {
     subURL: string,
     data?: any
   ): Promise<AxiosResponse<any, any>> {
+    let resData;
     if (isGetMethod == true) {
-      return await axios({
+      resData = await axios({
         method: "get",
         baseURL: this.supraNodeURL,
         url: subURL,
         timeout: this.requestTimeout,
-        httpsAgent: new https.Agent({
-          rejectUnauthorized: false,
-        }),
       });
     } else {
       if (data == undefined) {
         throw new Error("For Post Request 'data' Should Not Be 'undefined'");
       }
-      return await axios({
+      resData = await axios({
         method: "post",
         baseURL: this.supraNodeURL,
         url: subURL,
@@ -61,11 +58,12 @@ export class SupraClient {
           "Content-Type": "application/json",
         },
         timeout: this.requestTimeout,
-        httpsAgent: new https.Agent({
-          rejectUnauthorized: false,
-        }),
       });
     }
+    if (resData.status == 404) {
+      throw new Error("Invalid URL, Path Not Found");
+    }
+    return resData;
   }
 
   async getChainId(): Promise<TxnBuilderTypes.ChainId> {
