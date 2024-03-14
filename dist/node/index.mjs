@@ -9163,7 +9163,7 @@ var require_form_data = __commonJS({
     var util2 = __require("util");
     var path = __require("path");
     var http2 = __require("http");
-    var https3 = __require("https");
+    var https2 = __require("https");
     var parseUrl = __require("url").parse;
     var fs = __require("fs");
     var Stream = __require("stream").Stream;
@@ -9431,7 +9431,7 @@ var require_form_data = __commonJS({
       }
       options.headers = this.getHeaders(params.headers);
       if (options.protocol == "https:") {
-        request = https3.request(options);
+        request = https2.request(options);
       } else {
         request = http2.request(options);
       }
@@ -10334,7 +10334,7 @@ var require_follow_redirects = __commonJS({
     var url2 = __require("url");
     var URL2 = url2.URL;
     var http2 = __require("http");
-    var https3 = __require("https");
+    var https2 = __require("https");
     var Writable = __require("stream").Writable;
     var assert = __require("assert");
     var debug = require_debug();
@@ -10808,7 +10808,7 @@ var require_follow_redirects = __commonJS({
     function isURL(value) {
       return URL2 && value instanceof URL2;
     }
-    module.exports = wrap({ http: http2, https: https3 });
+    module.exports = wrap({ http: http2, https: https2 });
     module.exports.wrap = wrap;
   }
 });
@@ -13815,7 +13815,6 @@ var sleep = (timeMs) => {
 };
 
 // src/index.ts
-import https2 from "https";
 var SupraClient = class _SupraClient {
   // 1 Second
   constructor(url2, chainId = Number(3)) {
@@ -13832,21 +13831,19 @@ var SupraClient = class _SupraClient {
     return supraClient;
   }
   async sendRequest(isGetMethod, subURL, data) {
+    let resData;
     if (isGetMethod == true) {
-      return await axios_default({
+      resData = await axios_default({
         method: "get",
         baseURL: this.supraNodeURL,
         url: subURL,
-        timeout: this.requestTimeout,
-        httpsAgent: new https2.Agent({
-          rejectUnauthorized: false
-        })
+        timeout: this.requestTimeout
       });
     } else {
       if (data == void 0) {
         throw new Error("For Post Request 'data' Should Not Be 'undefined'");
       }
-      return await axios_default({
+      resData = await axios_default({
         method: "post",
         baseURL: this.supraNodeURL,
         url: subURL,
@@ -13854,12 +13851,13 @@ var SupraClient = class _SupraClient {
         headers: {
           "Content-Type": "application/json"
         },
-        timeout: this.requestTimeout,
-        httpsAgent: new https2.Agent({
-          rejectUnauthorized: false
-        })
+        timeout: this.requestTimeout
       });
     }
+    if (resData.status == 404) {
+      throw new Error("Invalid URL, Path Not Found");
+    }
+    return resData;
   }
   async getChainId() {
     return new TxnBuilderTypes.ChainId(
