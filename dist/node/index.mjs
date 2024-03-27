@@ -13825,6 +13825,11 @@ var SupraClient = class _SupraClient {
     this.supraNodeURL = url2;
     this.chainId = new TxnBuilderTypes.ChainId(chainId);
   }
+  /**
+   * Creates and initializes `SupraClient` instance
+   * @param url rpc url of supra rpc node
+   * @returns `SupraClient` initialized instance
+   */
   static async init(url2) {
     let supraClient = new _SupraClient(url2);
     supraClient.chainId = await supraClient.getChainId();
@@ -13859,6 +13864,10 @@ var SupraClient = class _SupraClient {
     }
     return resData;
   }
+  /**
+   * Get Chain Id Of Supra Network
+   * @returns Chain Id of network
+   */
   async getChainId() {
     return new TxnBuilderTypes.ChainId(
       Number(
@@ -13866,11 +13875,20 @@ var SupraClient = class _SupraClient {
       )
     );
   }
+  /**
+   * Get current mean_gas_price
+   * @returns Current mean_gas_price
+   */
   async getGasPrice() {
     return BigInt(
       (await this.sendRequest(true, "/rpc/v1/transactions/estimate_gas_price")).data.mean_gas_price
     );
   }
+  /**
+   * Airdrop test Supra token on given account
+   * @param account Hex-encoded 32 byte Supra account address
+   * @returns Transaction hash of faucet transaction
+   */
   async fundAccountWithFaucet(account) {
     let resData = await this.sendRequest(
       true,
@@ -13881,12 +13899,22 @@ var SupraClient = class _SupraClient {
     );
     return resData.data.transactions;
   }
+  /**
+   * Check whether given account exists onchain or not
+   * @param account Hex-encoded 32 byte Supra account address
+   * @returns true if account exists otherwise false
+   */
   async isAccountExists(account) {
     if ((await this.sendRequest(true, `/rpc/v1/accounts/${account.toString()}`)).data.account == null) {
       return false;
     }
     return true;
   }
+  /**
+   * Get sequence number of given supra account
+   * @param account Hex-encoded 32 byte Supra account address
+   * @returns Sequence number
+   */
   async getAccountSequenceNumber(account) {
     let resData = await this.sendRequest(
       true,
@@ -13897,6 +13925,11 @@ var SupraClient = class _SupraClient {
     }
     return BigInt(resData.data.account.sequence_number);
   }
+  /**
+   * Get transaction details of given transaction hash
+   * @param transactionHash Transaction hash for getting transaction details
+   * @returns Transaction Details
+   */
   async getTransactionDetail(transactionHash) {
     let resData = await this.sendRequest(
       true,
@@ -13925,6 +13958,13 @@ var SupraClient = class _SupraClient {
       blockHash: resData.data.block_hash
     };
   }
+  /**
+   * Get Supra Transfer related transactions details
+   * @param account Supra account address
+   * @param count Number of transactions details
+   * @param fromTx Transaction hash from which transactions details have to be retrieved
+   * @returns Transaction Details
+   */
   async getSupraTransferHistory(account, count = 15, fromTx = "0000000000000000000000000000000000000000000000000000000000000000") {
     let resData = await this.sendRequest(
       true,
@@ -13955,6 +13995,11 @@ var SupraClient = class _SupraClient {
     });
     return supraCoinTransferHistory;
   }
+  /**
+   * Get Supra balance of given account
+   * @param account Supra Account address for getting balance
+   * @returns Supra Balance
+   */
   async getAccountSupraCoinBalance(account) {
     let resData = await this.sendRequest(
       true,
@@ -13966,6 +14011,11 @@ var SupraClient = class _SupraClient {
     }
     return BigInt(resData.data.coins.coin);
   }
+  /**
+   * Get transaction status of given transaction hash
+   * @param transactionHash transaction hash for getting transaction status
+   * @returns Transaction status
+   */
   async getTransactionStatus(transactionHash) {
     if (transactionHash.length != 64) {
       throw new Error(
@@ -13981,7 +14031,6 @@ var SupraClient = class _SupraClient {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
       let txStatus = await this.getTransactionStatus(txHash);
       if (txStatus != "Pending" /* Pending */ && txStatus != "Unexecuted" /* Unexecuted */) {
-        await sleep(5e3);
         return txStatus;
       }
       await sleep(this.delayBetweenPoolingRequest);
@@ -14057,6 +14106,13 @@ var SupraClient = class _SupraClient {
       this.chainId
     );
   }
+  /**
+   * Transfer supra coin
+   * @param senderAccount Sender KeyPair
+   * @param receiverAccountAddr Receiver Supra Account address
+   * @param amount Amount to transfer
+   * @returns Transaction Response
+   */
   async transferSupraCoin(senderAccount, receiverAccountAddr, amount) {
     let maxGas = BigInt(10);
     if (await this.isAccountExists(receiverAccountAddr) == false) {
@@ -14080,6 +14136,13 @@ var SupraClient = class _SupraClient {
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
   }
+  /**
+   * Publish package or module on supra network
+   * @param senderAccount Module Publisher KeyPair
+   * @param packageMetadata Package Metadata
+   * @param modulesCode module code
+   * @returns Transaction Response
+   */
   async publishPackage(senderAccount, packageMetadata, modulesCode) {
     let codeSerializer = new BCS.Serializer();
     let modulesTypeCode = [];
@@ -14103,6 +14166,10 @@ var SupraClient = class _SupraClient {
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
   }
+  /**
+   * Simulate a transaction using the provided transaction payload
+   * @param sendTxPayload Transaction payload
+   */
   async simulateTx(sendTxPayload) {
     let resData = await this.sendRequest(
       false,

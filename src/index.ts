@@ -14,6 +14,9 @@ import {
   SendTxPayload,
 } from "./types";
 
+/**
+ * Provides methods for interacting with supra rpc node.
+ */
 export class SupraClient {
   supraNodeURL: string;
   chainId: TxnBuilderTypes.ChainId;
@@ -26,13 +29,18 @@ export class SupraClient {
     this.chainId = new TxnBuilderTypes.ChainId(chainId);
   }
 
+  /**
+   * Creates and initializes `SupraClient` instance
+   * @param url rpc url of supra rpc node
+   * @returns `SupraClient` initialized instance
+   */
   static async init(url: string): Promise<SupraClient> {
     let supraClient = new SupraClient(url);
     supraClient.chainId = await supraClient.getChainId();
     return supraClient;
   }
 
-  async sendRequest(
+  private async sendRequest(
     isGetMethod: boolean,
     subURL: string,
     data?: any
@@ -66,6 +74,10 @@ export class SupraClient {
     return resData;
   }
 
+  /**
+   * Get Chain Id Of Supra Network
+   * @returns Chain Id of network
+   */
   async getChainId(): Promise<TxnBuilderTypes.ChainId> {
     return new TxnBuilderTypes.ChainId(
       Number(
@@ -74,6 +86,10 @@ export class SupraClient {
     );
   }
 
+  /**
+   * Get current mean_gas_price
+   * @returns Current mean_gas_price
+   */
   async getGasPrice(): Promise<bigint> {
     return BigInt(
       (await this.sendRequest(true, "/rpc/v1/transactions/estimate_gas_price"))
@@ -81,6 +97,11 @@ export class SupraClient {
     );
   }
 
+  /**
+   * Airdrop test Supra token on given account
+   * @param account Hex-encoded 32 byte Supra account address
+   * @returns Transaction hash of faucet transaction
+   */
   async fundAccountWithFaucet(account: HexString): Promise<string[]> {
     let resData = await this.sendRequest(
       true,
@@ -93,6 +114,11 @@ export class SupraClient {
     return resData.data.transactions;
   }
 
+  /**
+   * Check whether given account exists onchain or not
+   * @param account Hex-encoded 32 byte Supra account address
+   * @returns true if account exists otherwise false
+   */
   async isAccountExists(account: HexString): Promise<boolean> {
     if (
       (await this.sendRequest(true, `/rpc/v1/accounts/${account.toString()}`))
@@ -103,6 +129,11 @@ export class SupraClient {
     return true;
   }
 
+  /**
+   * Get sequence number of given supra account
+   * @param account Hex-encoded 32 byte Supra account address
+   * @returns Sequence number
+   */
   async getAccountSequenceNumber(account: HexString): Promise<bigint> {
     let resData = await this.sendRequest(
       true,
@@ -115,6 +146,11 @@ export class SupraClient {
     return BigInt(resData.data.account.sequence_number);
   }
 
+  /**
+   * Get transaction details of given transaction hash
+   * @param transactionHash Transaction hash for getting transaction details
+   * @returns Transaction Details
+   */
   async getTransactionDetail(
     transactionHash: string
   ): Promise<TransactionDetail> {
@@ -147,6 +183,13 @@ export class SupraClient {
     };
   }
 
+  /**
+   * Get Supra Transfer related transactions details
+   * @param account Supra account address
+   * @param count Number of transactions details
+   * @param fromTx Transaction hash from which transactions details have to be retrieved
+   * @returns Transaction Details
+   */
   async getSupraTransferHistory(
     account: HexString,
     count: number = 15,
@@ -183,6 +226,11 @@ export class SupraClient {
     return supraCoinTransferHistory;
   }
 
+  /**
+   * Get Supra balance of given account
+   * @param account Supra Account address for getting balance
+   * @returns Supra Balance
+   */
   async getAccountSupraCoinBalance(account: HexString): Promise<bigint> {
     let resData = await this.sendRequest(
       true,
@@ -196,6 +244,11 @@ export class SupraClient {
     return BigInt(resData.data.coins.coin);
   }
 
+  /**
+   * Get transaction status of given transaction hash
+   * @param transactionHash transaction hash for getting transaction status
+   * @returns Transaction status
+   */
   async getTransactionStatus(
     transactionHash: string
   ): Promise<TransactionStatus> {
@@ -222,11 +275,6 @@ export class SupraClient {
         txStatus != TransactionStatus.Pending &&
         txStatus != TransactionStatus.Unexecuted
       ) {
-        // Due to lake of proper data synchronization we gets old state of chain,
-        // and if in case we just execute one transaction after completion of another transaction
-        // that just goes in pending state for long time and after some time that gets fail.
-        // To Resolve This Issue We Are Just Adding Wait Or Sleep After Receiving Transaction Status.
-        await sleep(5000);
         return txStatus;
       }
       await sleep(this.delayBetweenPoolingRequest);
@@ -325,6 +373,13 @@ export class SupraClient {
     );
   }
 
+  /**
+   * Transfer supra coin
+   * @param senderAccount Sender KeyPair
+   * @param receiverAccountAddr Receiver Supra Account address
+   * @param amount Amount to transfer
+   * @returns Transaction Response
+   */
   async transferSupraCoin(
     senderAccount: AptosAccount,
     receiverAccountAddr: HexString,
@@ -360,6 +415,13 @@ export class SupraClient {
     return await this.sendTx(sendTxPayload);
   }
 
+  /**
+   * Publish package or module on supra network
+   * @param senderAccount Module Publisher KeyPair
+   * @param packageMetadata Package Metadata
+   * @param modulesCode module code
+   * @returns Transaction Response
+   */
   async publishPackage(
     senderAccount: AptosAccount,
     packageMetadata: Uint8Array,
@@ -388,6 +450,10 @@ export class SupraClient {
     return await this.sendTx(sendTxPayload);
   }
 
+  /**
+   * Simulate a transaction using the provided transaction payload
+   * @param sendTxPayload Transaction payload
+   */
   async simulateTx(sendTxPayload: SendTxPayload): Promise<void> {
     let resData = await this.sendRequest(
       false,

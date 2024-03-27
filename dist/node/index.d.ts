@@ -1,5 +1,4 @@
 import { TxnBuilderTypes, HexString, AptosAccount } from 'aptos';
-import { AxiosResponse } from 'axios';
 
 declare enum TransactionStatus {
     Pending = "Pending",
@@ -59,6 +58,9 @@ interface SendTxPayload {
     };
 }
 
+/**
+ * Provides methods for interacting with supra rpc node.
+ */
 declare class SupraClient {
     supraNodeURL: string;
     chainId: TxnBuilderTypes.ChainId;
@@ -66,23 +68,91 @@ declare class SupraClient {
     maxRetryForTransactionCompletion: number;
     delayBetweenPoolingRequest: number;
     constructor(url: string, chainId?: number);
+    /**
+     * Creates and initializes `SupraClient` instance
+     * @param url rpc url of supra rpc node
+     * @returns `SupraClient` initialized instance
+     */
     static init(url: string): Promise<SupraClient>;
-    sendRequest(isGetMethod: boolean, subURL: string, data?: any): Promise<AxiosResponse<any, any>>;
+    private sendRequest;
+    /**
+     * Get Chain Id Of Supra Network
+     * @returns Chain Id of network
+     */
     getChainId(): Promise<TxnBuilderTypes.ChainId>;
+    /**
+     * Get current mean_gas_price
+     * @returns Current mean_gas_price
+     */
     getGasPrice(): Promise<bigint>;
+    /**
+     * Airdrop test Supra token on given account
+     * @param account Hex-encoded 32 byte Supra account address
+     * @returns Transaction hash of faucet transaction
+     */
     fundAccountWithFaucet(account: HexString): Promise<string[]>;
+    /**
+     * Check whether given account exists onchain or not
+     * @param account Hex-encoded 32 byte Supra account address
+     * @returns true if account exists otherwise false
+     */
     isAccountExists(account: HexString): Promise<boolean>;
+    /**
+     * Get sequence number of given supra account
+     * @param account Hex-encoded 32 byte Supra account address
+     * @returns Sequence number
+     */
     getAccountSequenceNumber(account: HexString): Promise<bigint>;
+    /**
+     * Get transaction details of given transaction hash
+     * @param transactionHash Transaction hash for getting transaction details
+     * @returns Transaction Details
+     */
     getTransactionDetail(transactionHash: string): Promise<TransactionDetail>;
+    /**
+     * Get Supra Transfer related transactions details
+     * @param account Supra account address
+     * @param count Number of transactions details
+     * @param fromTx Transaction hash from which transactions details have to be retrieved
+     * @returns Transaction Details
+     */
     getSupraTransferHistory(account: HexString, count?: number, fromTx?: string): Promise<TransactionDetail[]>;
+    /**
+     * Get Supra balance of given account
+     * @param account Supra Account address for getting balance
+     * @returns Supra Balance
+     */
     getAccountSupraCoinBalance(account: HexString): Promise<bigint>;
+    /**
+     * Get transaction status of given transaction hash
+     * @param transactionHash transaction hash for getting transaction status
+     * @returns Transaction status
+     */
     getTransactionStatus(transactionHash: string): Promise<TransactionStatus>;
     private waitForTransactionCompletion;
     private sendTx;
     private getSendTxPayload;
     private getTxObject;
+    /**
+     * Transfer supra coin
+     * @param senderAccount Sender KeyPair
+     * @param receiverAccountAddr Receiver Supra Account address
+     * @param amount Amount to transfer
+     * @returns Transaction Response
+     */
     transferSupraCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint): Promise<TransactionResponse>;
+    /**
+     * Publish package or module on supra network
+     * @param senderAccount Module Publisher KeyPair
+     * @param packageMetadata Package Metadata
+     * @param modulesCode module code
+     * @returns Transaction Response
+     */
     publishPackage(senderAccount: AptosAccount, packageMetadata: Uint8Array, modulesCode: Uint8Array[]): Promise<TransactionResponse>;
+    /**
+     * Simulate a transaction using the provided transaction payload
+     * @param sendTxPayload Transaction payload
+     */
     simulateTx(sendTxPayload: SendTxPayload): Promise<void>;
 }
 
