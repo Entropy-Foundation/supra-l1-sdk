@@ -290,6 +290,7 @@ export class SupraClient {
       "/rpc/v1/transactions/submit",
       sendTxJsonPayload
     );
+    console.log("Transaction Request Sent, Waiting For Completion");
 
     return {
       txHash: resData.data.txn_hash,
@@ -302,7 +303,7 @@ export class SupraClient {
     rawTxn: TxnBuilderTypes.RawTransaction
   ): Promise<SendTxPayload> {
     console.log("Sequence Number: ", rawTxn.sequence_number);
-
+    
     let txPayload = (
       rawTxn.payload as TxnBuilderTypes.TransactionPayloadEntryFunction
     ).value;

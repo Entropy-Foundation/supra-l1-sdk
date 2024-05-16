@@ -14038,6 +14038,7 @@ var SupraClient = class _SupraClient {
       "/rpc/v1/transactions/submit",
       sendTxJsonPayload
     );
+    console.log("Transaction Request Sent, Waiting For Completion");
     return {
       txHash: resData.data.txn_hash,
       result: await this.waitForTransactionCompletion(resData.data.txn_hash)

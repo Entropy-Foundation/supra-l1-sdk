@@ -18,11 +18,12 @@ import * as supraSDK from "./index";
 
   let senderAccount = new aptos.AptosAccount(
     Buffer.from(
-      "86f982c4a4277cc6b41f649743c6cf07f94d3b39c2f355c064e17a0975f1de29",
+      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d80",
       "hex"
     )
   );
   console.log("Sender", senderAccount.address());
+
 
   // To Check Whether Account Exists
   if ((await supraClient.isAccountExists(senderAccount.address())) == false) {
@@ -34,7 +35,7 @@ import * as supraSDK from "./index";
   }
 
   let receiverAddress = new aptos.HexString(
-    "9589339bde41fc2bdd9c37292e12420e24b4c25c4f6e61bac6ae99b87ccce2f2"
+    "0000000000000000000000000000000000000000000000000000000000000001"
   );
   console.log("Receiver", receiverAddress);
 
