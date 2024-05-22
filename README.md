@@ -7,4 +7,5 @@ The supra-l1-sdk provides a convenient way to interact with the supra chain and 
 This `sdk` is under development and in future we will try to completely remove dependency from `aptos-sdk`
 
 ## Usage
+
 This `sdk` is well documented and you can check [./src/example.ts](https://github.com/Entropy-Foundation/supra-l1-sdk/blob/master/src/example.ts) for understating about the usage.
