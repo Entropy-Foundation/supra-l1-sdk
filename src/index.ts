@@ -12,6 +12,7 @@ import {
   TransactionResponse,
   TransactionDetail,
   SendTxPayload,
+  AccountInfo,
 } from "./types";
 
 /**
@@ -122,7 +123,7 @@ export class SupraClient {
   async isAccountExists(account: HexString): Promise<boolean> {
     if (
       (await this.sendRequest(true, `/rpc/v1/accounts/${account.toString()}`))
-        .data.account == null
+        .data == null
     ) {
       return false;
     }
@@ -130,26 +131,29 @@ export class SupraClient {
   }
 
   /**
-   * Get sequence number of given supra account
+   * Get info of given supra account
    * @param account Hex-encoded 32 byte Supra account address
-   * @returns Sequence number
+   * @returns `AccountInfo`
    */
-  async getAccountSequenceNumber(account: HexString): Promise<bigint> {
+  async getAccountInfo(account: HexString): Promise<AccountInfo> {
     let resData = await this.sendRequest(
       true,
       `/rpc/v1/accounts/${account.toString()}`
     );
 
-    if (resData.data.account == null) {
+    if (resData.data == null) {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
     }
-    return BigInt(resData.data.account.sequence_number);
+    return {
+      sequence_number: BigInt(resData.data.sequence_number),
+      authentication_key: resData.data.authentication_key,
+    };
   }
 
   /**
    * Get transaction details of given transaction hash
    * @param transactionHash Transaction hash for getting transaction details
-   * @returns Transaction Details
+   * @returns `TransactionDetail`
    */
   async getTransactionDetail(
     transactionHash: string
@@ -234,43 +238,21 @@ export class SupraClient {
   async getAccountSupraCoinBalance(account: HexString): Promise<bigint> {
     let resData = await this.sendRequest(
       true,
-      `/rpc/v1/accounts/${account.toString()}/coin`
+      `/rpc/v1/accounts/${account.toString()}/resources/0x1::coin::CoinStore<0x1::supra_coin::SupraCoin>`
     );
 
-    if (resData.data.coins == null) {
+    if (resData.data.result[0] == null) {
       console.log("Account Not Exists, Or Invalid Account Is Passed");
       return BigInt(0);
     }
-    return BigInt(resData.data.coins.coin);
-  }
-
-  /**
-   * Get transaction status of given transaction hash
-   * @param transactionHash transaction hash for getting transaction status
-   * @returns Transaction status
-   */
-  async getTransactionStatus(
-    transactionHash: string
-  ): Promise<TransactionStatus> {
-    if (transactionHash.length != 64) {
-      throw new Error(
-        "transactionHash length must be 64 or it's size must be 256 bits"
-      );
-    }
-
-    return (
-      await this.sendRequest(
-        true,
-        `/rpc/v1/transactions/${transactionHash}/status`
-      )
-    ).data.status;
+    return BigInt(resData.data.result[0].coin.value);
   }
 
   private async waitForTransactionCompletion(
     txHash: string
   ): Promise<TransactionStatus> {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
-      let txStatus = await this.getTransactionStatus(txHash);
+      let txStatus = (await this.getTransactionDetail(txHash)).status;
       if (
         txStatus != TransactionStatus.Pending &&
         txStatus != TransactionStatus.Unexecuted
@@ -303,7 +285,7 @@ export class SupraClient {
     rawTxn: TxnBuilderTypes.RawTransaction
   ): Promise<SendTxPayload> {
     console.log("Sequence Number: ", rawTxn.sequence_number);
-    
+
     let txPayload = (
       rawTxn.payload as TxnBuilderTypes.TransactionPayloadEntryFunction
     ).value;
@@ -352,7 +334,7 @@ export class SupraClient {
   ): Promise<TxnBuilderTypes.RawTransaction> {
     return new TxnBuilderTypes.RawTransaction(
       new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
-      await this.getAccountSequenceNumber(senderAddr),
+      (await this.getAccountInfo(senderAddr)).sequence_number,
       new TxnBuilderTypes.TransactionPayloadEntryFunction(
         new TxnBuilderTypes.EntryFunction(
           new TxnBuilderTypes.ModuleId(

@@ -1,3 +1,8 @@
+export interface AccountInfo {
+  sequence_number: bigint;
+  authentication_key: string;
+}
+
 export enum TransactionStatus {
   Pending = "Pending",
   Unexecuted = "Unexecuted",

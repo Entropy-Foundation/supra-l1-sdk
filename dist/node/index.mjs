@@ -13905,30 +13905,33 @@ var SupraClient = class _SupraClient {
    * @returns true if account exists otherwise false
    */
   async isAccountExists(account) {
-    if ((await this.sendRequest(true, `/rpc/v1/accounts/${account.toString()}`)).data.account == null) {
+    if ((await this.sendRequest(true, `/rpc/v1/accounts/${account.toString()}`)).data == null) {
       return false;
     }
     return true;
   }
   /**
-   * Get sequence number of given supra account
+   * Get info of given supra account
    * @param account Hex-encoded 32 byte Supra account address
-   * @returns Sequence number
+   * @returns `AccountInfo`
    */
-  async getAccountSequenceNumber(account) {
+  async getAccountInfo(account) {
     let resData = await this.sendRequest(
       true,
       `/rpc/v1/accounts/${account.toString()}`
     );
-    if (resData.data.account == null) {
+    if (resData.data == null) {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
     }
-    return BigInt(resData.data.account.sequence_number);
+    return {
+      sequence_number: BigInt(resData.data.sequence_number),
+      authentication_key: resData.data.authentication_key
+    };
   }
   /**
    * Get transaction details of given transaction hash
    * @param transactionHash Transaction hash for getting transaction details
-   * @returns Transaction Details
+   * @returns `TransactionDetail`
    */
   async getTransactionDetail(transactionHash) {
     let resData = await this.sendRequest(
@@ -14003,33 +14006,17 @@ var SupraClient = class _SupraClient {
   async getAccountSupraCoinBalance(account) {
     let resData = await this.sendRequest(
       true,
-      `/rpc/v1/accounts/${account.toString()}/coin`
+      `/rpc/v1/accounts/${account.toString()}/resources/0x1::coin::CoinStore<0x1::supra_coin::SupraCoin>`
     );
-    if (resData.data.coins == null) {
+    if (resData.data.result[0] == null) {
       console.log("Account Not Exists, Or Invalid Account Is Passed");
       return BigInt(0);
     }
-    return BigInt(resData.data.coins.coin);
-  }
-  /**
-   * Get transaction status of given transaction hash
-   * @param transactionHash transaction hash for getting transaction status
-   * @returns Transaction status
-   */
-  async getTransactionStatus(transactionHash) {
-    if (transactionHash.length != 64) {
-      throw new Error(
-        "transactionHash length must be 64 or it's size must be 256 bits"
-      );
-    }
-    return (await this.sendRequest(
-      true,
-      `/rpc/v1/transactions/${transactionHash}/status`
-    )).data.status;
+    return BigInt(resData.data.result[0].coin.value);
   }
   async waitForTransactionCompletion(txHash) {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
-      let txStatus = await this.getTransactionStatus(txHash);
+      let txStatus = (await this.getTransactionDetail(txHash)).status;
       if (txStatus != "Pending" /* Pending */ && txStatus != "Unexecuted" /* Unexecuted */) {
         return txStatus;
       }
@@ -14085,7 +14072,7 @@ var SupraClient = class _SupraClient {
   async getTxObject(senderAddr, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, maxGas = BigInt(2e3)) {
     return new TxnBuilderTypes.RawTransaction(
       new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
-      await this.getAccountSequenceNumber(senderAddr),
+      (await this.getAccountInfo(senderAddr)).sequence_number,
       new TxnBuilderTypes.TransactionPayloadEntryFunction(
         new TxnBuilderTypes.EntryFunction(
           new TxnBuilderTypes.ModuleId(

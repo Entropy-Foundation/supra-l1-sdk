@@ -13,7 +13,8 @@ import * as supraSDK from "./index";
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await supraSDK.SupraClient.init(
     // "https://rpc-wallet.supra.com/rpc/v1/"
-    "https://rpc-devnet.supraoracles.com/",
+    // "https://rpc-devnet.supraoracles.com/",
+    "http://localhost:27000/"
   );
 
   let senderAccount = new aptos.AptosAccount(
@@ -23,7 +24,6 @@ import * as supraSDK from "./index";
     )
   );
   console.log("Sender", senderAccount.address());
-
 
   // To Check Whether Account Exists
   if ((await supraClient.isAccountExists(senderAccount.address())) == false) {
@@ -35,7 +35,7 @@ import * as supraSDK from "./index";
   }
 
   let receiverAddress = new aptos.HexString(
-    "0000000000000000000000000000000000000000000000000000000000000001"
+    "1000000000000000000000000000000000000000000000000000000000000000"
   );
   console.log("Receiver", receiverAddress);
 
@@ -43,7 +43,6 @@ import * as supraSDK from "./index";
     "Receiver Account Exists: ",
     await supraClient.isAccountExists(receiverAddress)
   );
-  // Restructuring
 
   console.log(
     "Sender Balance Before TX: ",

@@ -1,5 +1,9 @@
 import { TxnBuilderTypes, HexString, AptosAccount } from 'aptos';
 
+interface AccountInfo {
+    sequence_number: bigint;
+    authentication_key: string;
+}
 declare enum TransactionStatus {
     Pending = "Pending",
     Unexecuted = "Unexecuted",
@@ -98,15 +102,15 @@ declare class SupraClient {
      */
     isAccountExists(account: HexString): Promise<boolean>;
     /**
-     * Get sequence number of given supra account
+     * Get info of given supra account
      * @param account Hex-encoded 32 byte Supra account address
-     * @returns Sequence number
+     * @returns `AccountInfo`
      */
-    getAccountSequenceNumber(account: HexString): Promise<bigint>;
+    getAccountInfo(account: HexString): Promise<AccountInfo>;
     /**
      * Get transaction details of given transaction hash
      * @param transactionHash Transaction hash for getting transaction details
-     * @returns Transaction Details
+     * @returns `TransactionDetail`
      */
     getTransactionDetail(transactionHash: string): Promise<TransactionDetail>;
     /**
@@ -123,12 +127,6 @@ declare class SupraClient {
      * @returns Supra Balance
      */
     getAccountSupraCoinBalance(account: HexString): Promise<bigint>;
-    /**
-     * Get transaction status of given transaction hash
-     * @param transactionHash transaction hash for getting transaction status
-     * @returns Transaction status
-     */
-    getTransactionStatus(transactionHash: string): Promise<TransactionStatus>;
     private waitForTransactionCompletion;
     private sendTx;
     private getSendTxPayload;
