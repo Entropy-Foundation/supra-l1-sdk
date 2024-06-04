@@ -13929,6 +13929,32 @@ var SupraClient = class _SupraClient {
     };
   }
   /**
+   * Get resources of given supra account
+   * @param account Hex-encoded 32 byte Supra account address
+   * @returns `AccountResources`
+   */
+  async getAccountResources(account) {
+    return (await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}/resources`
+    )).data.resources;
+  }
+  /**
+   * Get given supra account's resource data
+   * @param account Hex-encoded 32 byte Supra account address
+   * @returns Resource data
+   */
+  async getResourceData(account, resourceType) {
+    let resData = await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}/resources/${resourceType}`
+    );
+    if (resData.data.result[0] == null) {
+      throw new Error("Resource not found");
+    }
+    return resData.data.result[0];
+  }
+  /**
    * Get transaction details of given transaction hash
    * @param transactionHash Transaction hash for getting transaction details
    * @returns `TransactionDetail`
@@ -14004,15 +14030,12 @@ var SupraClient = class _SupraClient {
    * @returns Supra Balance
    */
   async getAccountSupraCoinBalance(account) {
-    let resData = await this.sendRequest(
-      true,
-      `/rpc/v1/accounts/${account.toString()}/resources/0x1::coin::CoinStore<0x1::supra_coin::SupraCoin>`
+    return BigInt(
+      (await this.getResourceData(
+        account,
+        "0x1::coin::CoinStore<0x1::supra_coin::SupraCoin>"
+      )).coin.value
     );
-    if (resData.data.result[0] == null) {
-      console.log("Account Not Exists, Or Invalid Account Is Passed");
-      return BigInt(0);
-    }
-    return BigInt(resData.data.result[0].coin.value);
   }
   async waitForTransactionCompletion(txHash) {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {

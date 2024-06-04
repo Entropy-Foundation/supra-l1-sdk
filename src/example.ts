@@ -23,7 +23,6 @@ import * as supraSDK from "./index";
       "hex"
     )
   );
-  console.log("Sender", senderAccount.address());
 
   // To Check Whether Account Exists
   if ((await supraClient.isAccountExists(senderAccount.address())) == false) {

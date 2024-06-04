@@ -4,6 +4,21 @@ interface AccountInfo {
     sequence_number: bigint;
     authentication_key: string;
 }
+interface AccountResources {
+    module: Array<[string, {
+        address: string;
+        name: string;
+    }]>;
+    struct_type: Array<[
+        string,
+        {
+            address: string;
+            module: string;
+            name: string;
+            type_args: Array<TxnBuilderTypes.StructTag>;
+        }
+    ]>;
+}
 declare enum TransactionStatus {
     Pending = "Pending",
     Unexecuted = "Unexecuted",
@@ -107,6 +122,18 @@ declare class SupraClient {
      * @returns `AccountInfo`
      */
     getAccountInfo(account: HexString): Promise<AccountInfo>;
+    /**
+     * Get resources of given supra account
+     * @param account Hex-encoded 32 byte Supra account address
+     * @returns `AccountResources`
+     */
+    getAccountResources(account: HexString): Promise<AccountResources>;
+    /**
+     * Get given supra account's resource data
+     * @param account Hex-encoded 32 byte Supra account address
+     * @returns Resource data
+     */
+    getResourceData(account: HexString, resourceType: string): Promise<any>;
     /**
      * Get transaction details of given transaction hash
      * @param transactionHash Transaction hash for getting transaction details
