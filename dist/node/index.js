@@ -14000,6 +14000,7 @@ var SupraClient = class _SupraClient {
     }
     let supraCoinTransferHistory = [];
     resData.data.record.forEach((data) => {
+      var _a;
       supraCoinTransferHistory.push({
         txHash: data.txn_hash,
         sender: data.sender,
@@ -14010,7 +14011,7 @@ var SupraClient = class _SupraClient {
         gasUnitPrice: data.gas_unit_price,
         gasUsed: data.gas_used,
         transactionCost: data.gas_unit_price * data.gas_used,
-        txConfirmationTime: data.confirmation_time,
+        txConfirmationTime: (_a = data.confirmation_time) == null ? void 0 : _a.timestamp,
         status: data.status,
         action: data.action,
         events: data.events,

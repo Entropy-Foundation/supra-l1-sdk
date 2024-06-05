@@ -253,7 +253,7 @@ export class SupraClient {
         gasUnitPrice: data.gas_unit_price,
         gasUsed: data.gas_used,
         transactionCost: data.gas_unit_price * data.gas_used,
-        txConfirmationTime: data.confirmation_time,
+        txConfirmationTime: data.confirmation_time?.timestamp,
         status: data.status,
         action: data.action,
         events: data.events,
