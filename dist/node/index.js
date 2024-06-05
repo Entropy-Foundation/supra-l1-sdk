@@ -13955,6 +13955,7 @@ var SupraClient = class _SupraClient {
    * @returns `TransactionDetail`
    */
   async getTransactionDetail(transactionHash) {
+    var _a;
     let resData = await this.sendRequest(
       true,
       `/rpc/v1/transactions/${transactionHash}`
@@ -13974,7 +13975,7 @@ var SupraClient = class _SupraClient {
       gasUnitPrice: resData.data.gas_unit_price,
       gasUsed: resData.data.gas_used,
       transactionCost: resData.data.gas_unit_price * resData.data.gas_used,
-      txConfirmationTime: resData.data.confirmation_time,
+      txConfirmationTime: (_a = resData.data.confirmation_time) == null ? void 0 : _a.timestamp,
       status: resData.data.status,
       action: resData.data.action,
       events: resData.data.events,
