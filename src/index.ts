@@ -286,8 +286,7 @@ export class SupraClient {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
       let txStatus = (await this.getTransactionDetail(txHash)).status;
       if (
-        txStatus != TransactionStatus.Pending &&
-        txStatus != TransactionStatus.Unexecuted
+        txStatus != TransactionStatus.Pending
       ) {
         return txStatus;
       }

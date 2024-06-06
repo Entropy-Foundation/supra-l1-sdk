@@ -14042,12 +14042,12 @@ var SupraClient = class _SupraClient {
   async waitForTransactionCompletion(txHash) {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
       let txStatus = (await this.getTransactionDetail(txHash)).status;
-      if (txStatus != "Pending" /* Pending */ && txStatus != "Unexecuted" /* Unexecuted */) {
+      if (txStatus != "Unexecuted" /* Pending */) {
         return txStatus;
       }
       await sleep(this.delayBetweenPoolingRequest);
     }
-    return "Pending" /* Pending */;
+    return "Unexecuted" /* Pending */;
   }
   async sendTx(sendTxJsonPayload) {
     let resData = await this.sendRequest(

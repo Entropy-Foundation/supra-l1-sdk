@@ -12,9 +12,9 @@ import * as supraSDK from "./index";
   // To Create Instance Of Supra Client, But In This Method We Don't Need To Pass ChainId.
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await supraSDK.SupraClient.init(
-    "https://rpc-wallet.supra.com/"
+    // "https://rpc-wallet.supra.com/"
     // "https://rpc-devnet.supraoracles.com/",
-    // "http://localhost:27000/"
+    "http://localhost:27000/"
   );
 
   let senderAccount = new aptos.AptosAccount(
@@ -66,7 +66,7 @@ import * as supraSDK from "./index";
   // To Get Transaction's Detail Using Transaction Hash
   console.log(
     "Transaction Detail: ",
-    (await supraClient.getTransactionDetail(txResData.txHash))
+    await supraClient.getTransactionDetail(txResData.txHash)
   );
 
   console.log(
