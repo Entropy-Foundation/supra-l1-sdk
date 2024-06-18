@@ -16,6 +16,8 @@ import {
   AccountResources,
 } from "./types";
 
+export * from "./types"
+
 /**
  * Provides methods for interacting with supra rpc node.
  */
