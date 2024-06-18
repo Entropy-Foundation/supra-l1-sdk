@@ -16,7 +16,7 @@ import {
   AccountResources,
 } from "./types";
 
-export * from "./types"
+export * from "./types";
 
 /**
  * Provides methods for interacting with supra rpc node.
@@ -215,7 +215,12 @@ export class SupraClient {
       gasUsed: resData.data.gas_used,
       transactionCost: resData.data.gas_unit_price * resData.data.gas_used,
       txConfirmationTime: resData.data.confirmation_time?.timestamp,
-      status: resData.data.status,
+      status:
+        resData.data.status == "Unexecuted"
+          ? "Pending"
+          : resData.data.status == "Fail"
+          ? "Failed"
+          : resData.data.status,
       action: resData.data.action,
       events: resData.data.events,
       blockNumber: resData.data.block_number,
@@ -256,7 +261,12 @@ export class SupraClient {
         gasUsed: data.gas_used,
         transactionCost: data.gas_unit_price * data.gas_used,
         txConfirmationTime: data.confirmation_time?.timestamp,
-        status: data.status,
+        status:
+          data.status == "Unexecuted"
+            ? "Pending"
+            : data.status == "Fail"
+            ? "Failed"
+            : data.status,
         action: data.action,
         events: data.events,
         blockNumber: data.block_number,
@@ -287,9 +297,7 @@ export class SupraClient {
   ): Promise<TransactionStatus> {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
       let txStatus = (await this.getTransactionDetail(txHash)).status;
-      if (
-        txStatus != TransactionStatus.Pending
-      ) {
+      if (txStatus != TransactionStatus.Pending) {
         return txStatus;
       }
       await sleep(this.delayBetweenPoolingRequest);
