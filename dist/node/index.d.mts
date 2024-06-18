@@ -21,8 +21,8 @@ interface AccountResources {
 }
 declare enum TransactionStatus {
     Success = "Success",
-    Failed = "Fail",
-    Pending = "Unexecuted",
+    Failed = "Failed",
+    Pending = "Pending",
     Invalid = "Invalid"
 }
 interface TransactionResponse {

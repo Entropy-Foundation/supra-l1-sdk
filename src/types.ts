@@ -20,8 +20,8 @@ export interface AccountResources {
 }
 export enum TransactionStatus {
   Success = "Success",
-  Failed = "Fail",
-  Pending = "Unexecuted",
+  Failed = "Failed",
+  Pending = "Pending",
   Invalid = "Invalid",
 }
 

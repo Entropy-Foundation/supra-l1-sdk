@@ -13813,8 +13813,8 @@ var sleep = (timeMs) => {
 // src/types.ts
 var TransactionStatus = /* @__PURE__ */ ((TransactionStatus2) => {
   TransactionStatus2["Success"] = "Success";
-  TransactionStatus2["Failed"] = "Fail";
-  TransactionStatus2["Pending"] = "Unexecuted";
+  TransactionStatus2["Failed"] = "Failed";
+  TransactionStatus2["Pending"] = "Pending";
   TransactionStatus2["Invalid"] = "Invalid";
   return TransactionStatus2;
 })(TransactionStatus || {});
@@ -14047,12 +14047,12 @@ var SupraClient = class _SupraClient {
   async waitForTransactionCompletion(txHash) {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
       let txStatus = (await this.getTransactionDetail(txHash)).status;
-      if (txStatus != "Unexecuted" /* Pending */) {
+      if (txStatus != "Pending" /* Pending */) {
         return txStatus;
       }
       await sleep(this.delayBetweenPoolingRequest);
     }
-    return "Unexecuted" /* Pending */;
+    return "Pending" /* Pending */;
   }
   async sendTx(sendTxJsonPayload) {
     let resData = await this.sendRequest(
