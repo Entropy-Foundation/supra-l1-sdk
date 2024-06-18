@@ -10811,7 +10811,8 @@ var require_follow_redirects = __commonJS({
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
-  SupraClient: () => SupraClient
+  SupraClient: () => SupraClient,
+  TransactionStatus: () => TransactionStatus
 });
 module.exports = __toCommonJS(src_exports);
 var import_aptos = require("aptos");
@@ -13809,6 +13810,15 @@ var sleep = (timeMs) => {
   });
 };
 
+// src/types.ts
+var TransactionStatus = /* @__PURE__ */ ((TransactionStatus2) => {
+  TransactionStatus2["Success"] = "Success";
+  TransactionStatus2["Failed"] = "Fail";
+  TransactionStatus2["Pending"] = "Unexecuted";
+  TransactionStatus2["Invalid"] = "Invalid";
+  return TransactionStatus2;
+})(TransactionStatus || {});
+
 // src/index.ts
 var SupraClient = class _SupraClient {
   // 1 Second
@@ -14195,7 +14205,8 @@ var SupraClient = class _SupraClient {
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  SupraClient
+  SupraClient,
+  TransactionStatus
 });
 /*! Bundled license information:
 

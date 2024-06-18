@@ -180,4 +180,4 @@ declare class SupraClient {
     simulateTx(sendTxPayload: SendTxPayload): Promise<void>;
 }
 
-export { SupraClient };
+export { type AccountInfo, type AccountResources, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionResponse, TransactionStatus };

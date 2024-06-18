@@ -13814,6 +13814,15 @@ var sleep = (timeMs) => {
   });
 };
 
+// src/types.ts
+var TransactionStatus = /* @__PURE__ */ ((TransactionStatus2) => {
+  TransactionStatus2["Success"] = "Success";
+  TransactionStatus2["Failed"] = "Fail";
+  TransactionStatus2["Pending"] = "Unexecuted";
+  TransactionStatus2["Invalid"] = "Invalid";
+  return TransactionStatus2;
+})(TransactionStatus || {});
+
 // src/index.ts
 var SupraClient = class _SupraClient {
   // 1 Second
@@ -14199,7 +14208,8 @@ var SupraClient = class _SupraClient {
   }
 };
 export {
-  SupraClient
+  SupraClient,
+  TransactionStatus
 };
 /*! Bundled license information:
 
