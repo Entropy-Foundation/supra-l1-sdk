@@ -199,11 +199,11 @@ export class SupraClient {
       `/rpc/v1/transactions/${transactionHash}`
     );
 
-    if (resData.data.transaction == null) {
-      throw new Error(
-        "Transaction Not Found, May Be Transaction Hash Is Invalid"
-      );
-    }
+    // if (resData.data.transaction == null) {
+    //   throw new Error(
+    //     "Transaction Not Found, May Be Transaction Hash Is Invalid"
+    //   );
+    // }
     return {
       txHash: transactionHash,
       sender: resData.data.sender,
@@ -297,6 +297,9 @@ export class SupraClient {
   ): Promise<TransactionStatus> {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
       let txStatus = (await this.getTransactionDetail(txHash)).status;
+      if (txStatus == null) {
+        continue;
+      }
       if (txStatus != TransactionStatus.Pending) {
         return txStatus;
       }

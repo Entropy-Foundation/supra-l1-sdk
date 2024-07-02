@@ -14,7 +14,8 @@ import * as supraSDK from "./index";
   let supraClient = await supraSDK.SupraClient.init(
     // "https://rpc-wallet.supra.com/"
     // "https://rpc-devnet.supraoracles.com/",
-    "http://localhost:27000/"
+    // "http://localhost:27000/"
+    "https://rpc-qanet.supra.com/"
   );
 
   let senderAccount = new aptos.AptosAccount(

@@ -13970,11 +13970,6 @@ var SupraClient = class _SupraClient {
       true,
       `/rpc/v1/transactions/${transactionHash}`
     );
-    if (resData.data.transaction == null) {
-      throw new Error(
-        "Transaction Not Found, May Be Transaction Hash Is Invalid"
-      );
-    }
     return {
       txHash: transactionHash,
       sender: resData.data.sender,
@@ -14047,6 +14042,9 @@ var SupraClient = class _SupraClient {
   async waitForTransactionCompletion(txHash) {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
       let txStatus = (await this.getTransactionDetail(txHash)).status;
+      if (txStatus == null) {
+        continue;
+      }
       if (txStatus != "Pending" /* Pending */) {
         return txStatus;
       }
