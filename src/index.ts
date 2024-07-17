@@ -112,10 +112,22 @@ export class SupraClient {
       `/rpc/v1/wallet/faucet/${account.toString()}`
     );
 
-    await this.waitForTransactionCompletion(
-      resData.data.transactions[resData.data.transactions.length - 1]
-    );
-    return resData.data.transactions;
+    let txHashes: string[];
+    if (typeof resData.data === "object") {
+      if (resData.data.hasOwnProperty("transactions")) {
+        txHashes = resData.data.transactions;
+      } else if (resData.data.hasOwnProperty("Accepted")) {
+        txHashes = [resData.data.Accepted];
+      } else {
+        throw new Error(
+          "something went wrong, getting unexpected response from rpc_node"
+        );
+      }
+    } else {
+      throw new Error("try faucet later");
+    }
+    await this.waitForTransactionCompletion(txHashes[txHashes.length - 1]);
+    return txHashes;
   }
 
   /**
@@ -297,7 +309,8 @@ export class SupraClient {
   ): Promise<TransactionStatus> {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
       let txStatus = (await this.getTransactionDetail(txHash)).status;
-      if (txStatus == null) {
+      if (txStatus === undefined) {
+        await sleep(this.delayBetweenPoolingRequest);
         continue;
       }
       if (txStatus != TransactionStatus.Pending) {
