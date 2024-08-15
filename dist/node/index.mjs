@@ -14017,6 +14017,11 @@ var SupraClient = class _SupraClient {
           txData.payload.Move.arguments[1]
         );
         txInsights.type = "SupraTransfer" /* SupraTransfer */;
+      } else {
+        txInsights.supraCoinChangeAmount = this.getSupraCoinChangeAmount(
+          userAddress,
+          txData.output.Move.events
+        );
       }
     } else if (txData.payload.Move.type === "script_payload") {
       txInsights.supraCoinChangeAmount = this.getSupraCoinChangeAmount(
@@ -14138,7 +14143,7 @@ var SupraClient = class _SupraClient {
         blockNumber: data.block_header.height,
         blockHash: data.block_header.hash,
         transactionInsights: this.getTransactionInsights(
-          account.toShortString(),
+          account.toString(),
           data
         )
       });
