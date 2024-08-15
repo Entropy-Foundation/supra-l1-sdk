@@ -418,7 +418,7 @@ export class SupraClient {
         blockNumber: data.block_header.height,
         blockHash: data.block_header.hash,
         transactionInsights: this.getTransactionInsights(
-          account.toShortString(),
+          account.toString(),
           data
         ),
       });
