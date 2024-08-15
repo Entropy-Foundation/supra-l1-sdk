@@ -13990,15 +13990,15 @@ var SupraClient = class _SupraClient {
   }
   getSupraCoinChangeAmount(userAddress, events) {
     let amountChange = 0;
-    console.log(events);
     events.forEach((eventData) => {
       if (eventData.data.account === userAddress && (eventData.type === "0x1::coin::CoinDeposit" || eventData.type === "0x1::coin::CoinWithdraw")) {
-        if (eventData.type === "0x1::coin::CoinDeposit") {
-          console.log(eventData.data.amount);
-          amountChange += parseInt(eventData.data.amount);
-        } else if (eventData.type === "0x1::coin::CoinWithdraw") {
-          eventData.data.amount;
-          amountChange -= parseInt(eventData.data.amount);
+        if (eventData.data.coin_type === "0x1::supra_coin::SupraCoin") {
+          if (eventData.type === "0x1::coin::CoinDeposit") {
+            amountChange += parseInt(eventData.data.amount);
+          } else if (eventData.type === "0x1::coin::CoinWithdraw") {
+            eventData.data.amount;
+            amountChange -= parseInt(eventData.data.amount);
+          }
         }
       }
     });
