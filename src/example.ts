@@ -13,14 +13,15 @@ import * as supraSDK from "./index";
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await supraSDK.SupraClient.init(
     // "https://rpc-wallet.supra.com/"
-    "https://rpc-devnet.supra.com/"
+    // "https://rpc-devnet.supra.com/"
     // "http://localhost:27000/"
     // "https://rpc-qanet.supra.com/"
+    "https://rpc-staging.supra.com/"
   );
 
   let senderAccount = new aptos.AptosAccount(
     Buffer.from(
-      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d80",
+      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d88",
       "hex"
     )
   );
@@ -81,7 +82,11 @@ import * as supraSDK from "./index";
 
   // To Get Detail Of Transactions Related To SupraCoin Transfer And Which Are Associated With Defined Account
   console.log(
-    "Sender Supra Transfer History: ",
-    await supraClient.getSupraTransferHistory(senderAccount.address(), 5)
+    "Sender Account Transactions: ",
+    await supraClient.getAccountTransactionsDetail(senderAccount.address(), 5)
+  );
+  console.log(
+    "Sender Coin Transactions: ",
+    await supraClient.getCoinTransactionsDetail(senderAccount.address(), 5)
   );
 })();

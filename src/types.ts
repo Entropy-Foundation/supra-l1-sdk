@@ -33,8 +33,6 @@ export interface TransactionResponse {
 export interface TransactionDetail {
   txHash: string;
   sender: string;
-  receiver: string;
-  amount: number;
   sequenceNumber: number;
   maxGasAmount: number;
   gasUnitPrice: number;
@@ -42,7 +40,6 @@ export interface TransactionDetail {
   transactionCost: number;
   txConfirmationTime: number;
   status: TransactionStatus;
-  action: string;
   events: any;
   blockNumber: number;
   blockHash: string;

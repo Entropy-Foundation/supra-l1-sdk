@@ -114,10 +114,10 @@ export class SupraClient {
 
     let txHashes: string[];
     if (typeof resData.data === "object") {
-      if (resData.data.hasOwnProperty("transactions")) {
-        txHashes = resData.data.transactions;
-      } else if (resData.data.hasOwnProperty("Accepted")) {
+      if (resData.data.hasOwnProperty("Accepted")) {
         txHashes = [resData.data.Accepted];
+        await this.waitForTransactionCompletion(txHashes[0]);
+        return txHashes;
       } else {
         throw new Error(
           "something went wrong, getting unexpected response from rpc_node"
@@ -126,8 +126,6 @@ export class SupraClient {
     } else {
       throw new Error("try faucet later");
     }
-    await this.waitForTransactionCompletion(txHashes[txHashes.length - 1]);
-    return txHashes;
   }
 
   /**
@@ -198,6 +196,25 @@ export class SupraClient {
     }
     return resData.data.result[0];
   }
+
+  async getTransactionStatus(
+    transactionHash: string
+  ): Promise<TransactionStatus | null> {
+    let resData = await this.sendRequest(
+      true,
+      `/rpc/v1/transactions/${transactionHash}`
+    );
+    if (resData.data == null) {
+      return null;
+    }
+
+    return resData.data.status == "Unexecuted"
+      ? "Pending"
+      : resData.data.status == "Fail"
+      ? "Failed"
+      : resData.data.status;
+  }
+
   /**
    * Get transaction details of given transaction hash
    * @param transactionHash Transaction hash for getting transaction details
@@ -205,49 +222,52 @@ export class SupraClient {
    */
   async getTransactionDetail(
     transactionHash: string
-  ): Promise<TransactionDetail> {
+  ): Promise<TransactionDetail | null> {
     let resData = await this.sendRequest(
       true,
       `/rpc/v1/transactions/${transactionHash}`
     );
 
-    // if (resData.data.transaction == null) {
-    //   throw new Error(
-    //     "Transaction Not Found, May Be Transaction Hash Is Invalid"
-    //   );
-    // }
+    if (
+      resData.data == null ||
+      resData.data.status === TransactionStatus.Pending
+    ) {
+      return null;
+    }
+
     return {
       txHash: transactionHash,
-      sender: resData.data.sender,
-      receiver: resData.data.receiver,
-      amount: resData.data.amount,
-      sequenceNumber: resData.data.sequence_number,
-      maxGasAmount: resData.data.max_gas_amount,
-      gasUnitPrice: resData.data.gas_unit_price,
-      gasUsed: resData.data.gas_used,
-      transactionCost: resData.data.gas_unit_price * resData.data.gas_used,
-      txConfirmationTime: resData.data.confirmation_time?.timestamp,
+      sender: resData.data.header.sender.Move,
+      sequenceNumber: resData.data.header.sequence_number,
+      maxGasAmount: resData.data.header.max_gas_amount,
+      gasUnitPrice: resData.data.header.gas_unit_price,
+      gasUsed: resData.data.output?.Move.gas_used,
+      transactionCost:
+        resData.data.header.gas_unit_price * resData.data.output?.Move.gas_used,
+      txConfirmationTime: Math.floor(
+        resData.data.block_header.timestamp.microseconds_since_unix_epoch /
+          1000000
+      ),
       status:
         resData.data.status == "Unexecuted"
           ? "Pending"
           : resData.data.status == "Fail"
           ? "Failed"
           : resData.data.status,
-      action: resData.data.action,
-      events: resData.data.events,
-      blockNumber: resData.data.block_number,
-      blockHash: resData.data.block_hash,
+      events: resData.data.output?.Move.events,
+      blockNumber: resData.data.block_header.height,
+      blockHash: resData.data.block_header.hash,
     };
   }
 
   /**
-   * Get Supra Transfer related transactions details
+   * Get transaction associated with an account
    * @param account Supra account address
    * @param count Number of transactions details
    * @param fromTx Transaction hash from which transactions details have to be retrieved
    * @returns Transaction Details
    */
-  async getSupraTransferHistory(
+  async getAccountTransactionsDetail(
     account: HexString,
     count: number = 15,
     fromTx = "0000000000000000000000000000000000000000000000000000000000000000"
@@ -260,32 +280,78 @@ export class SupraClient {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
     }
 
-    let supraCoinTransferHistory: TransactionDetail[] = [];
+    let accountTransactionsDetail: TransactionDetail[] = [];
     resData.data.record.forEach((data: any) => {
-      supraCoinTransferHistory.push({
-        txHash: data.txn_hash,
-        sender: data.sender,
-        receiver: data.receiver,
-        amount: data.amount,
-        sequenceNumber: data.sequence_number,
-        maxGasAmount: data.max_gas_amount,
-        gasUnitPrice: data.gas_unit_price,
-        gasUsed: data.gas_used,
-        transactionCost: data.gas_unit_price * data.gas_used,
-        txConfirmationTime: data.confirmation_time?.timestamp,
+      accountTransactionsDetail.push({
+        txHash: data.hash,
+        sender: data.header.sender.Move,
+        sequenceNumber: data.header.sequence_number,
+        maxGasAmount: data.header.max_gas_amount,
+        gasUnitPrice: data.header.gas_unit_price,
+        gasUsed: data.output.Move.gas_used,
+        transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txConfirmationTime: Math.floor(
+          data.block_header.timestamp.microseconds_since_unix_epoch / 1000000
+        ),
         status:
           data.status == "Unexecuted"
             ? "Pending"
             : data.status == "Fail"
             ? "Failed"
             : data.status,
-        action: data.action,
-        events: data.events,
-        blockNumber: data.block_number,
-        blockHash: data.block_hash,
+        events: data.output.Move.events,
+        blockNumber: data.block_header.height,
+        blockHash: data.block_header.hash,
       });
     });
-    return supraCoinTransferHistory;
+    return accountTransactionsDetail;
+  }
+
+  /**
+   * Get Coin Transfer related transactions details
+   * @param account Supra account address
+   * @param count Number of transactions details
+   * @param start Epoch timestamp based on which transactions details have to be retrieved
+   * @returns Transaction Details
+   */
+  async getCoinTransactionsDetail(
+    account: HexString,
+    count: number = 15,
+    start: number = 0
+  ): Promise<TransactionDetail[]> {
+    let resData = await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}&start=${start}`
+    );
+    if (resData.data.record == null) {
+      throw new Error("Account Not Exists, Or Invalid Account Is Passed");
+    }
+
+    let coinTransactionsDetail: TransactionDetail[] = [];
+    resData.data.record.forEach((data: any) => {
+      coinTransactionsDetail.push({
+        txHash: data.hash,
+        sender: data.header.sender.Move,
+        sequenceNumber: data.header.sequence_number,
+        maxGasAmount: data.header.max_gas_amount,
+        gasUnitPrice: data.header.gas_unit_price,
+        gasUsed: data.output.Move.gas_used,
+        transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txConfirmationTime: Math.floor(
+          data.block_header.timestamp.microseconds_since_unix_epoch / 1000000
+        ),
+        status:
+          data.status == "Unexecuted"
+            ? "Pending"
+            : data.status == "Fail"
+            ? "Failed"
+            : data.status,
+        events: data.output.Move.events,
+        blockNumber: data.block_header.height,
+        blockHash: data.block_header.hash,
+      });
+    });
+    return coinTransactionsDetail;
   }
 
   /**
@@ -308,15 +374,12 @@ export class SupraClient {
     txHash: string
   ): Promise<TransactionStatus> {
     for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
-      let txStatus = (await this.getTransactionDetail(txHash)).status;
-      if (txStatus === undefined) {
+      let txStatus = await this.getTransactionStatus(txHash);
+      if (txStatus === null || txStatus == TransactionStatus.Pending) {
         await sleep(this.delayBetweenPoolingRequest);
-        continue;
-      }
-      if (txStatus != TransactionStatus.Pending) {
+      } else {
         return txStatus;
       }
-      await sleep(this.delayBetweenPoolingRequest);
     }
     return TransactionStatus.Pending;
   }
@@ -332,8 +395,8 @@ export class SupraClient {
     console.log("Transaction Request Sent, Waiting For Completion");
 
     return {
-      txHash: resData.data.txn_hash,
-      result: await this.waitForTransactionCompletion(resData.data.txn_hash),
+      txHash: resData.data,
+      result: await this.waitForTransactionCompletion(resData.data),
     };
   }
 

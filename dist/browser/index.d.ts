@@ -32,8 +32,6 @@ interface TransactionResponse {
 interface TransactionDetail {
     txHash: string;
     sender: string;
-    receiver: string;
-    amount: number;
     sequenceNumber: number;
     maxGasAmount: number;
     gasUnitPrice: number;
@@ -41,7 +39,6 @@ interface TransactionDetail {
     transactionCost: number;
     txConfirmationTime: number;
     status: TransactionStatus;
-    action: string;
     events: any;
     blockNumber: number;
     blockHash: string;
@@ -133,20 +130,29 @@ declare class SupraClient {
      * @returns Resource data
      */
     getResourceData(account: HexString, resourceType: string): Promise<any>;
+    getTransactionStatus(transactionHash: string): Promise<TransactionStatus | null>;
     /**
      * Get transaction details of given transaction hash
      * @param transactionHash Transaction hash for getting transaction details
      * @returns `TransactionDetail`
      */
-    getTransactionDetail(transactionHash: string): Promise<TransactionDetail>;
+    getTransactionDetail(transactionHash: string): Promise<TransactionDetail | null>;
     /**
-     * Get Supra Transfer related transactions details
+     * Get transaction associated with an account
      * @param account Supra account address
      * @param count Number of transactions details
      * @param fromTx Transaction hash from which transactions details have to be retrieved
      * @returns Transaction Details
      */
-    getSupraTransferHistory(account: HexString, count?: number, fromTx?: string): Promise<TransactionDetail[]>;
+    getAccountTransactionsDetail(account: HexString, count?: number, fromTx?: string): Promise<TransactionDetail[]>;
+    /**
+     * Get Coin Transfer related transactions details
+     * @param account Supra account address
+     * @param count Number of transactions details
+     * @param start Epoch timestamp based on which transactions details have to be retrieved
+     * @returns Transaction Details
+     */
+    getCoinTransactionsDetail(account: HexString, count?: number, start?: number): Promise<TransactionDetail[]>;
     /**
      * Get Supra balance of given account
      * @param account Supra Account address for getting balance
