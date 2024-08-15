@@ -255,6 +255,11 @@ export class SupraClient {
           txData.payload.Move.arguments[1]
         );
         txInsights.type = TxTypeForTransactionInsights.SupraTransfer;
+      }else{
+        txInsights.supraCoinChangeAmount = this.getSupraCoinChangeAmount(
+          userAddress,
+          txData.output.Move.events
+        );
       }
     } else if (txData.payload.Move.type === "script_payload") {
       txInsights.supraCoinChangeAmount = this.getSupraCoinChangeAmount(
