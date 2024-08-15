@@ -13822,6 +13822,11 @@ var TransactionStatus = /* @__PURE__ */ ((TransactionStatus2) => {
   TransactionStatus2["Invalid"] = "Invalid";
   return TransactionStatus2;
 })(TransactionStatus || {});
+var TxTypeForTransactionInsights = /* @__PURE__ */ ((TxTypeForTransactionInsights2) => {
+  TxTypeForTransactionInsights2["SupraTransfer"] = "SupraTransfer";
+  TxTypeForTransactionInsights2["MoveCall"] = "MoveCall";
+  return TxTypeForTransactionInsights2;
+})(TxTypeForTransactionInsights || {});
 
 // src/index.ts
 var SupraClient = class _SupraClient {
@@ -13983,12 +13988,54 @@ var SupraClient = class _SupraClient {
     }
     return resData.data.status == "Unexecuted" ? "Pending" : resData.data.status == "Fail" ? "Failed" : resData.data.status;
   }
+  getSupraCoinChangeAmount(userAddress, events) {
+    let amountChange = 0;
+    console.log(events);
+    events.forEach((eventData) => {
+      if (eventData.data.account === userAddress && (eventData.type === "0x1::coin::CoinDeposit" || eventData.type === "0x1::coin::CoinWithdraw")) {
+        if (eventData.type === "0x1::coin::CoinDeposit") {
+          console.log(eventData.data.amount);
+          amountChange += parseInt(eventData.data.amount);
+        } else if (eventData.type === "0x1::coin::CoinWithdraw") {
+          eventData.data.amount;
+          amountChange -= parseInt(eventData.data.amount);
+        }
+      }
+    });
+    return amountChange;
+  }
+  getTransactionInsights(userAddress, txData) {
+    let txInsights = {
+      supraCoinReceiver: "",
+      supraCoinChangeAmount: 0,
+      type: "MoveCall" /* MoveCall */
+    };
+    if (txData.payload.Move.type === "entry_function_payload") {
+      if (txData.payload.Move.function === "0x1::aptos_account::transfer") {
+        txInsights.supraCoinReceiver = txData.payload.Move.arguments[0];
+        txInsights.supraCoinChangeAmount = parseInt(
+          txData.payload.Move.arguments[1]
+        );
+        txInsights.type = "SupraTransfer" /* SupraTransfer */;
+      }
+    } else if (txData.payload.Move.type === "script_payload") {
+      txInsights.supraCoinChangeAmount = this.getSupraCoinChangeAmount(
+        userAddress,
+        txData.output.Move.events
+      );
+    } else {
+      throw new Error(
+        "something went wrong, found unsupported type of transaction"
+      );
+    }
+    return txInsights;
+  }
   /**
    * Get transaction details of given transaction hash
    * @param transactionHash Transaction hash for getting transaction details
    * @returns `TransactionDetail`
    */
-  async getTransactionDetail(transactionHash) {
+  async getTransactionDetail(account, transactionHash) {
     var _a, _b, _c;
     let resData = await this.sendRequest(
       true,
@@ -14011,7 +14058,11 @@ var SupraClient = class _SupraClient {
       status: resData.data.status == "Unexecuted" ? "Pending" : resData.data.status == "Fail" ? "Failed" : resData.data.status,
       events: (_c = resData.data.output) == null ? void 0 : _c.Move.events,
       blockNumber: resData.data.block_header.height,
-      blockHash: resData.data.block_header.hash
+      blockHash: resData.data.block_header.hash,
+      transactionInsights: this.getTransactionInsights(
+        account.toString(),
+        resData.data
+      )
     };
   }
   /**
@@ -14045,7 +14096,11 @@ var SupraClient = class _SupraClient {
         status: data.status == "Unexecuted" ? "Pending" : data.status == "Fail" ? "Failed" : data.status,
         events: data.output.Move.events,
         blockNumber: data.block_header.height,
-        blockHash: data.block_header.hash
+        blockHash: data.block_header.hash,
+        transactionInsights: this.getTransactionInsights(
+          account.toString(),
+          data
+        )
       });
     });
     return accountTransactionsDetail;
@@ -14081,7 +14136,11 @@ var SupraClient = class _SupraClient {
         status: data.status == "Unexecuted" ? "Pending" : data.status == "Fail" ? "Failed" : data.status,
         events: data.output.Move.events,
         blockNumber: data.block_header.height,
-        blockHash: data.block_header.hash
+        blockHash: data.block_header.hash,
+        transactionInsights: this.getTransactionInsights(
+          account.toShortString(),
+          data
+        )
       });
     });
     return coinTransactionsDetail;
@@ -14261,7 +14320,8 @@ var SupraClient = class _SupraClient {
 };
 export {
   SupraClient,
-  TransactionStatus
+  TransactionStatus,
+  TxTypeForTransactionInsights
 };
 /*! Bundled license information:
 

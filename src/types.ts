@@ -30,6 +30,17 @@ export interface TransactionResponse {
   result: TransactionStatus;
 }
 
+export enum TxTypeForTransactionInsights {
+  SupraTransfer = "SupraTransfer",
+  MoveCall = "MoveCall",
+}
+
+export interface TransactionInsights {
+  supraCoinReceiver: string;
+  supraCoinChangeAmount: number;
+  type: TxTypeForTransactionInsights;
+}
+
 export interface TransactionDetail {
   txHash: string;
   sender: string;
@@ -43,6 +54,7 @@ export interface TransactionDetail {
   events: any;
   blockNumber: number;
   blockHash: string;
+  transactionInsights: TransactionInsights;
 }
 
 export interface SendTxPayload {

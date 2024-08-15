@@ -14,6 +14,8 @@ import {
   SendTxPayload,
   AccountInfo,
   AccountResources,
+  TransactionInsights,
+  TxTypeForTransactionInsights,
 } from "./types";
 
 export * from "./types";
@@ -215,12 +217,69 @@ export class SupraClient {
       : resData.data.status;
   }
 
+  private getSupraCoinChangeAmount(userAddress: string, events: any[]): number {
+    let amountChange = 0;
+    console.log(events);
+
+    events.forEach((eventData) => {
+      if (
+        eventData.data.account === userAddress &&
+        (eventData.type === "0x1::coin::CoinDeposit" ||
+          eventData.type === "0x1::coin::CoinWithdraw")
+      ) {
+        // if (eventData.data.data.coin_type === "0x1::supra_coin::SupraCoin") {
+
+        // }
+        if (eventData.type === "0x1::coin::CoinDeposit") {
+          console.log(eventData.data.amount);
+          amountChange += parseInt(eventData.data.amount);
+        } else if (eventData.type === "0x1::coin::CoinWithdraw") {
+          eventData.data.amount;
+          amountChange -= parseInt(eventData.data.amount);
+        }
+      }
+    });
+    return amountChange;
+  }
+
+  private getTransactionInsights(
+    userAddress: string,
+    txData: any
+  ): TransactionInsights {
+    let txInsights: TransactionInsights = {
+      supraCoinReceiver: "",
+      supraCoinChangeAmount: 0,
+      type: TxTypeForTransactionInsights.MoveCall,
+    };
+
+    if (txData.payload.Move.type === "entry_function_payload") {
+      if (txData.payload.Move.function === "0x1::aptos_account::transfer") {
+        txInsights.supraCoinReceiver = txData.payload.Move.arguments[0];
+        txInsights.supraCoinChangeAmount = parseInt(
+          txData.payload.Move.arguments[1]
+        );
+        txInsights.type = TxTypeForTransactionInsights.SupraTransfer;
+      }
+    } else if (txData.payload.Move.type === "script_payload") {
+      txInsights.supraCoinChangeAmount = this.getSupraCoinChangeAmount(
+        userAddress,
+        txData.output.Move.events
+      );
+    } else {
+      throw new Error(
+        "something went wrong, found unsupported type of transaction"
+      );
+    }
+    return txInsights;
+  }
+
   /**
    * Get transaction details of given transaction hash
    * @param transactionHash Transaction hash for getting transaction details
    * @returns `TransactionDetail`
    */
   async getTransactionDetail(
+    account: HexString,
     transactionHash: string
   ): Promise<TransactionDetail | null> {
     let resData = await this.sendRequest(
@@ -257,6 +316,10 @@ export class SupraClient {
       events: resData.data.output?.Move.events,
       blockNumber: resData.data.block_header.height,
       blockHash: resData.data.block_header.hash,
+      transactionInsights: this.getTransactionInsights(
+        account.toString(),
+        resData.data
+      ),
     };
   }
 
@@ -302,6 +365,10 @@ export class SupraClient {
         events: data.output.Move.events,
         blockNumber: data.block_header.height,
         blockHash: data.block_header.hash,
+        transactionInsights: this.getTransactionInsights(
+          account.toString(),
+          data
+        ),
       });
     });
     return accountTransactionsDetail;
@@ -349,6 +416,10 @@ export class SupraClient {
         events: data.output.Move.events,
         blockNumber: data.block_header.height,
         blockHash: data.block_header.hash,
+        transactionInsights: this.getTransactionInsights(
+          account.toShortString(),
+          data
+        ),
       });
     });
     return coinTransactionsDetail;

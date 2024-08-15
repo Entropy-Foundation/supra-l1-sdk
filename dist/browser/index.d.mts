@@ -29,6 +29,15 @@ interface TransactionResponse {
     txHash: string;
     result: TransactionStatus;
 }
+declare enum TxTypeForTransactionInsights {
+    SupraTransfer = "SupraTransfer",
+    MoveCall = "MoveCall"
+}
+interface TransactionInsights {
+    supraCoinReceiver: string;
+    supraCoinChangeAmount: number;
+    type: TxTypeForTransactionInsights;
+}
 interface TransactionDetail {
     txHash: string;
     sender: string;
@@ -42,6 +51,7 @@ interface TransactionDetail {
     events: any;
     blockNumber: number;
     blockHash: string;
+    transactionInsights: TransactionInsights;
 }
 interface SendTxPayload {
     Move: {
@@ -131,12 +141,14 @@ declare class SupraClient {
      */
     getResourceData(account: HexString, resourceType: string): Promise<any>;
     getTransactionStatus(transactionHash: string): Promise<TransactionStatus | null>;
+    private getSupraCoinChangeAmount;
+    private getTransactionInsights;
     /**
      * Get transaction details of given transaction hash
      * @param transactionHash Transaction hash for getting transaction details
      * @returns `TransactionDetail`
      */
-    getTransactionDetail(transactionHash: string): Promise<TransactionDetail | null>;
+    getTransactionDetail(account: HexString, transactionHash: string): Promise<TransactionDetail | null>;
     /**
      * Get transaction associated with an account
      * @param account Supra account address
@@ -186,4 +198,4 @@ declare class SupraClient {
     simulateTx(sendTxPayload: SendTxPayload): Promise<void>;
 }
 
-export { type AccountInfo, type AccountResources, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionResponse, TransactionStatus };
+export { type AccountInfo, type AccountResources, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };
