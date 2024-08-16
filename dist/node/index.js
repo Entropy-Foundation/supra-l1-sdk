@@ -13816,7 +13816,6 @@ var TransactionStatus = /* @__PURE__ */ ((TransactionStatus2) => {
   TransactionStatus2["Success"] = "Success";
   TransactionStatus2["Failed"] = "Failed";
   TransactionStatus2["Pending"] = "Pending";
-  TransactionStatus2["Invalid"] = "Invalid";
   return TransactionStatus2;
 })(TransactionStatus || {});
 var TxTypeForTransactionInsights = /* @__PURE__ */ ((TxTypeForTransactionInsights2) => {
@@ -14054,10 +14053,10 @@ var SupraClient = class _SupraClient {
       gasUnitPrice: resData.data.header.gas_unit_price,
       gasUsed: (_a = resData.data.output) == null ? void 0 : _a.Move.gas_used,
       transactionCost: resData.data.header.gas_unit_price * ((_b = resData.data.output) == null ? void 0 : _b.Move.gas_used),
-      txConfirmationTime: Math.floor(
-        resData.data.block_header.timestamp.microseconds_since_unix_epoch / 1e6
+      txConfirmationTime: Number(
+        resData.data.block_header.timestamp.microseconds_since_unix_epoch
       ),
-      status: resData.data.status == "Unexecuted" ? "Pending" : resData.data.status == "Fail" ? "Failed" : resData.data.status,
+      status: resData.data.status == "Fail" || resData.data.status == "Invalid" ? "Failed" : resData.data.status,
       events: (_c = resData.data.output) == null ? void 0 : _c.Move.events,
       blockNumber: resData.data.block_header.height,
       blockHash: resData.data.block_header.hash,
@@ -14092,10 +14091,10 @@ var SupraClient = class _SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
-        txConfirmationTime: Math.floor(
-          data.block_header.timestamp.microseconds_since_unix_epoch / 1e6
+        txConfirmationTime: Number(
+          data.block_header.timestamp.microseconds_since_unix_epoch
         ),
-        status: data.status == "Unexecuted" ? "Pending" : data.status == "Fail" ? "Failed" : data.status,
+        status: data.status === "Fail" || data.status === "Invalid" ? "Failed" : data.status,
         events: data.output.Move.events,
         blockNumber: data.block_header.height,
         blockHash: data.block_header.hash,
@@ -14132,10 +14131,10 @@ var SupraClient = class _SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
-        txConfirmationTime: Math.floor(
-          data.block_header.timestamp.microseconds_since_unix_epoch / 1e6
+        txConfirmationTime: Number(
+          data.block_header.timestamp.microseconds_since_unix_epoch
         ),
-        status: data.status == "Unexecuted" ? "Pending" : data.status == "Fail" ? "Failed" : data.status,
+        status: data.status === "Fail" || data.status === "Invalid" ? "Failed" : data.status,
         events: data.output.Move.events,
         blockNumber: data.block_header.height,
         blockHash: data.block_header.hash,

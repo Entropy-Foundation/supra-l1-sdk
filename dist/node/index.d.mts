@@ -22,8 +22,7 @@ interface AccountResources {
 declare enum TransactionStatus {
     Success = "Success",
     Failed = "Failed",
-    Pending = "Pending",
-    Invalid = "Invalid"
+    Pending = "Pending"
 }
 interface TransactionResponse {
     txHash: string;

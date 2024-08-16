@@ -255,7 +255,7 @@ export class SupraClient {
           txData.payload.Move.arguments[1]
         );
         txInsights.type = TxTypeForTransactionInsights.SupraTransfer;
-      }else{
+      } else {
         txInsights.supraCoinChangeAmount = this.getSupraCoinChangeAmount(
           userAddress,
           txData.output.Move.events
@@ -304,14 +304,11 @@ export class SupraClient {
       gasUsed: resData.data.output?.Move.gas_used,
       transactionCost:
         resData.data.header.gas_unit_price * resData.data.output?.Move.gas_used,
-      txConfirmationTime: Math.floor(
-        resData.data.block_header.timestamp.microseconds_since_unix_epoch /
-          1000000
+      txConfirmationTime: Number(
+        resData.data.block_header.timestamp.microseconds_since_unix_epoch
       ),
       status:
-        resData.data.status == "Unexecuted"
-          ? "Pending"
-          : resData.data.status == "Fail"
+        resData.data.status == "Fail" || resData.data.status == "Invalid"
           ? "Failed"
           : resData.data.status,
       events: resData.data.output?.Move.events,
@@ -354,13 +351,11 @@ export class SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
-        txConfirmationTime: Math.floor(
-          data.block_header.timestamp.microseconds_since_unix_epoch / 1000000
+        txConfirmationTime: Number(
+          data.block_header.timestamp.microseconds_since_unix_epoch
         ),
         status:
-          data.status == "Unexecuted"
-            ? "Pending"
-            : data.status == "Fail"
+          data.status === "Fail" || data.status === "Invalid"
             ? "Failed"
             : data.status,
         events: data.output.Move.events,
@@ -405,13 +400,11 @@ export class SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
-        txConfirmationTime: Math.floor(
-          data.block_header.timestamp.microseconds_since_unix_epoch / 1000000
+        txConfirmationTime: Number(
+          data.block_header.timestamp.microseconds_since_unix_epoch
         ),
         status:
-          data.status == "Unexecuted"
-            ? "Pending"
-            : data.status == "Fail"
+          data.status === "Fail" || data.status === "Invalid"
             ? "Failed"
             : data.status,
         events: data.output.Move.events,

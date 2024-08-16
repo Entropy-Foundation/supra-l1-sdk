@@ -22,7 +22,6 @@ export enum TransactionStatus {
   Success = "Success",
   Failed = "Failed",
   Pending = "Pending",
-  Invalid = "Invalid",
 }
 
 export interface TransactionResponse {
