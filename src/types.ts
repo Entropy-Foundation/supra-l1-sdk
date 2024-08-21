@@ -37,13 +37,19 @@ export interface TransactionResponse {
 }
 
 export enum TxTypeForTransactionInsights {
-  SupraTransfer = "SupraTransfer",
-  MoveCall = "MoveCall",
+  CoinTransfer = "CoinTransfer",
+  EntryFunctionCall = "EntryFunctionCall",
+  ScriptCall = "ScriptCall",
+}
+
+export interface CoinChange {
+  coinType: string;
+  amount: bigint;
 }
 
 export interface TransactionInsights {
-  supraCoinReceiver: string;
-  supraCoinChangeAmount: number;
+  coinReceiver: string;
+  coinChange: Array<CoinChange>;
   type: TxTypeForTransactionInsights;
 }
 

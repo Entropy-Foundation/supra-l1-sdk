@@ -22,6 +22,7 @@ import {
   TransactionInsights,
   TxTypeForTransactionInsights,
   CoinInfo,
+  CoinChange,
 } from "./types";
 
 export * from "./types";
@@ -223,25 +224,74 @@ export class SupraClient {
       : resData.data.status;
   }
 
-  private getSupraCoinChangeAmount(userAddress: string, events: any[]): number {
-    let amountChange = 0;
+  private getCoinChangeAmount(
+    userAddress: string,
+    events: any[]
+  ): Array<CoinChange> {
+    let coinChange: Map<
+      string,
+      {
+        totalDeposit: bigint;
+        totalWithdraw: bigint;
+      }
+    > = new Map();
     events.forEach((eventData) => {
       if (
-        eventData.data.account === userAddress &&
         (eventData.type === "0x1::coin::CoinDeposit" ||
-          eventData.type === "0x1::coin::CoinWithdraw")
+          eventData.type === "0x1::coin::CoinWithdraw") &&
+        "0x" +
+          eventData.data.account
+            .substring(2, eventData.data.account)
+            .padStart(64, "0") ===
+          userAddress
       ) {
-        if (eventData.data.coin_type === "0x1::supra_coin::SupraCoin") {
-          if (eventData.type === "0x1::coin::CoinDeposit") {
-            amountChange += parseInt(eventData.data.amount);
-          } else if (eventData.type === "0x1::coin::CoinWithdraw") {
-            eventData.data.amount;
-            amountChange -= parseInt(eventData.data.amount);
+        if (eventData.type === "0x1::coin::CoinDeposit") {
+          let curData = coinChange.get(eventData.data.coin_type);
+          if (curData != undefined) {
+            coinChange.set(eventData.data.coin_type, {
+              totalDeposit:
+                curData.totalDeposit + BigInt(eventData.data.amount),
+              totalWithdraw: curData.totalWithdraw,
+            });
+          } else {
+            coinChange.set(eventData.data.coin_type, {
+              totalDeposit: BigInt(eventData.data.amount),
+              totalWithdraw: BigInt(0),
+            });
+          }
+        } else if (eventData.type === "0x1::coin::CoinWithdraw") {
+          let curData = coinChange.get(eventData.data.coin_type);
+          if (curData != undefined) {
+            coinChange.set(eventData.data.coin_type, {
+              totalDeposit: curData.totalDeposit,
+              totalWithdraw:
+                curData.totalWithdraw + BigInt(eventData.data.amount),
+            });
+          } else {
+            coinChange.set(eventData.data.coin_type, {
+              totalDeposit: BigInt(0),
+              totalWithdraw: BigInt(eventData.data.amount),
+            });
           }
         }
       }
     });
-    return amountChange;
+    let coinChangeParsed: CoinChange[] = [];
+    coinChange.forEach(
+      (
+        value: {
+          totalDeposit: bigint;
+          totalWithdraw: bigint;
+        },
+        key: string
+      ) => {
+        coinChangeParsed.push({
+          coinType: key,
+          amount: value.totalDeposit - value.totalWithdraw,
+        });
+      }
+    );
+    return coinChangeParsed;
   }
 
   private getTransactionInsights(
@@ -249,26 +299,47 @@ export class SupraClient {
     txData: any
   ): TransactionInsights {
     let txInsights: TransactionInsights = {
-      supraCoinReceiver: "",
-      supraCoinChangeAmount: 0,
-      type: TxTypeForTransactionInsights.MoveCall,
+      coinReceiver: "",
+      coinChange: [
+        {
+          amount: BigInt(0),
+          coinType: "",
+        },
+      ],
+      type: TxTypeForTransactionInsights.ScriptCall,
     };
 
     if (txData.payload.Move.type === "entry_function_payload") {
       if (txData.payload.Move.function === "0x1::aptos_account::transfer") {
-        txInsights.supraCoinReceiver = txData.payload.Move.arguments[0];
-        txInsights.supraCoinChangeAmount = parseInt(
-          txData.payload.Move.arguments[1]
-        );
-        txInsights.type = TxTypeForTransactionInsights.SupraTransfer;
+        let amountChange = BigInt(txData.payload.Move.arguments[1]);
+        if (userAddress === txData.header.sender.Move) {
+          amountChange *= BigInt(-1);
+        }
+        txInsights.coinReceiver = txData.payload.Move.arguments[0];
+        txInsights.coinChange[0] = {
+          amount: amountChange,
+          coinType: "0x1::supra_coin::SupraCoin",
+        };
+        txInsights.type = TxTypeForTransactionInsights.CoinTransfer;
+      } else if (
+        txData.payload.Move.function === "0x1::aptos_account::transfer_coins" ||
+        txData.payload.Move.function === "0x1::coin::transfer"
+      ) {
+        let amountChange = BigInt(txData.payload.Move.arguments[1]);
+        if (userAddress === txData.header.sender.Move) {
+          amountChange *= BigInt(-1);
+        }
+        txInsights.coinReceiver = txData.payload.Move.arguments[0];
+        txInsights.coinChange[0] = {
+          amount: amountChange,
+          coinType: txData.payload.Move.type_arguments[0],
+        };
+        txInsights.type = TxTypeForTransactionInsights.CoinTransfer;
       } else {
-        txInsights.supraCoinChangeAmount = this.getSupraCoinChangeAmount(
-          userAddress,
-          txData.output.Move.events
-        );
+        txInsights.type = TxTypeForTransactionInsights.EntryFunctionCall;
       }
     } else if (txData.payload.Move.type === "script_payload") {
-      txInsights.supraCoinChangeAmount = this.getSupraCoinChangeAmount(
+      txInsights.coinChange = this.getCoinChangeAmount(
         userAddress,
         txData.output.Move.events
       );
@@ -398,6 +469,62 @@ export class SupraClient {
 
     let coinTransactionsDetail: TransactionDetail[] = [];
     resData.data.record.forEach((data: any) => {
+      coinTransactionsDetail.push({
+        txHash: data.hash,
+        sender: data.header.sender.Move,
+        sequenceNumber: data.header.sequence_number,
+        maxGasAmount: data.header.max_gas_amount,
+        gasUnitPrice: data.header.gas_unit_price,
+        gasUsed: data.output.Move.gas_used,
+        transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txConfirmationTime: Number(
+          data.block_header.timestamp.microseconds_since_unix_epoch
+        ),
+        status:
+          data.status === "Fail" || data.status === "Invalid"
+            ? "Failed"
+            : data.status,
+        events: data.output.Move.events,
+        blockNumber: data.block_header.height,
+        blockHash: data.block_header.hash,
+        transactionInsights: this.getTransactionInsights(
+          account.toString(),
+          data
+        ),
+      });
+    });
+    return coinTransactionsDetail;
+  }
+
+  async getAccountCompleteTransactionsDetail(
+    account: HexString,
+    count: number = 15
+  ): Promise<TransactionDetail[]> {
+    let coinTransactions = await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}&start=0`
+    );
+    let accountSendedTransactions = await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}&last_seen=0000000000000000000000000000000000000000000000000000000000000000`
+    );
+
+    let combinedTxArray: any[] = [];
+    if (coinTransactions.data.record != null) {
+      combinedTxArray.push(...coinTransactions.data.record);
+    }
+    if (accountSendedTransactions.data.record != null) {
+      combinedTxArray.push(...accountSendedTransactions.data.record);
+    }
+
+    let combinedTx = combinedTxArray.filter(
+      (item, index, self) =>
+        index === self.findIndex((data) => data.hash === item.hash)
+    );
+    combinedTx.sort((a, b) => a.txConfirmationTime - b.txConfirmationTime);
+
+    let coinTransactionsDetail: TransactionDetail[] = [];
+    combinedTx.forEach((data: any) => {
       coinTransactionsDetail.push({
         txHash: data.hash,
         sender: data.header.sender.Move,
