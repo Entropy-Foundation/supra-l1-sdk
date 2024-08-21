@@ -6,7 +6,12 @@ import {
   TransactionBuilder,
 } from "aptos";
 import axios, { AxiosResponse } from "axios";
-import { normalizeAddress, fromUint8ArrayToJSArray, sleep } from "./utils";
+import {
+  normalizeAddress,
+  fromUint8ArrayToJSArray,
+  sleep,
+  parseFunctionTypeArgs,
+} from "./utils";
 import {
   TransactionStatus,
   TransactionResponse,
@@ -16,6 +21,7 @@ import {
   AccountResources,
   TransactionInsights,
   TxTypeForTransactionInsights,
+  CoinInfo,
 } from "./types";
 
 export * from "./types";
@@ -424,6 +430,23 @@ export class SupraClient {
    * @param account Supra Account address for getting balance
    * @returns Supra Balance
    */
+  async getCoinInfo(coinType: string): Promise<CoinInfo> {
+    let coinInfoResource = await this.getResourceData(
+      new HexString(coinType.substring(2, 66)),
+      `0x0000000000000000000000000000000000000000000000000000000000000001::coin::CoinInfo<${coinType}>`
+    );
+    return {
+      name: coinInfoResource.name,
+      symbol: coinInfoResource.symbol,
+      decimals: coinInfoResource.decimals,
+    };
+  }
+
+  /**
+   * Get Supra balance of given account
+   * @param account Supra Account address for getting balance
+   * @returns Supra Balance
+   */
   async getAccountSupraCoinBalance(account: HexString): Promise<bigint> {
     return BigInt(
       (
@@ -432,6 +455,22 @@ export class SupraClient {
           "0x1::coin::CoinStore<0x1::supra_coin::SupraCoin>"
         )
       ).coin.value
+    );
+  }
+
+  /**
+   * Get Coin balance of given account
+   * @param account Coin Account address for getting balance
+   * @param coinType Type of coin
+   * @returns Supra Balance
+   */
+  async getAccountCoinBalance(
+    account: HexString,
+    coinType: string
+  ): Promise<bigint> {
+    return BigInt(
+      (await this.getResourceData(account, `0x1::coin::CoinStore<${coinType}>`))
+        .coin.value
     );
   }
 
@@ -467,7 +506,8 @@ export class SupraClient {
 
   private async getSendTxPayload(
     senderAccount: AptosAccount,
-    rawTxn: TxnBuilderTypes.RawTransaction
+    rawTxn: TxnBuilderTypes.RawTransaction,
+    functionTypeArgs: string[]
   ): Promise<SendTxPayload> {
     console.log("Sequence Number: ", rawTxn.sequence_number);
 
@@ -487,7 +527,7 @@ export class SupraClient {
                 name: txPayload.module_name.name.value,
               },
               function: txPayload.function_name.value,
-              ty_args: [],
+              ty_args: parseFunctionTypeArgs(functionTypeArgs),
               args: fromUint8ArrayToJSArray(txPayload.args),
             },
           },
@@ -513,7 +553,7 @@ export class SupraClient {
     moduleAddr: string,
     moduleName: string,
     functionName: string,
-    functionTypeArgs: [],
+    functionTypeArgs: TxnBuilderTypes.TypeTag[],
     functionArgs: Uint8Array[],
     maxGas: bigint = BigInt(2000)
   ): Promise<TxnBuilderTypes.RawTransaction> {
@@ -577,7 +617,52 @@ export class SupraClient {
         [],
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)],
         maxGas
-      )
+      ),
+      []
+    );
+    await this.simulateTx(sendTxPayload);
+    return await this.sendTx(sendTxPayload);
+  }
+
+  /**
+   * Transfer coin
+   * @param senderAccount Sender KeyPair
+   * @param receiverAccountAddr Receiver Supra Account address
+   * @param amount Amount to transfer
+   * @param coinType Type of coin
+   * @returns Transaction Response
+   */
+  async transferCoin(
+    senderAccount: AptosAccount,
+    receiverAccountAddr: HexString,
+    amount: bigint,
+    coinType: string
+  ): Promise<TransactionResponse> {
+    let maxGas = BigInt(50000);
+    if (
+      BigInt(0) + maxGas * BigInt(100) >
+      (await this.getAccountSupraCoinBalance(senderAccount.address()))
+    ) {
+      throw new Error("Insufficient Supra Coins");
+    }
+    if (
+      BigInt(amount) >
+      (await this.getAccountCoinBalance(senderAccount.address(), coinType))
+    ) {
+      throw new Error("Insufficient Coins To Transfer");
+    }
+    let sendTxPayload = await this.getSendTxPayload(
+      senderAccount,
+      await this.getTxObject(
+        senderAccount.address(),
+        "0000000000000000000000000000000000000000000000000000000000000001",
+        "aptos_account",
+        "transfer_coins",
+        [new TxnBuilderTypes.TypeTagParser(coinType).parseTypeTag()],
+        [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)],
+        maxGas
+      ),
+      [coinType]
     );
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
@@ -612,7 +697,8 @@ export class SupraClient {
         "publish_package_txn",
         [],
         [BCS.bcsSerializeBytes(packageMetadata), codeSerializer.getBytes()]
-      )
+      ),
+      []
     );
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);

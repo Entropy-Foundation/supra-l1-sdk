@@ -1,3 +1,23 @@
+import { FunctionTypeArgs } from "./types";
+
+export const parseFunctionTypeArgs = (
+  functionTypeArgs: string[]
+): Array<FunctionTypeArgs> => {
+  let functionTypeArgsParsed: Array<FunctionTypeArgs> = new Array();
+  functionTypeArgs.forEach((data) => {
+    let parsedData = data.split("::");
+    functionTypeArgsParsed.push({
+      struct: {
+        address: parsedData[0],
+        module: parsedData[1],
+        name: parsedData[2],
+        type_args: [],
+      },
+    });
+  });
+  return functionTypeArgsParsed;
+};
+
 export const fromUint8ArrayToJSArray = (
   arr: Uint8Array[]
 ): Array<Array<number>> => {

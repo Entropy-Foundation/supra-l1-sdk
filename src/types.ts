@@ -18,6 +18,13 @@ export interface AccountResources {
     ]
   >;
 }
+
+export interface CoinInfo {
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
 export enum TransactionStatus {
   Success = "Success",
   Failed = "Failed",
@@ -68,7 +75,7 @@ export interface SendTxPayload {
             name: string;
           };
           function: string;
-          ty_args: Array<any>;
+          ty_args: Array<FunctionTypeArgs>;
           args: Array<Array<number>>;
         };
       };
@@ -83,5 +90,14 @@ export interface SendTxPayload {
         signature: string;
       };
     };
+  };
+}
+
+export interface FunctionTypeArgs {
+  struct: {
+    address: string;
+    module: string;
+    name: string;
+    type_args: Array<any>;
   };
 }
