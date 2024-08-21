@@ -19,6 +19,11 @@ interface AccountResources {
         }
     ]>;
 }
+interface CoinInfo {
+    name: string;
+    symbol: string;
+    decimals: number;
+}
 declare enum TransactionStatus {
     Success = "Success",
     Failed = "Failed",
@@ -29,12 +34,17 @@ interface TransactionResponse {
     result: TransactionStatus;
 }
 declare enum TxTypeForTransactionInsights {
-    SupraTransfer = "SupraTransfer",
-    MoveCall = "MoveCall"
+    CoinTransfer = "CoinTransfer",
+    EntryFunctionCall = "EntryFunctionCall",
+    ScriptCall = "ScriptCall"
+}
+interface CoinChange {
+    coinType: string;
+    amount: bigint;
 }
 interface TransactionInsights {
-    supraCoinReceiver: string;
-    supraCoinChangeAmount: number;
+    coinReceiver: string;
+    coinChange: Array<CoinChange>;
     type: TxTypeForTransactionInsights;
 }
 interface TransactionDetail {
@@ -64,7 +74,7 @@ interface SendTxPayload {
                         name: string;
                     };
                     function: string;
-                    ty_args: Array<any>;
+                    ty_args: Array<FunctionTypeArgs>;
                     args: Array<Array<number>>;
                 };
             };
@@ -79,6 +89,14 @@ interface SendTxPayload {
                 signature: string;
             };
         };
+    };
+}
+interface FunctionTypeArgs {
+    struct: {
+        address: string;
+        module: string;
+        name: string;
+        type_args: Array<any>;
     };
 }
 
@@ -140,7 +158,7 @@ declare class SupraClient {
      */
     getResourceData(account: HexString, resourceType: string): Promise<any>;
     getTransactionStatus(transactionHash: string): Promise<TransactionStatus | null>;
-    private getSupraCoinChangeAmount;
+    private getCoinChangeAmount;
     private getTransactionInsights;
     /**
      * Get transaction details of given transaction hash
@@ -164,12 +182,26 @@ declare class SupraClient {
      * @returns Transaction Details
      */
     getCoinTransactionsDetail(account: HexString, count?: number, start?: number): Promise<TransactionDetail[]>;
+    getAccountCompleteTransactionsDetail(account: HexString, count?: number): Promise<TransactionDetail[]>;
+    /**
+     * Get Supra balance of given account
+     * @param account Supra Account address for getting balance
+     * @returns Supra Balance
+     */
+    getCoinInfo(coinType: string): Promise<CoinInfo>;
     /**
      * Get Supra balance of given account
      * @param account Supra Account address for getting balance
      * @returns Supra Balance
      */
     getAccountSupraCoinBalance(account: HexString): Promise<bigint>;
+    /**
+     * Get Coin balance of given account
+     * @param account Coin Account address for getting balance
+     * @param coinType Type of coin
+     * @returns Supra Balance
+     */
+    getAccountCoinBalance(account: HexString, coinType: string): Promise<bigint>;
     private waitForTransactionCompletion;
     private sendTx;
     private getSendTxPayload;
@@ -182,6 +214,15 @@ declare class SupraClient {
      * @returns Transaction Response
      */
     transferSupraCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint): Promise<TransactionResponse>;
+    /**
+     * Transfer coin
+     * @param senderAccount Sender KeyPair
+     * @param receiverAccountAddr Receiver Supra Account address
+     * @param amount Amount to transfer
+     * @param coinType Type of coin
+     * @returns Transaction Response
+     */
+    transferCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, coinType: string): Promise<TransactionResponse>;
     /**
      * Publish package or module on supra network
      * @param senderAccount Module Publisher KeyPair
@@ -197,4 +238,4 @@ declare class SupraClient {
     simulateTx(sendTxPayload: SendTxPayload): Promise<void>;
 }
 
-export { type AccountInfo, type AccountResources, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };
+export { type AccountInfo, type AccountResources, type CoinChange, type CoinInfo, type FunctionTypeArgs, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };

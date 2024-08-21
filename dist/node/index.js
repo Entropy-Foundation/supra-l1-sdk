@@ -13789,6 +13789,21 @@ var {
 } = axios_default;
 
 // src/utils.ts
+var parseFunctionTypeArgs = (functionTypeArgs) => {
+  let functionTypeArgsParsed = new Array();
+  functionTypeArgs.forEach((data) => {
+    let parsedData = data.split("::");
+    functionTypeArgsParsed.push({
+      struct: {
+        address: parsedData[0],
+        module: parsedData[1],
+        name: parsedData[2],
+        type_args: []
+      }
+    });
+  });
+  return functionTypeArgsParsed;
+};
 var fromUint8ArrayToJSArray = (arr) => {
   let resData = new Array();
   for (let i = 0; i < arr.length; i++) {
@@ -13819,8 +13834,9 @@ var TransactionStatus = /* @__PURE__ */ ((TransactionStatus2) => {
   return TransactionStatus2;
 })(TransactionStatus || {});
 var TxTypeForTransactionInsights = /* @__PURE__ */ ((TxTypeForTransactionInsights2) => {
-  TxTypeForTransactionInsights2["SupraTransfer"] = "SupraTransfer";
-  TxTypeForTransactionInsights2["MoveCall"] = "MoveCall";
+  TxTypeForTransactionInsights2["CoinTransfer"] = "CoinTransfer";
+  TxTypeForTransactionInsights2["EntryFunctionCall"] = "EntryFunctionCall";
+  TxTypeForTransactionInsights2["ScriptCall"] = "ScriptCall";
   return TxTypeForTransactionInsights2;
 })(TxTypeForTransactionInsights || {});
 
@@ -13984,43 +14000,89 @@ var SupraClient = class _SupraClient {
     }
     return resData.data.status == "Unexecuted" ? "Pending" : resData.data.status == "Fail" ? "Failed" : resData.data.status;
   }
-  getSupraCoinChangeAmount(userAddress, events) {
-    let amountChange = 0;
+  getCoinChangeAmount(userAddress, events) {
+    let coinChange = /* @__PURE__ */ new Map();
     events.forEach((eventData) => {
-      if (eventData.data.account === userAddress && (eventData.type === "0x1::coin::CoinDeposit" || eventData.type === "0x1::coin::CoinWithdraw")) {
-        if (eventData.data.coin_type === "0x1::supra_coin::SupraCoin") {
-          if (eventData.type === "0x1::coin::CoinDeposit") {
-            amountChange += parseInt(eventData.data.amount);
-          } else if (eventData.type === "0x1::coin::CoinWithdraw") {
-            eventData.data.amount;
-            amountChange -= parseInt(eventData.data.amount);
+      if ((eventData.type === "0x1::coin::CoinDeposit" || eventData.type === "0x1::coin::CoinWithdraw") && "0x" + eventData.data.account.substring(2, eventData.data.account).padStart(64, "0") === userAddress) {
+        if (eventData.type === "0x1::coin::CoinDeposit") {
+          let curData = coinChange.get(eventData.data.coin_type);
+          if (curData != void 0) {
+            coinChange.set(eventData.data.coin_type, {
+              totalDeposit: curData.totalDeposit + BigInt(eventData.data.amount),
+              totalWithdraw: curData.totalWithdraw
+            });
+          } else {
+            coinChange.set(eventData.data.coin_type, {
+              totalDeposit: BigInt(eventData.data.amount),
+              totalWithdraw: BigInt(0)
+            });
+          }
+        } else if (eventData.type === "0x1::coin::CoinWithdraw") {
+          let curData = coinChange.get(eventData.data.coin_type);
+          if (curData != void 0) {
+            coinChange.set(eventData.data.coin_type, {
+              totalDeposit: curData.totalDeposit,
+              totalWithdraw: curData.totalWithdraw + BigInt(eventData.data.amount)
+            });
+          } else {
+            coinChange.set(eventData.data.coin_type, {
+              totalDeposit: BigInt(0),
+              totalWithdraw: BigInt(eventData.data.amount)
+            });
           }
         }
       }
     });
-    return amountChange;
+    let coinChangeParsed = [];
+    coinChange.forEach(
+      (value, key) => {
+        coinChangeParsed.push({
+          coinType: key,
+          amount: value.totalDeposit - value.totalWithdraw
+        });
+      }
+    );
+    return coinChangeParsed;
   }
   getTransactionInsights(userAddress, txData) {
     let txInsights = {
-      supraCoinReceiver: "",
-      supraCoinChangeAmount: 0,
-      type: "MoveCall" /* MoveCall */
+      coinReceiver: "",
+      coinChange: [
+        {
+          amount: BigInt(0),
+          coinType: ""
+        }
+      ],
+      type: "ScriptCall" /* ScriptCall */
     };
     if (txData.payload.Move.type === "entry_function_payload") {
       if (txData.payload.Move.function === "0x1::aptos_account::transfer") {
-        txInsights.supraCoinReceiver = txData.payload.Move.arguments[0];
-        txInsights.supraCoinChangeAmount = parseInt(
-          txData.payload.Move.arguments[1]
-        );
-        txInsights.type = "SupraTransfer" /* SupraTransfer */;
+        let amountChange = BigInt(txData.payload.Move.arguments[1]);
+        if (userAddress === txData.header.sender.Move) {
+          amountChange *= BigInt(-1);
+        }
+        txInsights.coinReceiver = txData.payload.Move.arguments[0];
+        txInsights.coinChange[0] = {
+          amount: amountChange,
+          coinType: "0x1::supra_coin::SupraCoin"
+        };
+        txInsights.type = "CoinTransfer" /* CoinTransfer */;
+      } else if (txData.payload.Move.function === "0x1::aptos_account::transfer_coins" || txData.payload.Move.function === "0x1::coin::transfer") {
+        let amountChange = BigInt(txData.payload.Move.arguments[1]);
+        if (userAddress === txData.header.sender.Move) {
+          amountChange *= BigInt(-1);
+        }
+        txInsights.coinReceiver = txData.payload.Move.arguments[0];
+        txInsights.coinChange[0] = {
+          amount: amountChange,
+          coinType: txData.payload.Move.type_arguments[0]
+        };
+        txInsights.type = "CoinTransfer" /* CoinTransfer */;
       } else {
-        txInsights.supraCoinChangeAmount = this.getSupraCoinChangeAmount(
-          userAddress,
-          txData.output.Move.events
-        );
+        txInsights.type = "EntryFunctionCall" /* EntryFunctionCall */;
       }
     } else if (txData.payload.Move.type === "script_payload") {
-      txInsights.supraCoinChangeAmount = this.getSupraCoinChangeAmount(
+      txInsights.coinChange = this.getCoinChangeAmount(
         userAddress,
         txData.output.Move.events
       );
@@ -14146,6 +14208,67 @@ var SupraClient = class _SupraClient {
     });
     return coinTransactionsDetail;
   }
+  async getAccountCompleteTransactionsDetail(account, count = 15) {
+    let coinTransactions = await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}&start=0`
+    );
+    let accountSendedTransactions = await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}&last_seen=0000000000000000000000000000000000000000000000000000000000000000`
+    );
+    let combinedTxArray = [];
+    if (coinTransactions.data.record != null) {
+      combinedTxArray.push(...coinTransactions.data.record);
+    }
+    if (accountSendedTransactions.data.record != null) {
+      combinedTxArray.push(...accountSendedTransactions.data.record);
+    }
+    let combinedTx = combinedTxArray.filter(
+      (item, index, self2) => index === self2.findIndex((data) => data.hash === item.hash)
+    );
+    combinedTx.sort((a, b) => a.txConfirmationTime - b.txConfirmationTime);
+    let coinTransactionsDetail = [];
+    combinedTx.forEach((data) => {
+      coinTransactionsDetail.push({
+        txHash: data.hash,
+        sender: data.header.sender.Move,
+        sequenceNumber: data.header.sequence_number,
+        maxGasAmount: data.header.max_gas_amount,
+        gasUnitPrice: data.header.gas_unit_price,
+        gasUsed: data.output.Move.gas_used,
+        transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txConfirmationTime: Number(
+          data.block_header.timestamp.microseconds_since_unix_epoch
+        ),
+        status: data.status === "Fail" || data.status === "Invalid" ? "Failed" : data.status,
+        events: data.output.Move.events,
+        blockNumber: data.block_header.height,
+        blockHash: data.block_header.hash,
+        transactionInsights: this.getTransactionInsights(
+          account.toString(),
+          data
+        )
+      });
+    });
+    return coinTransactionsDetail;
+  }
+  /**
+   * Get Supra balance of given account
+   * @param account Supra Account address for getting balance
+   * @returns Supra Balance
+   */
+  async getCoinInfo(coinType) {
+    let coinInfoResource = await this.getResourceData(
+      new import_aptos.HexString(coinType.substring(2, 66)),
+      `0x0000000000000000000000000000000000000000000000000000000000000001::coin::CoinInfo<${coinType}>`
+    );
+    return {
+      name: coinInfoResource.name,
+      symbol: coinInfoResource.symbol,
+      decimals: coinInfoResource.decimals
+    };
+  }
   /**
    * Get Supra balance of given account
    * @param account Supra Account address for getting balance
@@ -14157,6 +14280,17 @@ var SupraClient = class _SupraClient {
         account,
         "0x1::coin::CoinStore<0x1::supra_coin::SupraCoin>"
       )).coin.value
+    );
+  }
+  /**
+   * Get Coin balance of given account
+   * @param account Coin Account address for getting balance
+   * @param coinType Type of coin
+   * @returns Supra Balance
+   */
+  async getAccountCoinBalance(account, coinType) {
+    return BigInt(
+      (await this.getResourceData(account, `0x1::coin::CoinStore<${coinType}>`)).coin.value
     );
   }
   async waitForTransactionCompletion(txHash) {
@@ -14182,7 +14316,7 @@ var SupraClient = class _SupraClient {
       result: await this.waitForTransactionCompletion(resData.data)
     };
   }
-  async getSendTxPayload(senderAccount, rawTxn) {
+  async getSendTxPayload(senderAccount, rawTxn, functionTypeArgs) {
     console.log("Sequence Number: ", rawTxn.sequence_number);
     let txPayload = rawTxn.payload.value;
     return {
@@ -14197,7 +14331,7 @@ var SupraClient = class _SupraClient {
                 name: txPayload.module_name.name.value
               },
               function: txPayload.function_name.value,
-              ty_args: [],
+              ty_args: parseFunctionTypeArgs(functionTypeArgs),
               args: fromUint8ArrayToJSArray(txPayload.args)
             }
           },
@@ -14265,7 +14399,40 @@ var SupraClient = class _SupraClient {
         [],
         [receiverAccountAddr.toUint8Array(), import_aptos.BCS.bcsSerializeUint64(amount)],
         maxGas
-      )
+      ),
+      []
+    );
+    await this.simulateTx(sendTxPayload);
+    return await this.sendTx(sendTxPayload);
+  }
+  /**
+   * Transfer coin
+   * @param senderAccount Sender KeyPair
+   * @param receiverAccountAddr Receiver Supra Account address
+   * @param amount Amount to transfer
+   * @param coinType Type of coin
+   * @returns Transaction Response
+   */
+  async transferCoin(senderAccount, receiverAccountAddr, amount, coinType) {
+    let maxGas = BigInt(5e4);
+    if (BigInt(0) + maxGas * BigInt(100) > await this.getAccountSupraCoinBalance(senderAccount.address())) {
+      throw new Error("Insufficient Supra Coins");
+    }
+    if (BigInt(amount) > await this.getAccountCoinBalance(senderAccount.address(), coinType)) {
+      throw new Error("Insufficient Coins To Transfer");
+    }
+    let sendTxPayload = await this.getSendTxPayload(
+      senderAccount,
+      await this.getTxObject(
+        senderAccount.address(),
+        "0000000000000000000000000000000000000000000000000000000000000001",
+        "aptos_account",
+        "transfer_coins",
+        [new import_aptos.TxnBuilderTypes.TypeTagParser(coinType).parseTypeTag()],
+        [receiverAccountAddr.toUint8Array(), import_aptos.BCS.bcsSerializeUint64(amount)],
+        maxGas
+      ),
+      [coinType]
     );
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
@@ -14295,7 +14462,8 @@ var SupraClient = class _SupraClient {
         "publish_package_txn",
         [],
         [import_aptos.BCS.bcsSerializeBytes(packageMetadata), codeSerializer.getBytes()]
-      )
+      ),
+      []
     );
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
