@@ -309,36 +309,44 @@ export class SupraClient {
       type: TxTypeForTransactionInsights.ScriptCall,
     };
 
+    // NOTE: Need to optimize this conditionals
     if (txData.payload.Move.type === "entry_function_payload") {
       if (txData.payload.Move.function === "0x1::aptos_account::transfer") {
-        let amountChange = BigInt(txData.payload.Move.arguments[1]);
-        if (userAddress === txData.header.sender.Move) {
-          amountChange *= BigInt(-1);
+        if (txData.status === TransactionStatus.Success) {
+          let amountChange = BigInt(txData.payload.Move.arguments[1]);
+          if (userAddress === txData.header.sender.Move) {
+            amountChange *= BigInt(-1);
+          }
+          txInsights.coinReceiver = txData.payload.Move.arguments[0];
+          txInsights.coinChange[0] = {
+            amount: amountChange,
+            coinType: "0x1::supra_coin::SupraCoin",
+          };
         }
-        txInsights.coinReceiver = txData.payload.Move.arguments[0];
-        txInsights.coinChange[0] = {
-          amount: amountChange,
-          coinType: "0x1::supra_coin::SupraCoin",
-        };
         txInsights.type = TxTypeForTransactionInsights.CoinTransfer;
       } else if (
         txData.payload.Move.function === "0x1::aptos_account::transfer_coins" ||
         txData.payload.Move.function === "0x1::coin::transfer"
       ) {
-        let amountChange = BigInt(txData.payload.Move.arguments[1]);
-        if (userAddress === txData.header.sender.Move) {
-          amountChange *= BigInt(-1);
+        if (txData.status === TransactionStatus.Success) {
+          let amountChange = BigInt(txData.payload.Move.arguments[1]);
+          if (userAddress === txData.header.sender.Move) {
+            amountChange *= BigInt(-1);
+          }
+          txInsights.coinReceiver = txData.payload.Move.arguments[0];
+          txInsights.coinChange[0] = {
+            amount: amountChange,
+            coinType: txData.payload.Move.type_arguments[0],
+          };
         }
-        txInsights.coinReceiver = txData.payload.Move.arguments[0];
-        txInsights.coinChange[0] = {
-          amount: amountChange,
-          coinType: txData.payload.Move.type_arguments[0],
-        };
         txInsights.type = TxTypeForTransactionInsights.CoinTransfer;
       } else {
         txInsights.type = TxTypeForTransactionInsights.EntryFunctionCall;
       }
-    } else if (txData.payload.Move.type === "script_payload") {
+    } else if (
+      txData.status === TransactionStatus.Success &&
+      txData.payload.Move.type === "script_payload"
+    ) {
       txInsights.coinChange = this.getCoinChangeAmount(
         userAddress,
         txData.output.Move.events
@@ -521,7 +529,16 @@ export class SupraClient {
       (item, index, self) =>
         index === self.findIndex((data) => data.hash === item.hash)
     );
-    combinedTx.sort((a, b) => a.txConfirmationTime - b.txConfirmationTime);
+    combinedTx.sort((a, b) => {
+      if (
+        a.block_header.timestamp.microseconds_since_unix_epoch <
+        b.block_header.timestamp.microseconds_since_unix_epoch
+      ) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
 
     let coinTransactionsDetail: TransactionDetail[] = [];
     combinedTx.forEach((data: any) => {
@@ -675,18 +692,22 @@ export class SupraClient {
     };
   }
 
-  private async getTxObject(
+  static async createRawTxObject(
     senderAddr: HexString,
+    senderSequenceNumber: bigint,
     moduleAddr: string,
     moduleName: string,
     functionName: string,
     functionTypeArgs: TxnBuilderTypes.TypeTag[],
     functionArgs: Uint8Array[],
-    maxGas: bigint = BigInt(2000)
+    chainId: TxnBuilderTypes.ChainId,
+    maxGas: bigint = BigInt(500000),
+    gasUnitPrice: bigint = BigInt(100),
+    txExpiryTime: bigint = BigInt(999999999999999)
   ): Promise<TxnBuilderTypes.RawTransaction> {
     return new TxnBuilderTypes.RawTransaction(
       new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
-      (await this.getAccountInfo(senderAddr)).sequence_number,
+      senderSequenceNumber,
       new TxnBuilderTypes.TransactionPayloadEntryFunction(
         new TxnBuilderTypes.EntryFunction(
           new TxnBuilderTypes.ModuleId(
@@ -700,11 +721,10 @@ export class SupraClient {
           functionArgs
         )
       ),
-      maxGas, // Setting MaxGasAmount As 2000 Because In Devnet Only Those Transactions Will Be Executing Using This Method Whose Gas Consumption Will Always Less Than 2000
-      // await this.getGasPrice(),
-      BigInt(100),
-      BigInt(999999999999999),
-      this.chainId
+      maxGas,
+      gasUnitPrice,
+      txExpiryTime,
+      chainId
     );
   }
 
@@ -736,13 +756,17 @@ export class SupraClient {
     }
     let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
-      await this.getTxObject(
+      await SupraClient.createRawTxObject(
         senderAccount.address(),
+        (
+          await this.getAccountInfo(senderAccount.address())
+        ).sequence_number,
         "0000000000000000000000000000000000000000000000000000000000000001",
         "aptos_account",
         "transfer",
         [],
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)],
+        this.chainId,
         maxGas
       ),
       []
@@ -780,13 +804,17 @@ export class SupraClient {
     }
     let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
-      await this.getTxObject(
+      await SupraClient.createRawTxObject(
         senderAccount.address(),
+        (
+          await this.getAccountInfo(senderAccount.address())
+        ).sequence_number,
         "0000000000000000000000000000000000000000000000000000000000000001",
         "aptos_account",
         "transfer_coins",
         [new TxnBuilderTypes.TypeTagParser(coinType).parseTypeTag()],
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)],
+        this.chainId,
         maxGas
       ),
       [coinType]
@@ -817,13 +845,17 @@ export class SupraClient {
     BCS.serializeVector(modulesTypeCode, codeSerializer);
     let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
-      await this.getTxObject(
+      await SupraClient.createRawTxObject(
         senderAccount.address(),
+        (
+          await this.getAccountInfo(senderAccount.address())
+        ).sequence_number,
         "0000000000000000000000000000000000000000000000000000000000000001",
         "code",
         "publish_package_txn",
         [],
-        [BCS.bcsSerializeBytes(packageMetadata), codeSerializer.getBytes()]
+        [BCS.bcsSerializeBytes(packageMetadata), codeSerializer.getBytes()],
+        this.chainId
       ),
       []
     );

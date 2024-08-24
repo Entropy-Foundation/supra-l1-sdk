@@ -77,7 +77,6 @@ import * as supraSDK from "./index";
 
   let coinType =
     "0xf339b447d975572db8b48f4ad54b47f51d8ace193803e30e2e5a6b10e93e2fa2::coin::USDC";
-
   // To Fetch coin info
   console.log("Coin Info", await supraClient.getCoinInfo(coinType));
 
@@ -115,7 +114,7 @@ import * as supraSDK from "./index";
     new aptos.HexString(
       "0x4f88ad501b780c12290a6fa63e1e1500eaa5fd5ba945896ce77ee8c53a2f6d00"
     ),
-    "0xcea6a8bc9e48de6654f95e3cf213dc6f7f1a3d134954ff94af577678ff741e43"
+    "0x338e8d8db2177c3e4ae94890dc63bdf00bd558a685b6fc42fe685a85b4bac6d9"
   );
   if (txData != null) {
     console.log("Transaction Detail: ", txData.transactionInsights);
