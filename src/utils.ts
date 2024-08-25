@@ -1,16 +1,17 @@
+import { TxnBuilderTypes } from "aptos";
 import { FunctionTypeArgs } from "./types";
 
 export const parseFunctionTypeArgs = (
-  functionTypeArgs: string[]
+  functionTypeArgs: TxnBuilderTypes.TypeTag[]
 ): Array<FunctionTypeArgs> => {
   let functionTypeArgsParsed: Array<FunctionTypeArgs> = new Array();
   functionTypeArgs.forEach((data) => {
-    let parsedData = data.split("::");
+    let structTagData = (data as TxnBuilderTypes.TypeTagStruct).value;
     functionTypeArgsParsed.push({
       struct: {
-        address: parsedData[0],
-        module: parsedData[1],
-        name: parsedData[2],
+        address: structTagData.address.toHexString().toString(),
+        module: structTagData.module_name.value,
+        name: structTagData.name.value,
         type_args: [],
       },
     });

@@ -650,8 +650,7 @@ export class SupraClient {
 
   private async getSendTxPayload(
     senderAccount: AptosAccount,
-    rawTxn: TxnBuilderTypes.RawTransaction,
-    functionTypeArgs: string[]
+    rawTxn: TxnBuilderTypes.RawTransaction
   ): Promise<SendTxPayload> {
     console.log("Sequence Number: ", rawTxn.sequence_number);
 
@@ -671,7 +670,7 @@ export class SupraClient {
                 name: txPayload.module_name.name.value,
               },
               function: txPayload.function_name.value,
-              ty_args: parseFunctionTypeArgs(functionTypeArgs),
+              ty_args: parseFunctionTypeArgs(txPayload.ty_args),
               args: fromUint8ArrayToJSArray(txPayload.args),
             },
           },
@@ -768,8 +767,7 @@ export class SupraClient {
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)],
         this.chainId,
         maxGas
-      ),
-      []
+      )
     );
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
@@ -816,8 +814,7 @@ export class SupraClient {
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)],
         this.chainId,
         maxGas
-      ),
-      [coinType]
+      )
     );
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
@@ -856,8 +853,7 @@ export class SupraClient {
         [],
         [BCS.bcsSerializeBytes(packageMetadata), codeSerializer.getBytes()],
         this.chainId
-      ),
-      []
+      )
     );
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);

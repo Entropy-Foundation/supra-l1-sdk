@@ -76,7 +76,7 @@ import * as supraSDK from "./index";
   );
 
   let coinType =
-    "0xf339b447d975572db8b48f4ad54b47f51d8ace193803e30e2e5a6b10e93e2fa2::coin::USDC";
+    "0x0000000000000000000000000000000000000000000000000000000000000001::supra_coin::SupraCoin";
   // To Fetch coin info
   console.log("Coin Info", await supraClient.getCoinInfo(coinType));
 
