@@ -146,23 +146,30 @@ declare class SupraClient {
      */
     getAccountInfo(account: HexString): Promise<AccountInfo>;
     /**
-     * Get resources of given supra account
+     * Get list of all resources held by given supra account
      * @param account Hex-encoded 32 byte Supra account address
      * @returns `AccountResources`
      */
     getAccountResources(account: HexString): Promise<AccountResources>;
     /**
-     * Get given supra account's resource data
+     * Get data of resource held by given supra account
      * @param account Hex-encoded 32 byte Supra account address
+     * @param resourceType Type of a resource
      * @returns Resource data
      */
     getResourceData(account: HexString, resourceType: string): Promise<any>;
+    /**
+     * Get status of given supra transaction
+     * @param transactionHash Hex-encoded 32 byte transaction hash for getting transaction status
+     * @returns TransactionStatus
+     */
     getTransactionStatus(transactionHash: string): Promise<TransactionStatus | null>;
     private getCoinChangeAmount;
     private getTransactionInsights;
     /**
      * Get transaction details of given transaction hash
-     * @param transactionHash Transaction hash for getting transaction details
+     * @param account Hex-encoded 32 byte Supra account address
+     * @param transactionHash Hex-encoded 32 byte transaction hash for getting transaction details
      * @returns `TransactionDetail`
      */
     getTransactionDetail(account: HexString, transactionHash: string): Promise<TransactionDetail | null>;
@@ -185,8 +192,8 @@ declare class SupraClient {
     getAccountCompleteTransactionsDetail(account: HexString, count?: number): Promise<TransactionDetail[]>;
     /**
      * Get Supra balance of given account
-     * @param account Supra Account address for getting balance
-     * @returns Supra Balance
+     * @param coinType Type of a coin resource
+     * @returns CoinInfo
      */
     getCoinInfo(coinType: string): Promise<CoinInfo>;
     /**
@@ -197,15 +204,17 @@ declare class SupraClient {
     getAccountSupraCoinBalance(account: HexString): Promise<bigint>;
     /**
      * Get Coin balance of given account
-     * @param account Coin Account address for getting balance
-     * @param coinType Type of coin
+     * @param account Supra account address for getting balance
+     * @param coinType Type of a coin resource
      * @returns Supra Balance
      */
     getAccountCoinBalance(account: HexString, coinType: string): Promise<bigint>;
     private waitForTransactionCompletion;
     private sendTx;
     private getSendTxPayload;
-    private getTxObject;
+    sendTxUsingSerializedRawTransaction(senderAccount: AptosAccount, serializedRawTransaction: Uint8Array): Promise<TransactionResponse>;
+    static createRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint, gasUnitPrice?: bigint, txExpiryTime?: bigint): Promise<TxnBuilderTypes.RawTransaction>;
+    static createSerializedRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint, gasUnitPrice?: bigint, txExpiryTime?: bigint): Promise<Uint8Array>;
     /**
      * Transfer supra coin
      * @param senderAccount Sender KeyPair

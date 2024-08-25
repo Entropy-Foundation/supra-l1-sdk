@@ -173,7 +173,7 @@ export class SupraClient {
   }
 
   /**
-   * Get resources of given supra account
+   * Get list of all resources held by given supra account
    * @param account Hex-encoded 32 byte Supra account address
    * @returns `AccountResources`
    */
@@ -187,8 +187,9 @@ export class SupraClient {
   }
 
   /**
-   * Get given supra account's resource data
+   * Get data of resource held by given supra account
    * @param account Hex-encoded 32 byte Supra account address
+   * @param resourceType Type of a resource
    * @returns Resource data
    */
   async getResourceData(
@@ -206,6 +207,11 @@ export class SupraClient {
     return resData.data.result[0];
   }
 
+  /**
+   * Get status of given supra transaction
+   * @param transactionHash Hex-encoded 32 byte transaction hash for getting transaction status
+   * @returns TransactionStatus
+   */
   async getTransactionStatus(
     transactionHash: string
   ): Promise<TransactionStatus | null> {
@@ -361,7 +367,8 @@ export class SupraClient {
 
   /**
    * Get transaction details of given transaction hash
-   * @param transactionHash Transaction hash for getting transaction details
+   * @param account Hex-encoded 32 byte Supra account address
+   * @param transactionHash Hex-encoded 32 byte transaction hash for getting transaction details
    * @returns `TransactionDetail`
    */
   async getTransactionDetail(
@@ -571,8 +578,8 @@ export class SupraClient {
 
   /**
    * Get Supra balance of given account
-   * @param account Supra Account address for getting balance
-   * @returns Supra Balance
+   * @param coinType Type of a coin resource
+   * @returns CoinInfo
    */
   async getCoinInfo(coinType: string): Promise<CoinInfo> {
     let coinInfoResource = await this.getResourceData(
@@ -604,8 +611,8 @@ export class SupraClient {
 
   /**
    * Get Coin balance of given account
-   * @param account Coin Account address for getting balance
-   * @param coinType Type of coin
+   * @param account Supra account address for getting balance
+   * @param coinType Type of a coin resource
    * @returns Supra Balance
    */
   async getAccountCoinBalance(
