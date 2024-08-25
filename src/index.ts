@@ -691,6 +691,20 @@ export class SupraClient {
     };
   }
 
+  async sendTxUsingSerializedRawTransaction(
+    senderAccount: AptosAccount,
+    serializedRawTransaction: Uint8Array
+  ): Promise<TransactionResponse> {
+    let sendTxPayload = await this.getSendTxPayload(
+      senderAccount,
+      TxnBuilderTypes.RawTransaction.deserialize(
+        new BCS.Deserializer(serializedRawTransaction)
+      )
+    );
+    await this.simulateTx(sendTxPayload);
+    return await this.sendTx(sendTxPayload);
+  }
+
   static async createRawTxObject(
     senderAddr: HexString,
     senderSequenceNumber: bigint,
@@ -724,6 +738,36 @@ export class SupraClient {
       gasUnitPrice,
       txExpiryTime,
       chainId
+    );
+  }
+
+  static async createSerializedRawTxObject(
+    senderAddr: HexString,
+    senderSequenceNumber: bigint,
+    moduleAddr: string,
+    moduleName: string,
+    functionName: string,
+    functionTypeArgs: TxnBuilderTypes.TypeTag[],
+    functionArgs: Uint8Array[],
+    chainId: TxnBuilderTypes.ChainId,
+    maxGas: bigint = BigInt(500000),
+    gasUnitPrice: bigint = BigInt(100),
+    txExpiryTime: bigint = BigInt(999999999999999)
+  ): Promise<Uint8Array> {
+    return BCS.bcsToBytes(
+      await SupraClient.createRawTxObject(
+        senderAddr,
+        senderSequenceNumber,
+        moduleAddr,
+        moduleName,
+        functionName,
+        functionTypeArgs,
+        functionArgs,
+        chainId,
+        maxGas,
+        gasUnitPrice,
+        txExpiryTime
+      )
     );
   }
 
@@ -816,6 +860,7 @@ export class SupraClient {
         maxGas
       )
     );
+
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
   }
