@@ -14,27 +14,27 @@ import * as supraSDK from "./index";
   let supraClient = await supraSDK.SupraClient.init(
     // "https://rpc-wallet.supra.com/"
     // "https://rpc-devnet.supra.com/"
-    "http://localhost:27000/"
+    // "http://localhost:27000/"
     // "https://rpc-qanet.supra.com/"
-    // "https://rpc-staging.supra.com/"
+    "https://rpc-staging.supra.com/"
   );
 
   let senderAccount = new aptos.AptosAccount(
     Buffer.from(
-      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d88",
+      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d89",
       "hex"
     )
   );
   console.log("Sender Address: ", senderAccount.address());
 
-  // // To Check Whether Account Exists
-  // if ((await supraClient.isAccountExists(senderAccount.address())) == false) {
-  //   console.log(
-  //     "Funding Sender With Faucet: ",
-  //     // To Fund Account With Test Supra Tokens
-  //     await supraClient.fundAccountWithFaucet(senderAccount.address())
-  //   );
-  // }
+  // To Check Whether Account Exists
+  if ((await supraClient.isAccountExists(senderAccount.address())) == false) {
+    console.log(
+      "Funding Sender With Faucet: ",
+      // To Fund Account With Test Supra Tokens
+      await supraClient.fundAccountWithFaucet(senderAccount.address())
+    );
+  }
 
   let receiverAddress = new aptos.HexString(
     "1000000000000000000000000000000000000000000000000000000000000000"

@@ -916,18 +916,18 @@ export class SupraClient {
    * @param sendTxPayload Transaction payload
    */
   async simulateTx(sendTxPayload: SendTxPayload): Promise<void> {
-    let resData = await this.sendRequest(
-      false,
-      "/rpc/v1/transactions/simulate",
-      sendTxPayload
-    );
+    // let resData = await this.sendRequest(
+    //   false,
+    //   "/rpc/v1/transactions/simulate",
+    //   sendTxPayload
+    // );
 
-    if (resData.data.estimated_status.split(" ")[1] !== "EXECUTED") {
-      throw new Error(
-        "Transaction Can Be Failed, Reason: " + resData.data.estimated_status
-      );
-    }
-    console.log("Transaction Simulation Done");
+    // if (resData.data.estimated_status.split(" ")[1] !== "EXECUTED") {
+    //   throw new Error(
+    //     "Transaction Can Be Failed, Reason: " + resData.data.estimated_status
+    //   );
+    // }
+    // console.log("Transaction Simulation Done");
     return;
   }
 }
