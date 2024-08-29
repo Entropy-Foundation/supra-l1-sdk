@@ -14363,7 +14363,7 @@ var SupraClient = class _SupraClient {
       type: "ScriptCall" /* ScriptCall */
     };
     if (txData.payload.Move.type === "entry_function_payload") {
-      if (txData.payload.Move.function === "0x1::aptos_account::transfer") {
+      if (txData.payload.Move.function === "0x1::supra_account::transfer") {
         if (txData.status === "Success" /* Success */) {
           let amountChange = BigInt(txData.payload.Move.arguments[1]);
           if (userAddress === txData.header.sender.Move) {
@@ -14376,7 +14376,7 @@ var SupraClient = class _SupraClient {
           };
         }
         txInsights.type = "CoinTransfer" /* CoinTransfer */;
-      } else if (txData.payload.Move.function === "0x1::aptos_account::transfer_coins" || txData.payload.Move.function === "0x1::coin::transfer") {
+      } else if (txData.payload.Move.function === "0x1::supra_account::transfer_coins" || txData.payload.Move.function === "0x1::coin::transfer") {
         if (txData.status === "Success" /* Success */) {
           let amountChange = BigInt(txData.payload.Move.arguments[1]);
           if (userAddress === txData.header.sender.Move) {
@@ -14738,7 +14738,7 @@ var SupraClient = class _SupraClient {
         senderAccount.address(),
         (await this.getAccountInfo(senderAccount.address())).sequence_number,
         "0000000000000000000000000000000000000000000000000000000000000001",
-        "aptos_account",
+        "supra_account",
         "transfer",
         [],
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)],
@@ -14771,7 +14771,7 @@ var SupraClient = class _SupraClient {
         senderAccount.address(),
         (await this.getAccountInfo(senderAccount.address())).sequence_number,
         "0000000000000000000000000000000000000000000000000000000000000001",
-        "aptos_account",
+        "supra_account",
         "transfer_coins",
         [new TxnBuilderTypes.TypeTagParser(coinType).parseTypeTag()],
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)],
