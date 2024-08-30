@@ -99,6 +99,10 @@ interface FunctionTypeArgs {
         type_args: Array<any>;
     };
 }
+interface FaucetRequestResponse {
+    status: TransactionStatus;
+    transactionHash: string;
+}
 
 /**
  * Provides methods for interacting with supra rpc node.
@@ -132,7 +136,7 @@ declare class SupraClient {
      * @param account Hex-encoded 32 byte Supra account address
      * @returns Transaction hash of faucet transaction
      */
-    fundAccountWithFaucet(account: HexString): Promise<string[]>;
+    fundAccountWithFaucet(account: HexString): Promise<FaucetRequestResponse>;
     /**
      * Check whether given account exists onchain or not
      * @param account Hex-encoded 32 byte Supra account address
@@ -247,4 +251,4 @@ declare class SupraClient {
     simulateTx(sendTxPayload: SendTxPayload): Promise<void>;
 }
 
-export { type AccountInfo, type AccountResources, type CoinChange, type CoinInfo, type FunctionTypeArgs, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };
+export { type AccountInfo, type AccountResources, type CoinChange, type CoinInfo, type FaucetRequestResponse, type FunctionTypeArgs, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };

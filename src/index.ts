@@ -23,6 +23,7 @@ import {
   TxTypeForTransactionInsights,
   CoinInfo,
   CoinChange,
+  FaucetRequestResponse,
 } from "./types";
 
 export * from "./types";
@@ -115,18 +116,22 @@ export class SupraClient {
    * @param account Hex-encoded 32 byte Supra account address
    * @returns Transaction hash of faucet transaction
    */
-  async fundAccountWithFaucet(account: HexString): Promise<string[]> {
+  async fundAccountWithFaucet(
+    account: HexString
+  ): Promise<FaucetRequestResponse> {
     let resData = await this.sendRequest(
       true,
       `/rpc/v1/wallet/faucet/${account.toString()}`
     );
 
-    let txHashes: string[];
     if (typeof resData.data === "object") {
       if (resData.data.hasOwnProperty("Accepted")) {
-        txHashes = [resData.data.Accepted];
-        await this.waitForTransactionCompletion(txHashes[0]);
-        return txHashes;
+        return {
+          status: await this.waitForTransactionCompletion(
+            resData.data.Accepted
+          ),
+          transactionHash: resData.data.Accepted,
+        };
       } else {
         throw new Error(
           "something went wrong, getting unexpected response from rpc_node"

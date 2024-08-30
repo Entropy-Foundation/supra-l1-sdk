@@ -107,3 +107,8 @@ export interface FunctionTypeArgs {
     type_args: Array<any>;
   };
 }
+
+export interface FaucetRequestResponse {
+  status: TransactionStatus;
+  transactionHash: string;
+}

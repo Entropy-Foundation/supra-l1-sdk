@@ -14221,12 +14221,14 @@ var SupraClient = class _SupraClient {
       true,
       `/rpc/v1/wallet/faucet/${account.toString()}`
     );
-    let txHashes;
     if (typeof resData.data === "object") {
       if (resData.data.hasOwnProperty("Accepted")) {
-        txHashes = [resData.data.Accepted];
-        await this.waitForTransactionCompletion(txHashes[0]);
-        return txHashes;
+        return {
+          status: await this.waitForTransactionCompletion(
+            resData.data.Accepted
+          ),
+          transactionHash: resData.data.Accepted
+        };
       } else {
         throw new Error(
           "something went wrong, getting unexpected response from rpc_node"
