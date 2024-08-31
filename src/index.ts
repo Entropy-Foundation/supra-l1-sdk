@@ -422,18 +422,19 @@ export class SupraClient {
    * Get transaction associated with an account
    * @param account Supra account address
    * @param count Number of transactions details
-   * @param fromTx Transaction hash from which transactions details have to be retrieved
+   * @param start
    * @returns Transaction Details
    */
   async getAccountTransactionsDetail(
     account: HexString,
     count: number = 15,
-    fromTx = "0000000000000000000000000000000000000000000000000000000000000000"
+    start: number | null = null
   ): Promise<TransactionDetail[]> {
-    let resData = await this.sendRequest(
-      true,
-      `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}&last_seen=${fromTx}`
-    );
+    let requestPath = `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}`;
+    if (start != null) {
+      requestPath += `&start=${start}`;
+    }
+    let resData = await this.sendRequest(true, requestPath);
     if (resData.data.record == null) {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
     }
@@ -471,18 +472,20 @@ export class SupraClient {
    * Get Coin Transfer related transactions details
    * @param account Supra account address
    * @param count Number of transactions details
-   * @param start Epoch timestamp based on which transactions details have to be retrieved
+   * @param start
    * @returns Transaction Details
    */
   async getCoinTransactionsDetail(
     account: HexString,
     count: number = 15,
-    start: number = 0
+    start: number | null = null
   ): Promise<TransactionDetail[]> {
-    let resData = await this.sendRequest(
-      true,
-      `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}&start=${start}`
-    );
+    let requestPath = `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}`;
+    if (start != null) {
+      requestPath += `&start=${start}`;
+    }
+
+    let resData = await this.sendRequest(true, requestPath);
     if (resData.data.record == null) {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
     }
@@ -522,11 +525,11 @@ export class SupraClient {
   ): Promise<TransactionDetail[]> {
     let coinTransactions = await this.sendRequest(
       true,
-      `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}&start=0`
+      `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}`
     );
     let accountSendedTransactions = await this.sendRequest(
       true,
-      `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}&last_seen=0000000000000000000000000000000000000000000000000000000000000000`
+      `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}`
     );
 
     let combinedTxArray: any[] = [];

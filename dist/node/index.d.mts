@@ -181,18 +181,18 @@ declare class SupraClient {
      * Get transaction associated with an account
      * @param account Supra account address
      * @param count Number of transactions details
-     * @param fromTx Transaction hash from which transactions details have to be retrieved
+     * @param start
      * @returns Transaction Details
      */
-    getAccountTransactionsDetail(account: HexString, count?: number, fromTx?: string): Promise<TransactionDetail[]>;
+    getAccountTransactionsDetail(account: HexString, count?: number, start?: number | null): Promise<TransactionDetail[]>;
     /**
      * Get Coin Transfer related transactions details
      * @param account Supra account address
      * @param count Number of transactions details
-     * @param start Epoch timestamp based on which transactions details have to be retrieved
+     * @param start
      * @returns Transaction Details
      */
-    getCoinTransactionsDetail(account: HexString, count?: number, start?: number): Promise<TransactionDetail[]>;
+    getCoinTransactionsDetail(account: HexString, count?: number, start?: number | null): Promise<TransactionDetail[]>;
     getAccountCompleteTransactionsDetail(account: HexString, count?: number): Promise<TransactionDetail[]>;
     /**
      * Get Supra balance of given account
