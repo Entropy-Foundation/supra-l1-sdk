@@ -181,7 +181,7 @@ declare class SupraClient {
      * Get transaction associated with an account
      * @param account Supra account address
      * @param count Number of transactions details
-     * @param start
+     * @param start Cursor for pagination based response
      * @returns Transaction Details
      */
     getAccountTransactionsDetail(account: HexString, count?: number, start?: number | null): Promise<TransactionDetail[]>;
@@ -189,7 +189,7 @@ declare class SupraClient {
      * Get Coin Transfer related transactions details
      * @param account Supra account address
      * @param count Number of transactions details
-     * @param start
+     * @param start Sequence number from which N number of transactions returned
      * @returns Transaction Details
      */
     getCoinTransactionsDetail(account: HexString, count?: number, start?: number | null): Promise<TransactionDetail[]>;

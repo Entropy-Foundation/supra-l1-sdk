@@ -27,115 +27,117 @@ import * as supraSDK from "./index";
   );
   console.log("Sender Address: ", senderAccount.address());
 
-  // // To Check Whether Account Exists
-  // if ((await supraClient.isAccountExists(senderAccount.address())) == false) {
-  //   console.log(
-  //     "Funding Sender With Faucet: ",
-  //     // To Fund Account With Test Supra Tokens
-  //     await supraClient.fundAccountWithFaucet(senderAccount.address())
-  //   );
-  // }
+  // To Check Whether Account Exists
+  if ((await supraClient.isAccountExists(senderAccount.address())) == false) {
+    console.log(
+      "Funding Sender With Faucet: ",
+      // To Fund Account With Test Supra Tokens
+      await supraClient.fundAccountWithFaucet(senderAccount.address())
+    );
+  }
 
-  // let receiverAddress = new aptos.HexString(
-  //   "1000000000000000000000000000000000000000000000000000000000000000"
-  // );
-  // console.log("Receiver", receiverAddress);
+  let receiverAddress = new aptos.HexString(
+    "1000000000000000000000000000000000000000000000000000000000000000"
+  );
+  console.log("Receiver", receiverAddress);
 
-  // console.log(
-  //   "Receiver Account Exists: ",
-  //   await supraClient.isAccountExists(receiverAddress)
-  // );
+  console.log(
+    "Receiver Account Exists: ",
+    await supraClient.isAccountExists(receiverAddress)
+  );
 
-  // console.log(
-  //   "Sender Balance Before TX: ",
-  //   // To Get User Account Balance
-  //   await supraClient.getAccountSupraCoinBalance(senderAccount.address())
-  // );
-  // if ((await supraClient.isAccountExists(receiverAddress)) == true) {
-  //   console.log(
-  //     "Receiver Balance Before TX: ",
-  //     await supraClient.getAccountSupraCoinBalance(receiverAddress)
-  //   );
-  // }
+  console.log(
+    "Sender Balance Before TX: ",
+    // To Get User Account Balance
+    await supraClient.getAccountSupraCoinBalance(senderAccount.address())
+  );
+  if ((await supraClient.isAccountExists(receiverAddress)) == true) {
+    console.log(
+      "Receiver Balance Before TX: ",
+      await supraClient.getAccountSupraCoinBalance(receiverAddress)
+    );
+  }
 
-  // // To Transfer Supra Coin From Sender To Receiver
-  // let txResData = await supraClient.transferSupraCoin(
-  //   senderAccount,
-  //   receiverAddress,
-  //   BigInt(1000)
-  // );
-  // console.log("Transfer SupraCoin TxRes: ", txResData);
+  // To Transfer Supra Coin From Sender To Receiver
+  let txResData = await supraClient.transferSupraCoin(
+    senderAccount,
+    receiverAddress,
+    BigInt(1000)
+  );
+  console.log("Transfer SupraCoin TxRes: ", txResData);
 
-  // // To Get Transaction's Detail Using Transaction Hash
-  // console.log(
-  //   "Transaction Detail: ",
-  //   await supraClient.getTransactionDetail(
-  //     senderAccount.address(),
-  //     txResData.txHash
-  //   )
-  // );
+  // To Get Transaction's Detail Using Transaction Hash
+  console.log(
+    "Transaction Detail: ",
+    await supraClient.getTransactionDetail(
+      senderAccount.address(),
+      txResData.txHash
+    )
+  );
 
-  // let coinType =
-  //   "0x0000000000000000000000000000000000000000000000000000000000000001::supra_coin::SupraCoin";
-  // // To Fetch coin info
-  // console.log("Coin Info", await supraClient.getCoinInfo(coinType));
+  let coinType =
+    "0x0000000000000000000000000000000000000000000000000000000000000001::supra_coin::SupraCoin";
+  // To Fetch coin info
+  console.log("Coin Info", await supraClient.getCoinInfo(coinType));
 
-  // // To get account coin balance
-  // console.log(
-  //   "Sender Coin Balance Before Tx: ",
-  //   await supraClient.getAccountCoinBalance(senderAccount.address(), coinType)
-  // );
+  // To get account coin balance
+  console.log(
+    "Sender Coin Balance Before Tx: ",
+    await supraClient.getAccountCoinBalance(senderAccount.address(), coinType)
+  );
 
-  // // To transfer coin
-  // console.log(
-  //   await supraClient.transferCoin(
-  //     senderAccount,
-  //     receiverAddress,
-  //     BigInt(1000000),
-  //     coinType
-  //   )
-  // );
+  // To transfer coin
+  console.log(
+    await supraClient.transferCoin(
+      senderAccount,
+      receiverAddress,
+      BigInt(1000000),
+      coinType
+    )
+  );
 
-  // console.log(
-  //   "Sender Coin Balance After Tx: ",
-  //   await supraClient.getAccountCoinBalance(senderAccount.address(), coinType)
-  // );
+  console.log(
+    "Sender Coin Balance After Tx: ",
+    await supraClient.getAccountCoinBalance(senderAccount.address(), coinType)
+  );
 
-  // console.log(
-  //   "Sender Balance After TX: ",
-  //   await supraClient.getAccountSupraCoinBalance(senderAccount.address())
-  // );
-  // console.log(
-  //   "Receiver Balance After TX: ",
-  //   await supraClient.getAccountSupraCoinBalance(receiverAddress)
-  // );
+  console.log(
+    "Sender Balance After TX: ",
+    await supraClient.getAccountSupraCoinBalance(senderAccount.address())
+  );
+  console.log(
+    "Receiver Balance After TX: ",
+    await supraClient.getAccountSupraCoinBalance(receiverAddress)
+  );
 
-  // let txData = await supraClient.getTransactionDetail(
-  //   new aptos.HexString(
-  //     "0x4f88ad501b780c12290a6fa63e1e1500eaa5fd5ba945896ce77ee8c53a2f6d00"
-  //   ),
-  //   "0x338e8d8db2177c3e4ae94890dc63bdf00bd558a685b6fc42fe685a85b4bac6d9"
-  // );
-  // if (txData != null) {
-  //   console.log("Transaction Detail: ", txData.transactionInsights);
-  // }
+  let txData = await supraClient.getTransactionDetail(
+    new aptos.HexString(
+      "0x4f88ad501b780c12290a6fa63e1e1500eaa5fd5ba945896ce77ee8c53a2f6d00"
+    ),
+    "0x338e8d8db2177c3e4ae94890dc63bdf00bd558a685b6fc42fe685a85b4bac6d9"
+  );
+  if (txData != null) {
+    console.log("Transaction Detail: ", txData.transactionInsights);
+  }
 
   // To Get Detail Of Transactions Which Are Sent By Defined Account
   console.log(
     "Sender Account Transactions: ",
-    await supraClient.getAccountTransactionsDetail( new aptos.HexString("0x161a497aa19321bce07277674a134deca15817ed87bd85b72d53b4c5dfa9ab6d"))
+    await supraClient.getAccountTransactionsDetail(senderAccount.address())
   );
 
-  // // To Get Detail Of Transactions Which Are Associated With Defined Account In Coin Change
-  // console.log(
-  //   "Sender Coin Transactions: ",
-  //   await supraClient.getCoinTransactionsDetail(senderAccount.address())
-  // );
+  // To Get Detail Of Transactions Which Are Associated With Defined Account In Coin Change
+  console.log(
+    "Sender Coin Transactions: ",
+    await supraClient.getCoinTransactionsDetail(senderAccount.address())
+  );
 
   // To Get Combined Results Of 'getAccountTransactionsDetail' and 'getCoinTransactionsDetail'
-  // console.log(
-  //   await supraClient.getAccountCompleteTransactionsDetail(
-  //     new aptos.HexString("0x161a497aa19321bce07277674a134deca15817ed87bd85b72d53b4c5dfa9ab6d")
-  //   )
-  // );
+  console.log(
+    await supraClient.getAccountCompleteTransactionsDetail(
+      new aptos.HexString(
+        "0x161a497aa19321bce07277674a134deca15817ed87bd85b72d53b4c5dfa9ab6d"
+      )
+    )
+  );
 })();
