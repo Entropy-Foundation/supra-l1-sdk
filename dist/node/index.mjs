@@ -14147,7 +14147,7 @@ var SupraClient = class _SupraClient {
   constructor(url2, chainId = Number(3)) {
     this.requestTimeout = 1e4;
     // 10 Seconds
-    this.maxRetryForTransactionCompletion = 60;
+    this.maxRetryForTransactionCompletion = 300;
     this.delayBetweenPoolingRequest = 1e3;
     this.supraNodeURL = url2;
     this.chainId = new TxnBuilderTypes.ChainId(chainId);
@@ -14366,32 +14366,34 @@ var SupraClient = class _SupraClient {
     };
     if (txData.payload.Move.type === "entry_function_payload") {
       if (txData.payload.Move.function === "0x1::supra_account::transfer") {
-        if (txData.status === "Success" /* Success */) {
-          let amountChange = BigInt(txData.payload.Move.arguments[1]);
-          if (userAddress === txData.header.sender.Move) {
-            amountChange *= BigInt(-1);
-          }
-          txInsights.coinReceiver = txData.payload.Move.arguments[0];
-          txInsights.coinChange[0] = {
-            amount: amountChange,
-            coinType: "0x1::supra_coin::SupraCoin"
-          };
+        let amountChange = BigInt(txData.payload.Move.arguments[1]);
+        if (userAddress === txData.header.sender.Move) {
+          amountChange *= BigInt(-1);
         }
+        txInsights.coinReceiver = txData.payload.Move.arguments[0];
+        txInsights.coinChange[0] = {
+          amount: amountChange,
+          coinType: "0x1::supra_coin::SupraCoin"
+        };
         txInsights.type = "CoinTransfer" /* CoinTransfer */;
       } else if (txData.payload.Move.function === "0x1::supra_account::transfer_coins" || txData.payload.Move.function === "0x1::coin::transfer") {
-        if (txData.status === "Success" /* Success */) {
-          let amountChange = BigInt(txData.payload.Move.arguments[1]);
-          if (userAddress === txData.header.sender.Move) {
-            amountChange *= BigInt(-1);
-          }
-          txInsights.coinReceiver = txData.payload.Move.arguments[0];
-          txInsights.coinChange[0] = {
-            amount: amountChange,
-            coinType: txData.payload.Move.type_arguments[0]
-          };
+        let amountChange = BigInt(txData.payload.Move.arguments[1]);
+        if (userAddress === txData.header.sender.Move) {
+          amountChange *= BigInt(-1);
         }
+        txInsights.coinReceiver = txData.payload.Move.arguments[0];
+        txInsights.coinChange[0] = {
+          amount: amountChange,
+          coinType: txData.payload.Move.type_arguments[0]
+        };
         txInsights.type = "CoinTransfer" /* CoinTransfer */;
       } else {
+        if (txData.status === "Success" /* Success */) {
+          txInsights.coinChange = this.getCoinChangeAmount(
+            userAddress,
+            txData.output.Move.events
+          );
+        }
         txInsights.type = "EntryFunctionCall" /* EntryFunctionCall */;
       }
     } else if (txData.status === "Success" /* Success */ && txData.payload.Move.type === "script_payload") {
@@ -14418,8 +14420,28 @@ var SupraClient = class _SupraClient {
       true,
       `/rpc/v1/transactions/${transactionHash}`
     );
-    if (resData.data == null || resData.data.status === "Pending" /* Pending */) {
+    if (resData.data == null) {
       return null;
+    }
+    if (resData.data.status === "Pending" /* Pending */) {
+      return {
+        txHash: transactionHash,
+        sender: resData.data.header.sender.Move,
+        sequenceNumber: resData.data.header.sequence_number,
+        maxGasAmount: resData.data.header.max_gas_amount,
+        gasUnitPrice: resData.data.header.gas_unit_price,
+        gasUsed: void 0,
+        transactionCost: void 0,
+        txConfirmationTime: void 0,
+        status: resData.data.status,
+        events: void 0,
+        blockNumber: void 0,
+        blockHash: void 0,
+        transactionInsights: this.getTransactionInsights(
+          account.toString(),
+          resData.data
+        )
+      };
     }
     return {
       txHash: transactionHash,
@@ -14626,7 +14648,7 @@ var SupraClient = class _SupraClient {
     }
     return "Pending" /* Pending */;
   }
-  async sendTx(sendTxJsonPayload) {
+  async sendTx(sendTxJsonPayload, waitForTransactionCompletion = true) {
     let resData = await this.sendRequest(
       false,
       "/rpc/v1/transactions/submit",
@@ -14635,7 +14657,7 @@ var SupraClient = class _SupraClient {
     console.log("Transaction Request Sent, Waiting For Completion");
     return {
       txHash: resData.data,
-      result: await this.waitForTransactionCompletion(resData.data)
+      result: waitForTransactionCompletion == true ? await this.waitForTransactionCompletion(resData.data) : "Pending" /* Pending */
     };
   }
   async getSendTxPayload(senderAccount, rawTxn) {
@@ -14728,7 +14750,7 @@ var SupraClient = class _SupraClient {
    * @param amount Amount to transfer
    * @returns Transaction Response
    */
-  async transferSupraCoin(senderAccount, receiverAccountAddr, amount) {
+  async transferSupraCoin(senderAccount, receiverAccountAddr, amount, waitForTransactionCompletion = false) {
     let maxGas = BigInt(10);
     if (await this.isAccountExists(receiverAccountAddr) == false) {
       maxGas = BigInt(1020);
@@ -14751,7 +14773,7 @@ var SupraClient = class _SupraClient {
       )
     );
     await this.simulateTx(sendTxPayload);
-    return await this.sendTx(sendTxPayload);
+    return await this.sendTx(sendTxPayload, waitForTransactionCompletion);
   }
   /**
    * Transfer coin
@@ -14761,7 +14783,7 @@ var SupraClient = class _SupraClient {
    * @param coinType Type of coin
    * @returns Transaction Response
    */
-  async transferCoin(senderAccount, receiverAccountAddr, amount, coinType) {
+  async transferCoin(senderAccount, receiverAccountAddr, amount, coinType, waitForTransactionCompletion = false) {
     let maxGas = BigInt(5e4);
     if (BigInt(0) + maxGas * BigInt(100) > await this.getAccountSupraCoinBalance(senderAccount.address())) {
       throw new Error("Insufficient Supra Coins");
@@ -14784,7 +14806,7 @@ var SupraClient = class _SupraClient {
       )
     );
     await this.simulateTx(sendTxPayload);
-    return await this.sendTx(sendTxPayload);
+    return await this.sendTx(sendTxPayload, waitForTransactionCompletion);
   }
   /**
    * Publish package or module on supra network

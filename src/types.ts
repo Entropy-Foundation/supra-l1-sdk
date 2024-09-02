@@ -53,19 +53,20 @@ export interface TransactionInsights {
   type: TxTypeForTransactionInsights;
 }
 
+// Note: Suggested by wallet team to use undefined instead of null
 export interface TransactionDetail {
   txHash: string;
   sender: string;
   sequenceNumber: number;
   maxGasAmount: number;
   gasUnitPrice: number;
-  gasUsed: number;
-  transactionCost: number;
-  txConfirmationTime: number;
+  gasUsed: number | undefined;
+  transactionCost: number | undefined;
+  txConfirmationTime: number | undefined;
   status: TransactionStatus;
   events: any;
-  blockNumber: number;
-  blockHash: string;
+  blockNumber: number | undefined;
+  blockHash: string | undefined;
   transactionInsights: TransactionInsights;
 }
 

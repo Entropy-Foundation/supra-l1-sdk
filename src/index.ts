@@ -35,7 +35,7 @@ export class SupraClient {
   supraNodeURL: string;
   chainId: TxnBuilderTypes.ChainId;
   requestTimeout = 10000; // 10 Seconds
-  maxRetryForTransactionCompletion = 60;
+  maxRetryForTransactionCompletion = 300;
   delayBetweenPoolingRequest = 1000; // 1 Second
 
   constructor(url: string, chainId: number = Number(3)) {
@@ -323,35 +323,37 @@ export class SupraClient {
     // NOTE: Need to optimize this conditionals
     if (txData.payload.Move.type === "entry_function_payload") {
       if (txData.payload.Move.function === "0x1::supra_account::transfer") {
-        if (txData.status === TransactionStatus.Success) {
-          let amountChange = BigInt(txData.payload.Move.arguments[1]);
-          if (userAddress === txData.header.sender.Move) {
-            amountChange *= BigInt(-1);
-          }
-          txInsights.coinReceiver = txData.payload.Move.arguments[0];
-          txInsights.coinChange[0] = {
-            amount: amountChange,
-            coinType: "0x1::supra_coin::SupraCoin",
-          };
+        let amountChange = BigInt(txData.payload.Move.arguments[1]);
+        if (userAddress === txData.header.sender.Move) {
+          amountChange *= BigInt(-1);
         }
+        txInsights.coinReceiver = txData.payload.Move.arguments[0];
+        txInsights.coinChange[0] = {
+          amount: amountChange,
+          coinType: "0x1::supra_coin::SupraCoin",
+        };
         txInsights.type = TxTypeForTransactionInsights.CoinTransfer;
       } else if (
         txData.payload.Move.function === "0x1::supra_account::transfer_coins" ||
         txData.payload.Move.function === "0x1::coin::transfer"
       ) {
-        if (txData.status === TransactionStatus.Success) {
-          let amountChange = BigInt(txData.payload.Move.arguments[1]);
-          if (userAddress === txData.header.sender.Move) {
-            amountChange *= BigInt(-1);
-          }
-          txInsights.coinReceiver = txData.payload.Move.arguments[0];
-          txInsights.coinChange[0] = {
-            amount: amountChange,
-            coinType: txData.payload.Move.type_arguments[0],
-          };
+        let amountChange = BigInt(txData.payload.Move.arguments[1]);
+        if (userAddress === txData.header.sender.Move) {
+          amountChange *= BigInt(-1);
         }
+        txInsights.coinReceiver = txData.payload.Move.arguments[0];
+        txInsights.coinChange[0] = {
+          amount: amountChange,
+          coinType: txData.payload.Move.type_arguments[0],
+        };
         txInsights.type = TxTypeForTransactionInsights.CoinTransfer;
       } else {
+        if (txData.status === TransactionStatus.Success) {
+          txInsights.coinChange = this.getCoinChangeAmount(
+            userAddress,
+            txData.output.Move.events
+          );
+        }
         txInsights.type = TxTypeForTransactionInsights.EntryFunctionCall;
       }
     } else if (
@@ -385,13 +387,30 @@ export class SupraClient {
       `/rpc/v1/transactions/${transactionHash}`
     );
 
-    if (
-      resData.data == null ||
-      resData.data.status === TransactionStatus.Pending
-    ) {
+    if (resData.data == null) {
       return null;
     }
 
+    if (resData.data.status === TransactionStatus.Pending) {
+      return {
+        txHash: transactionHash,
+        sender: resData.data.header.sender.Move,
+        sequenceNumber: resData.data.header.sequence_number,
+        maxGasAmount: resData.data.header.max_gas_amount,
+        gasUnitPrice: resData.data.header.gas_unit_price,
+        gasUsed: undefined,
+        transactionCost: undefined,
+        txConfirmationTime: undefined,
+        status: resData.data.status,
+        events: undefined,
+        blockNumber: undefined,
+        blockHash: undefined,
+        transactionInsights: this.getTransactionInsights(
+          account.toString(),
+          resData.data
+        ),
+      };
+    }
     return {
       txHash: transactionHash,
       sender: resData.data.header.sender.Move,
@@ -648,7 +667,8 @@ export class SupraClient {
   }
 
   private async sendTx(
-    sendTxJsonPayload: SendTxPayload
+    sendTxJsonPayload: SendTxPayload,
+    waitForTransactionCompletion: boolean = true
   ): Promise<TransactionResponse> {
     let resData = await this.sendRequest(
       false,
@@ -659,7 +679,10 @@ export class SupraClient {
 
     return {
       txHash: resData.data,
-      result: await this.waitForTransactionCompletion(resData.data),
+      result:
+        waitForTransactionCompletion == true
+          ? await this.waitForTransactionCompletion(resData.data)
+          : TransactionStatus.Pending,
     };
   }
 
@@ -796,7 +819,8 @@ export class SupraClient {
   async transferSupraCoin(
     senderAccount: AptosAccount,
     receiverAccountAddr: HexString,
-    amount: bigint
+    amount: bigint,
+    waitForTransactionCompletion: boolean = false
   ): Promise<TransactionResponse> {
     let maxGas = BigInt(10);
     if ((await this.isAccountExists(receiverAccountAddr)) == false) {
@@ -829,7 +853,7 @@ export class SupraClient {
       )
     );
     await this.simulateTx(sendTxPayload);
-    return await this.sendTx(sendTxPayload);
+    return await this.sendTx(sendTxPayload, waitForTransactionCompletion);
   }
 
   /**
@@ -844,7 +868,8 @@ export class SupraClient {
     senderAccount: AptosAccount,
     receiverAccountAddr: HexString,
     amount: bigint,
-    coinType: string
+    coinType: string,
+    waitForTransactionCompletion: boolean = false
   ): Promise<TransactionResponse> {
     let maxGas = BigInt(50000);
     if (
@@ -877,7 +902,7 @@ export class SupraClient {
     );
 
     await this.simulateTx(sendTxPayload);
-    return await this.sendTx(sendTxPayload);
+    return await this.sendTx(sendTxPayload, waitForTransactionCompletion);
   }
 
   /**

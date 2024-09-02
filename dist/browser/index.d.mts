@@ -53,13 +53,13 @@ interface TransactionDetail {
     sequenceNumber: number;
     maxGasAmount: number;
     gasUnitPrice: number;
-    gasUsed: number;
-    transactionCost: number;
-    txConfirmationTime: number;
+    gasUsed: number | undefined;
+    transactionCost: number | undefined;
+    txConfirmationTime: number | undefined;
     status: TransactionStatus;
     events: any;
-    blockNumber: number;
-    blockHash: string;
+    blockNumber: number | undefined;
+    blockHash: string | undefined;
     transactionInsights: TransactionInsights;
 }
 interface SendTxPayload {
@@ -226,7 +226,7 @@ declare class SupraClient {
      * @param amount Amount to transfer
      * @returns Transaction Response
      */
-    transferSupraCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint): Promise<TransactionResponse>;
+    transferSupraCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
     /**
      * Transfer coin
      * @param senderAccount Sender KeyPair
@@ -235,7 +235,7 @@ declare class SupraClient {
      * @param coinType Type of coin
      * @returns Transaction Response
      */
-    transferCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, coinType: string): Promise<TransactionResponse>;
+    transferCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, coinType: string, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
     /**
      * Publish package or module on supra network
      * @param senderAccount Module Publisher KeyPair

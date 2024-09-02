@@ -37,7 +37,8 @@ import * as supraSDK from "./index";
   }
 
   let receiverAddress = new aptos.HexString(
-    "1000000000000000000000000000000000000000000000000000000000000000"
+    // "1000000000000000000000000000000000000000000000000000000000000000"
+    "0xb8922417130785087f9c7926e76542531b703693fdc74c9386b65cf4427f4e80"
   );
   console.log("Receiver", receiverAddress);
 
@@ -62,7 +63,8 @@ import * as supraSDK from "./index";
   let txResData = await supraClient.transferSupraCoin(
     senderAccount,
     receiverAddress,
-    BigInt(1000)
+    BigInt(1000),
+    true
   );
   console.log("Transfer SupraCoin TxRes: ", txResData);
 
@@ -92,7 +94,8 @@ import * as supraSDK from "./index";
       senderAccount,
       receiverAddress,
       BigInt(1000000),
-      coinType
+      coinType,
+      true
     )
   );
 
