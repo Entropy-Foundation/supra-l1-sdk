@@ -14145,8 +14145,6 @@ var TxTypeForTransactionInsights = /* @__PURE__ */ ((TxTypeForTransactionInsight
 var SupraClient = class _SupraClient {
   // 1 Second
   constructor(url2, chainId = Number(3)) {
-    this.requestTimeout = 1e4;
-    // 10 Seconds
     this.maxRetryForTransactionCompletion = 300;
     this.delayBetweenPoolingRequest = 1e3;
     this.supraNodeURL = url2;
@@ -14168,8 +14166,7 @@ var SupraClient = class _SupraClient {
       resData = await axios_default({
         method: "get",
         baseURL: this.supraNodeURL,
-        url: subURL,
-        timeout: this.requestTimeout
+        url: subURL
       });
     } else {
       if (data == void 0) {
@@ -14182,8 +14179,7 @@ var SupraClient = class _SupraClient {
         data,
         headers: {
           "Content-Type": "application/json"
-        },
-        timeout: this.requestTimeout
+        }
       });
     }
     if (resData.status == 404) {
@@ -14440,7 +14436,8 @@ var SupraClient = class _SupraClient {
         transactionInsights: this.getTransactionInsights(
           account.toString(),
           resData.data
-        )
+        ),
+        vm_status: void 0
       };
     }
     return {
@@ -14461,7 +14458,8 @@ var SupraClient = class _SupraClient {
       transactionInsights: this.getTransactionInsights(
         account.toString(),
         resData.data
-      )
+      ),
+      vm_status: resData.data.output.Move.vm_status
     };
   }
   /**
@@ -14500,7 +14498,8 @@ var SupraClient = class _SupraClient {
         transactionInsights: this.getTransactionInsights(
           account.toString(),
           data
-        )
+        ),
+        vm_status: data.output.Move.vm_status
       });
     });
     return accountTransactionsDetail;
@@ -14541,7 +14540,8 @@ var SupraClient = class _SupraClient {
         transactionInsights: this.getTransactionInsights(
           account.toString(),
           data
-        )
+        ),
+        vm_status: data.output.Move.vm_status
       });
     });
     return coinTransactionsDetail;
@@ -14592,7 +14592,8 @@ var SupraClient = class _SupraClient {
         transactionInsights: this.getTransactionInsights(
           account.toString(),
           data
-        )
+        ),
+        vm_status: data.output.Move.vm_status
       });
     });
     return coinTransactionsDetail;

@@ -61,6 +61,7 @@ interface TransactionDetail {
     blockNumber: number | undefined;
     blockHash: string | undefined;
     transactionInsights: TransactionInsights;
+    vm_status: string | undefined;
 }
 interface SendTxPayload {
     Move: {
@@ -110,7 +111,6 @@ interface FaucetRequestResponse {
 declare class SupraClient {
     supraNodeURL: string;
     chainId: TxnBuilderTypes.ChainId;
-    requestTimeout: number;
     maxRetryForTransactionCompletion: number;
     delayBetweenPoolingRequest: number;
     constructor(url: string, chainId?: number);
