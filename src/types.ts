@@ -68,6 +68,7 @@ export interface TransactionDetail {
   blockNumber: number | undefined;
   blockHash: string | undefined;
   transactionInsights: TransactionInsights;
+  vm_status: string | undefined;
 }
 
 export interface SendTxPayload {

@@ -93,7 +93,7 @@ import * as supraSDK from "./index";
     await supraClient.transferCoin(
       senderAccount,
       receiverAddress,
-      BigInt(1000000),
+      BigInt(1000),
       coinType,
       true
     )
@@ -139,7 +139,7 @@ import * as supraSDK from "./index";
   console.log(
     await supraClient.getAccountCompleteTransactionsDetail(
       new aptos.HexString(
-        "0x161a497aa19321bce07277674a134deca15817ed87bd85b72d53b4c5dfa9ab6d"
+        senderAccount.address().toString()
       )
     )
   );

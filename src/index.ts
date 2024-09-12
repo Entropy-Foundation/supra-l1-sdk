@@ -34,7 +34,6 @@ export * from "./types";
 export class SupraClient {
   supraNodeURL: string;
   chainId: TxnBuilderTypes.ChainId;
-  requestTimeout = 10000; // 10 Seconds
   maxRetryForTransactionCompletion = 300;
   delayBetweenPoolingRequest = 1000; // 1 Second
 
@@ -65,7 +64,6 @@ export class SupraClient {
         method: "get",
         baseURL: this.supraNodeURL,
         url: subURL,
-        timeout: this.requestTimeout,
       });
     } else {
       if (data == undefined) {
@@ -79,7 +77,6 @@ export class SupraClient {
         headers: {
           "Content-Type": "application/json",
         },
-        timeout: this.requestTimeout,
       });
     }
     if (resData.status == 404) {
@@ -409,6 +406,7 @@ export class SupraClient {
           account.toString(),
           resData.data
         ),
+        vm_status: undefined,
       };
     }
     return {
@@ -434,6 +432,7 @@ export class SupraClient {
         account.toString(),
         resData.data
       ),
+      vm_status: resData.data.output.Move.vm_status,
     };
   }
 
@@ -482,6 +481,7 @@ export class SupraClient {
           account.toString(),
           data
         ),
+        vm_status: data.output.Move.vm_status,
       });
     });
     return accountTransactionsDetail;
@@ -533,6 +533,7 @@ export class SupraClient {
           account.toString(),
           data
         ),
+        vm_status: data.output.Move.vm_status,
       });
     });
     return coinTransactionsDetail;
@@ -598,6 +599,7 @@ export class SupraClient {
           account.toString(),
           data
         ),
+        vm_status: data.output.Move.vm_status,
       });
     });
     return coinTransactionsDetail;
@@ -954,10 +956,12 @@ export class SupraClient {
     //   "/rpc/v1/transactions/simulate",
     //   sendTxPayload
     // );
+    // console.log(resData.data);
 
-    // if (resData.data.estimated_status.split(" ")[1] !== "EXECUTED") {
+    // if (resData.data.output.Move.vm_status.split(" ")[1] !== "EXECUTED") {
     //   throw new Error(
-    //     "Transaction Can Be Failed, Reason: " + resData.data.estimated_status
+    //     "Transaction Can Be Failed, Reason: " +
+    //       resData.data.output.Move.vm_status
     //   );
     // }
     // console.log("Transaction Simulation Done");
