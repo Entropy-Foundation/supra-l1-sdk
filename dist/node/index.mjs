@@ -10334,9 +10334,17 @@ var require_follow_redirects = __commonJS({
     var Writable = __require("stream").Writable;
     var assert = __require("assert");
     var debug = require_debug();
+    (function detectUnsupportedEnvironment() {
+      var looksLikeNode = typeof process !== "undefined";
+      var looksLikeBrowser = typeof window !== "undefined" && typeof document !== "undefined";
+      var looksLikeV8 = isFunction2(Error.captureStackTrace);
+      if (!looksLikeNode && (looksLikeBrowser || !looksLikeV8)) {
+        console.warn("The follow-redirects package should be excluded from browser builds.");
+      }
+    })();
     var useNativeURL = false;
     try {
-      assert(new URL2());
+      assert(new URL2(""));
     } catch (error) {
       useNativeURL = error.code === "ERR_INVALID_URL";
     }
@@ -10763,7 +10771,9 @@ var require_follow_redirects = __commonJS({
     }
     function createErrorType(code, message, baseClass) {
       function CustomError(properties) {
-        Error.captureStackTrace(this, this.constructor);
+        if (isFunction2(Error.captureStackTrace)) {
+          Error.captureStackTrace(this, this.constructor);
+        }
         Object.assign(this, properties || {});
         this.code = code;
         this.message = this.cause ? message + ": " + this.cause.message : message;

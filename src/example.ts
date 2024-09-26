@@ -1,6 +1,9 @@
 import * as aptos from "aptos";
 import * as supraSDK from "./index";
 
+// To run this example, install `ts-node` (e.g. `npm install -g ts-node`), enter the directory
+// that contains this file and run `ts-node ./example.ts`.
+
 (async () => {
   // // To Create Instance Of Supra Client.
   // // Note: Here We Need To Pass ChainId, Default ChainId Value Is 3
@@ -14,7 +17,7 @@ import * as supraSDK from "./index";
   let supraClient = await supraSDK.SupraClient.init(
     // "https://rpc-wallet.supra.com/"
     // "https://rpc-devnet.supra.com/"
-    // "http://localhost:27000/"
+    // "http://localhost:27001/"
     // "https://rpc-qanet.supra.com/"
     "https://rpc-staging.supra.com/"
   );
