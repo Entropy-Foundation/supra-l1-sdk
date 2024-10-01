@@ -29,14 +29,15 @@
   },
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "aptos": "^1.21.0",
+    "js-sha3": "^0.9.3"
+  },
   "devDependencies": {
     "clean-webpack-plugin": "^4.0.0",
     "tsup": "^8.0.1",
     "typedoc": "^0.25.13",
     "typescript": "^5.3.3",
     "webpack": "^5.89.0"
-  },
-  "dependencies": {
-    "aptos": "file:supra_aptos_sdk/aptos-core/ecosystem/typescript/sdk"
   }
 }

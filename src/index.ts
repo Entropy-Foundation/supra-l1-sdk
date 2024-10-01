@@ -3,7 +3,6 @@ import {
   BCS,
   HexString,
   AptosAccount,
-  TransactionBuilder,
 } from "aptos";
 import axios, { AxiosResponse } from "axios";
 import {
@@ -25,6 +24,7 @@ import {
   CoinChange,
   FaucetRequestResponse,
 } from "./types";
+import { sha3_256 } from "js-sha3";
 
 export * from "./types";
 
@@ -228,8 +228,8 @@ export class SupraClient {
     return resData.data.status == "Unexecuted"
       ? "Pending"
       : resData.data.status == "Fail"
-      ? "Failed"
-      : resData.data.status;
+        ? "Failed"
+        : resData.data.status;
   }
 
   private getCoinChangeAmount(
@@ -688,6 +688,26 @@ export class SupraClient {
     };
   }
 
+  private signSupraTransaction(
+    senderAccount: AptosAccount,
+    rawTxn: TxnBuilderTypes.RawTransaction
+  ) {
+    let preHash = Uint8Array.from(
+      Buffer.from(sha3_256("SUPRA::RawTransaction"), "hex")
+    );
+
+    let serializer = new BCS.Serializer();
+    rawTxn.serialize(serializer);
+    let rawTxSerializedData = new Uint8Array(serializer.getBytes());
+
+    let signatureMessage = new Uint8Array(
+      preHash.length + rawTxSerializedData.length
+    );
+    signatureMessage.set(preHash);
+    signatureMessage.set(rawTxSerializedData, preHash.length);
+    return senderAccount.signBuffer(signatureMessage).toString();
+  }
+
   private async getSendTxPayload(
     senderAccount: AptosAccount,
     rawTxn: TxnBuilderTypes.RawTransaction
@@ -722,9 +742,7 @@ export class SupraClient {
         authenticator: {
           Ed25519: {
             public_key: senderAccount.pubKey().toString(),
-            signature: senderAccount
-              .signBuffer(TransactionBuilder.getSigningMessage(rawTxn))
-              .toString(),
+            signature: this.signSupraTransaction(senderAccount, rawTxn),
           },
         },
       },
@@ -842,9 +860,7 @@ export class SupraClient {
       senderAccount,
       await SupraClient.createRawTxObject(
         senderAccount.address(),
-        (
-          await this.getAccountInfo(senderAccount.address())
-        ).sequence_number,
+        (await this.getAccountInfo(senderAccount.address())).sequence_number,
         "0000000000000000000000000000000000000000000000000000000000000001",
         "supra_account",
         "transfer",
@@ -890,9 +906,7 @@ export class SupraClient {
       senderAccount,
       await SupraClient.createRawTxObject(
         senderAccount.address(),
-        (
-          await this.getAccountInfo(senderAccount.address())
-        ).sequence_number,
+        (await this.getAccountInfo(senderAccount.address())).sequence_number,
         "0000000000000000000000000000000000000000000000000000000000000001",
         "supra_account",
         "transfer_coins",
@@ -931,9 +945,7 @@ export class SupraClient {
       senderAccount,
       await SupraClient.createRawTxObject(
         senderAccount.address(),
-        (
-          await this.getAccountInfo(senderAccount.address())
-        ).sequence_number,
+        (await this.getAccountInfo(senderAccount.address())).sequence_number,
         "0000000000000000000000000000000000000000000000000000000000000001",
         "code",
         "publish_package_txn",
