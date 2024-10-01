@@ -9,7 +9,7 @@ set -e
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 L1_SDK_ROOT="$SCRIPT_DIR/.."
-INSTALL_ROOT="$L1_SDK_ROOT/.supra_aptos_sdk"
+INSTALL_ROOT="$L1_SDK_ROOT/supra_aptos_sdk"
 REPO_ROOT="$INSTALL_ROOT/aptos-core"
 BUILD_TARGET="$REPO_ROOT"/ecosystem/typescript/sdk/dist
 VERSION="$1"

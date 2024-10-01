@@ -38,6 +38,6 @@
     "webpack": "^5.89.0"
   },
   "dependencies": {
-    "aptos": "file:.supra_aptos_sdk/aptos-core/ecosystem/typescript/sdk"
+    "aptos": "file:supra_aptos_sdk/aptos-core/ecosystem/typescript/sdk"
   }
 }
