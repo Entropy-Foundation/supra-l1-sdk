@@ -25,8 +25,7 @@
     "./dist/"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsup --platform node --format cjs,esm --dts --out-dir dist/node && tsup --platform browser --format cjs,esm --dts  --minify --out-dir dist/browser",
-    "postinstall": "./.scripts/install_supra_aptos_sdk.sh aptosvm-v1.16_supra-v1.0.0"
+    "build": "rm -rf dist && tsup --platform node --format cjs,esm --dts --out-dir dist/node && tsup --platform browser --format cjs,esm --dts  --minify --out-dir dist/browser"
   },
   "author": "",
   "license": "ISC",
