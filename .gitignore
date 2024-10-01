@@ -130,4 +130,4 @@ out
 .pnp.*
 
 # The root directory used for retrieving and building the Supra Aptos TypeScript SDK. See GitHub issue 4.
-.supra_aptos_sdk/
+# .supra_aptos_sdk/
