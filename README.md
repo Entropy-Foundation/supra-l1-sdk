@@ -12,6 +12,10 @@ Install supra-l1-sdk with npm
 
 **NOTE:** This `sdk` utilizes [aptos-sdk](https://github.com/aptos-labs/aptos-core/tree/main/ecosystem/typescript/sdk) and expects few things such as `keyPair` of `aptos-sdk` type, so due to this you also have to add `aptos-sdk` in your project.
 
+## Reference Docs
+
+For SDK documentation, check out the [TypeScript SDK documentation](https://sdk-docs.supra.com/index.html)
+
 ## Usage
 
 Check [./src/example.ts](https://github.com/Entropy-Foundation/supra-l1-sdk/blob/master/src/example.ts) for understating about the usage.
