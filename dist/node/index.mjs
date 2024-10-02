@@ -10821,11 +10821,7 @@ var require_follow_redirects = __commonJS({
 });
 
 // src/index.ts
-import {
-  TxnBuilderTypes,
-  BCS,
-  HexString
-} from "aptos";
+import { TxnBuilderTypes, BCS, HexString } from "aptos";
 
 // node_modules/axios/lib/helpers/bind.js
 function bind(fn, thisArg) {
@@ -14209,8 +14205,8 @@ var SupraClient = class _SupraClient {
     );
   }
   /**
-   * Get current mean_gas_price
-   * @returns Current mean_gas_price
+   * Get current `mean_gas_price`
+   * @returns Current `mean_gas_price`
    */
   async getGasPrice() {
     return BigInt(
@@ -14220,7 +14216,7 @@ var SupraClient = class _SupraClient {
   /**
    * Airdrop test Supra token on given account
    * @param account Hex-encoded 32 byte Supra account address
-   * @returns Transaction hash of faucet transaction
+   * @returns `FaucetRequestResponse`
    */
   async fundAccountWithFaucet(account) {
     let resData = await this.sendRequest(
@@ -14247,7 +14243,7 @@ var SupraClient = class _SupraClient {
   /**
    * Check whether given account exists onchain or not
    * @param account Hex-encoded 32 byte Supra account address
-   * @returns true if account exists otherwise false
+   * @returns `true` if account exists otherwise `false`
    */
   async isAccountExists(account) {
     if ((await this.sendRequest(true, `/rpc/v1/accounts/${account.toString()}`)).data == null) {
@@ -14303,7 +14299,7 @@ var SupraClient = class _SupraClient {
   /**
    * Get status of given supra transaction
    * @param transactionHash Hex-encoded 32 byte transaction hash for getting transaction status
-   * @returns TransactionStatus
+   * @returns `TransactionStatus`
    */
   async getTransactionStatus(transactionHash) {
     let resData = await this.sendRequest(
@@ -14473,11 +14469,11 @@ var SupraClient = class _SupraClient {
     };
   }
   /**
-   * Get transaction associated with an account
+   * Get transactions sent by the account
    * @param account Supra account address
    * @param count Number of transactions details
    * @param start Cursor for pagination based response
-   * @returns Transaction Details
+   * @returns List of `TransactionDetail`
    */
   async getAccountTransactionsDetail(account, count = 15, start = null) {
     let requestPath = `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}`;
@@ -14515,11 +14511,11 @@ var SupraClient = class _SupraClient {
     return accountTransactionsDetail;
   }
   /**
-   * Get Coin Transfer related transactions details
+   * Get Coin Transfer related transactions associated with the account
    * @param account Supra account address
    * @param count Number of transactions details
-   * @param start Sequence number from which N number of transactions returned
-   * @returns Transaction Details
+   * @param start Cursor for pagination based response
+   * @returns List of `TransactionDetail`
    */
   async getCoinTransactionsDetail(account, count = 15, start = null) {
     let requestPath = `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}`;
@@ -14556,6 +14552,13 @@ var SupraClient = class _SupraClient {
     });
     return coinTransactionsDetail;
   }
+  /**
+   * Get transactions sent by the account and Coin transfer related transactions
+   * @param account Supra account address
+   * @param count Number of coin transfer transactions and account sent transaction to be considered,
+   * For instance if the value is `N` so total `N*2` transactions will be returned.
+   * @returns List of `TransactionDetail`
+   */
   async getAccountCompleteTransactionsDetail(account, count = 15) {
     let coinTransactions = await this.sendRequest(
       true,
@@ -14718,6 +14721,12 @@ var SupraClient = class _SupraClient {
       }
     };
   }
+  /**
+   * Send `entry_function_payload` type tx using serialized raw transaction datas
+   * @param senderAccount Sender KeyPair
+   * @param serializedRawTransaction Serialized raw transaction data
+   * @returns `TransactionResponse`
+   */
   async sendTxUsingSerializedRawTransaction(senderAccount, serializedRawTransaction) {
     let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
@@ -14751,6 +14760,21 @@ var SupraClient = class _SupraClient {
       chainId
     );
   }
+  /**
+   * Create serialized raw transaction object for `entry_function_payload` type tx
+   * @param senderAddr Sender account address
+   * @param senderSequenceNumber Sender account sequence number
+   * @param moduleAddr Target module address
+   * @param moduleName Target module name
+   * @param functionName Target function name
+   * @param functionTypeArgs Target function type args
+   * @param functionArgs Target function args
+   * @param chainId Supra network chain id
+   * @param maxGas Maximum gas for transaction
+   * @param gasUnitPrice Maximum gas unit price for transaction
+   * @param txExpiryTime Expiry time for transaction
+   * @returns Serialized raw transaction object
+   */
   static async createSerializedRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, chainId, maxGas = BigInt(5e5), gasUnitPrice = BigInt(100), txExpiryTime = BigInt(999999999999999)) {
     return BCS.bcsToBytes(
       await _SupraClient.createRawTxObject(
@@ -14773,7 +14797,7 @@ var SupraClient = class _SupraClient {
    * @param senderAccount Sender KeyPair
    * @param receiverAccountAddr Receiver Supra Account address
    * @param amount Amount to transfer
-   * @returns Transaction Response
+   * @returns `TransactionResponse`
    */
   async transferSupraCoin(senderAccount, receiverAccountAddr, amount, waitForTransactionCompletion = false) {
     let maxGas = BigInt(10);
@@ -14806,7 +14830,7 @@ var SupraClient = class _SupraClient {
    * @param receiverAccountAddr Receiver Supra Account address
    * @param amount Amount to transfer
    * @param coinType Type of coin
-   * @returns Transaction Response
+   * @returns `TransactionResponse`
    */
   async transferCoin(senderAccount, receiverAccountAddr, amount, coinType, waitForTransactionCompletion = false) {
     let maxGas = BigInt(5e4);
@@ -14838,7 +14862,7 @@ var SupraClient = class _SupraClient {
    * @param senderAccount Module Publisher KeyPair
    * @param packageMetadata Package Metadata
    * @param modulesCode module code
-   * @returns Transaction Response
+   * @returns `TransactionResponse`
    */
   async publishPackage(senderAccount, packageMetadata, modulesCode) {
     let codeSerializer = new BCS.Serializer();
@@ -14870,6 +14894,17 @@ var SupraClient = class _SupraClient {
    * @param sendTxPayload Transaction payload
    */
   async simulateTx(sendTxPayload) {
+    let resData = await this.sendRequest(
+      false,
+      "/rpc/v1/transactions/simulate",
+      sendTxPayload
+    );
+    if (resData.data.output.Move.vm_status !== "Executed successfully") {
+      throw new Error(
+        "Transaction Can Be Failed, Reason: " + resData.data.output.Move.vm_status
+      );
+    }
+    console.log("Transaction Simulation Done");
     return;
   }
 };

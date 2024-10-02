@@ -15,11 +15,8 @@ import * as supraSDK from "./index";
   // To Create Instance Of Supra Client, But In This Method We Don't Need To Pass ChainId.
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await supraSDK.SupraClient.init(
-    // "https://rpc-wallet.supra.com/"
-    // "https://rpc-devnet.supra.com/"
     // "http://localhost:27001/"
-    // "https://rpc-qanet.supra.com/"
-    "https://rpc-staging.supra.com/"
+    "https://rpc-testnet.supra.com/"
   );
 
   let senderAccount = new aptos.AptosAccount(

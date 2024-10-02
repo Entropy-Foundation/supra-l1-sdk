@@ -1,9 +1,4 @@
-import {
-  TxnBuilderTypes,
-  BCS,
-  HexString,
-  AptosAccount,
-} from "aptos";
+import { TxnBuilderTypes, BCS, HexString, AptosAccount } from "aptos";
 import axios, { AxiosResponse } from "axios";
 import {
   normalizeAddress,
@@ -98,8 +93,8 @@ export class SupraClient {
   }
 
   /**
-   * Get current mean_gas_price
-   * @returns Current mean_gas_price
+   * Get current `mean_gas_price`
+   * @returns Current `mean_gas_price`
    */
   async getGasPrice(): Promise<bigint> {
     return BigInt(
@@ -111,7 +106,7 @@ export class SupraClient {
   /**
    * Airdrop test Supra token on given account
    * @param account Hex-encoded 32 byte Supra account address
-   * @returns Transaction hash of faucet transaction
+   * @returns `FaucetRequestResponse`
    */
   async fundAccountWithFaucet(
     account: HexString
@@ -142,7 +137,7 @@ export class SupraClient {
   /**
    * Check whether given account exists onchain or not
    * @param account Hex-encoded 32 byte Supra account address
-   * @returns true if account exists otherwise false
+   * @returns `true` if account exists otherwise `false`
    */
   async isAccountExists(account: HexString): Promise<boolean> {
     if (
@@ -212,7 +207,7 @@ export class SupraClient {
   /**
    * Get status of given supra transaction
    * @param transactionHash Hex-encoded 32 byte transaction hash for getting transaction status
-   * @returns TransactionStatus
+   * @returns `TransactionStatus`
    */
   async getTransactionStatus(
     transactionHash: string
@@ -228,8 +223,8 @@ export class SupraClient {
     return resData.data.status == "Unexecuted"
       ? "Pending"
       : resData.data.status == "Fail"
-        ? "Failed"
-        : resData.data.status;
+      ? "Failed"
+      : resData.data.status;
   }
 
   private getCoinChangeAmount(
@@ -437,11 +432,11 @@ export class SupraClient {
   }
 
   /**
-   * Get transaction associated with an account
+   * Get transactions sent by the account
    * @param account Supra account address
    * @param count Number of transactions details
    * @param start Cursor for pagination based response
-   * @returns Transaction Details
+   * @returns List of `TransactionDetail`
    */
   async getAccountTransactionsDetail(
     account: HexString,
@@ -488,11 +483,11 @@ export class SupraClient {
   }
 
   /**
-   * Get Coin Transfer related transactions details
+   * Get Coin Transfer related transactions associated with the account
    * @param account Supra account address
    * @param count Number of transactions details
-   * @param start Sequence number from which N number of transactions returned
-   * @returns Transaction Details
+   * @param start Cursor for pagination based response
+   * @returns List of `TransactionDetail`
    */
   async getCoinTransactionsDetail(
     account: HexString,
@@ -539,6 +534,13 @@ export class SupraClient {
     return coinTransactionsDetail;
   }
 
+  /**
+   * Get transactions sent by the account and Coin transfer related transactions
+   * @param account Supra account address
+   * @param count Number of coin transfer transactions and account sent transaction to be considered,
+   * For instance if the value is `N` so total `N*2` transactions will be returned.
+   * @returns List of `TransactionDetail`
+   */
   async getAccountCompleteTransactionsDetail(
     account: HexString,
     count: number = 15
@@ -749,6 +751,12 @@ export class SupraClient {
     };
   }
 
+  /**
+   * Send `entry_function_payload` type tx using serialized raw transaction datas
+   * @param senderAccount Sender KeyPair
+   * @param serializedRawTransaction Serialized raw transaction data
+   * @returns `TransactionResponse`
+   */
   async sendTxUsingSerializedRawTransaction(
     senderAccount: AptosAccount,
     serializedRawTransaction: Uint8Array
@@ -799,6 +807,21 @@ export class SupraClient {
     );
   }
 
+  /**
+   * Create serialized raw transaction object for `entry_function_payload` type tx
+   * @param senderAddr Sender account address
+   * @param senderSequenceNumber Sender account sequence number
+   * @param moduleAddr Target module address
+   * @param moduleName Target module name
+   * @param functionName Target function name
+   * @param functionTypeArgs Target function type args
+   * @param functionArgs Target function args
+   * @param chainId Supra network chain id
+   * @param maxGas Maximum gas for transaction
+   * @param gasUnitPrice Maximum gas unit price for transaction
+   * @param txExpiryTime Expiry time for transaction
+   * @returns Serialized raw transaction object
+   */
   static async createSerializedRawTxObject(
     senderAddr: HexString,
     senderSequenceNumber: bigint,
@@ -834,7 +857,7 @@ export class SupraClient {
    * @param senderAccount Sender KeyPair
    * @param receiverAccountAddr Receiver Supra Account address
    * @param amount Amount to transfer
-   * @returns Transaction Response
+   * @returns `TransactionResponse`
    */
   async transferSupraCoin(
     senderAccount: AptosAccount,
@@ -860,7 +883,9 @@ export class SupraClient {
       senderAccount,
       await SupraClient.createRawTxObject(
         senderAccount.address(),
-        (await this.getAccountInfo(senderAccount.address())).sequence_number,
+        (
+          await this.getAccountInfo(senderAccount.address())
+        ).sequence_number,
         "0000000000000000000000000000000000000000000000000000000000000001",
         "supra_account",
         "transfer",
@@ -880,7 +905,7 @@ export class SupraClient {
    * @param receiverAccountAddr Receiver Supra Account address
    * @param amount Amount to transfer
    * @param coinType Type of coin
-   * @returns Transaction Response
+   * @returns `TransactionResponse`
    */
   async transferCoin(
     senderAccount: AptosAccount,
@@ -906,7 +931,9 @@ export class SupraClient {
       senderAccount,
       await SupraClient.createRawTxObject(
         senderAccount.address(),
-        (await this.getAccountInfo(senderAccount.address())).sequence_number,
+        (
+          await this.getAccountInfo(senderAccount.address())
+        ).sequence_number,
         "0000000000000000000000000000000000000000000000000000000000000001",
         "supra_account",
         "transfer_coins",
@@ -926,7 +953,7 @@ export class SupraClient {
    * @param senderAccount Module Publisher KeyPair
    * @param packageMetadata Package Metadata
    * @param modulesCode module code
-   * @returns Transaction Response
+   * @returns `TransactionResponse`
    */
   async publishPackage(
     senderAccount: AptosAccount,
@@ -945,7 +972,9 @@ export class SupraClient {
       senderAccount,
       await SupraClient.createRawTxObject(
         senderAccount.address(),
-        (await this.getAccountInfo(senderAccount.address())).sequence_number,
+        (
+          await this.getAccountInfo(senderAccount.address())
+        ).sequence_number,
         "0000000000000000000000000000000000000000000000000000000000000001",
         "code",
         "publish_package_txn",
@@ -963,20 +992,19 @@ export class SupraClient {
    * @param sendTxPayload Transaction payload
    */
   async simulateTx(sendTxPayload: SendTxPayload): Promise<void> {
-    // let resData = await this.sendRequest(
-    //   false,
-    //   "/rpc/v1/transactions/simulate",
-    //   sendTxPayload
-    // );
-    // console.log(resData.data);
+    let resData = await this.sendRequest(
+      false,
+      "/rpc/v1/transactions/simulate",
+      sendTxPayload
+    );
 
-    // if (resData.data.output.Move.vm_status.split(" ")[1] !== "EXECUTED") {
-    //   throw new Error(
-    //     "Transaction Can Be Failed, Reason: " +
-    //       resData.data.output.Move.vm_status
-    //   );
-    // }
-    // console.log("Transaction Simulation Done");
+    if (resData.data.output.Move.vm_status !== "Executed successfully") {
+      throw new Error(
+        "Transaction Can Be Failed, Reason: " +
+          resData.data.output.Move.vm_status
+      );
+    }
+    console.log("Transaction Simulation Done");
     return;
   }
 }

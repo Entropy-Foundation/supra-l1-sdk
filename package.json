@@ -1,7 +1,7 @@
 {
-  "name": "supra-l1-devnet-sdk",
-  "version": "1.0.0",
-  "description": "",
+  "name": "supra-l1-sdk",
+  "version": "1.1.0",
+  "description": "Typescript SDK for Supra",
   "exports": {
     "browser": {
       "import": "./dist/browser/index.mjs",
