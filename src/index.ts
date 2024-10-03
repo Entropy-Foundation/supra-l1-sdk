@@ -22,6 +22,7 @@ import {
 import { sha3_256 } from "js-sha3";
 
 export * from "./types";
+export { TxnBuilderTypes, BCS, HexString, AptosAccount };
 
 /**
  * Provides methods for interacting with supra rpc node.
