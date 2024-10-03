@@ -10821,7 +10821,12 @@ var require_follow_redirects = __commonJS({
 });
 
 // src/index.ts
-import { TxnBuilderTypes, BCS, HexString, AptosAccount } from "aptos";
+import {
+  TxnBuilderTypes,
+  BCS,
+  HexString,
+  AptosAccount as SupraAccount
+} from "aptos";
 
 // node_modules/axios/lib/helpers/bind.js
 function bind(fn, thisArg) {
@@ -14909,9 +14914,9 @@ var SupraClient = class _SupraClient {
   }
 };
 export {
-  AptosAccount,
   BCS,
   HexString,
+  SupraAccount,
   SupraClient,
   TransactionStatus,
   TxTypeForTransactionInsights,

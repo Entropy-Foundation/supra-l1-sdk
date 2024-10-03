@@ -1,5 +1,5 @@
 import { TxnBuilderTypes, HexString, AptosAccount } from 'aptos';
-export { AptosAccount, BCS, HexString, TxnBuilderTypes } from 'aptos';
+export { BCS, HexString, AptosAccount as SupraAccount, TxnBuilderTypes } from 'aptos';
 
 interface AccountInfo {
     sequence_number: bigint;

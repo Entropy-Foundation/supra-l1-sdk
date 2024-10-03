@@ -10819,9 +10819,9 @@ var require_follow_redirects = __commonJS({
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
-  AptosAccount: () => import_aptos.AptosAccount,
   BCS: () => import_aptos.BCS,
   HexString: () => import_aptos.HexString,
+  SupraAccount: () => import_aptos.AptosAccount,
   SupraClient: () => SupraClient,
   TransactionStatus: () => TransactionStatus,
   TxTypeForTransactionInsights: () => TxTypeForTransactionInsights,
@@ -14917,9 +14917,9 @@ var SupraClient = class _SupraClient {
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  AptosAccount,
   BCS,
   HexString,
+  SupraAccount,
   SupraClient,
   TransactionStatus,
   TxTypeForTransactionInsights,
