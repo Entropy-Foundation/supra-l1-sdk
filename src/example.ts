@@ -1,5 +1,4 @@
-import { HexString, AptosAccount } from "./index";
-import * as supraSDK from "./index";
+import { HexString, SupraAccount, SupraClient } from "./index";
 
 // To run this example, install `ts-node` (e.g. `npm install -g ts-node`), enter the directory
 // that contains this file and run `ts-node ./example.ts`.
@@ -14,12 +13,12 @@ import * as supraSDK from "./index";
 
   // To Create Instance Of Supra Client, But In This Method We Don't Need To Pass ChainId.
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
-  let supraClient = await supraSDK.SupraClient.init(
+  let supraClient = await SupraClient.init(
     // "http://localhost:27001/"
     "https://rpc-testnet.supra.com/"
   );
 
-  let senderAccount = new AptosAccount(
+  let senderAccount = new SupraAccount(
     Buffer.from(
       "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d89",
       "hex"
