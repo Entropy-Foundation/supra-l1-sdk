@@ -1,5 +1,4 @@
-import * as aptos from "aptos";
-import * as supraSDK from "./index";
+import { HexString, SupraAccount, SupraClient } from "./index";
 
 // To run this example, install `ts-node` (e.g. `npm install -g ts-node`), enter the directory
 // that contains this file and run `ts-node ./example.ts`.
@@ -14,12 +13,12 @@ import * as supraSDK from "./index";
 
   // To Create Instance Of Supra Client, But In This Method We Don't Need To Pass ChainId.
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
-  let supraClient = await supraSDK.SupraClient.init(
+  let supraClient = await SupraClient.init(
     // "http://localhost:27001/"
     "https://rpc-testnet.supra.com/"
   );
 
-  let senderAccount = new aptos.AptosAccount(
+  let senderAccount = new SupraAccount(
     Buffer.from(
       "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d89",
       "hex"
@@ -36,7 +35,7 @@ import * as supraSDK from "./index";
     );
   }
 
-  let receiverAddress = new aptos.HexString(
+  let receiverAddress = new HexString(
     // "1000000000000000000000000000000000000000000000000000000000000000"
     "0xb8922417130785087f9c7926e76542531b703693fdc74c9386b65cf4427f4e80"
   );
@@ -114,7 +113,7 @@ import * as supraSDK from "./index";
   );
 
   let txData = await supraClient.getTransactionDetail(
-    new aptos.HexString(
+    new HexString(
       "0x4f88ad501b780c12290a6fa63e1e1500eaa5fd5ba945896ce77ee8c53a2f6d00"
     ),
     "0x338e8d8db2177c3e4ae94890dc63bdf00bd558a685b6fc42fe685a85b4bac6d9"
@@ -138,9 +137,7 @@ import * as supraSDK from "./index";
   // To Get Combined Results Of 'getAccountTransactionsDetail' and 'getCoinTransactionsDetail'
   console.log(
     await supraClient.getAccountCompleteTransactionsDetail(
-      new aptos.HexString(
-        senderAccount.address().toString()
-      )
+      new HexString(senderAccount.address().toString())
     )
   );
 })();

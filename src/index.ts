@@ -1,4 +1,9 @@
-import { TxnBuilderTypes, BCS, HexString, AptosAccount } from "aptos";
+import {
+  TxnBuilderTypes,
+  BCS,
+  HexString,
+  AptosAccount as SupraAccount,
+} from "aptos";
 import axios, { AxiosResponse } from "axios";
 import {
   normalizeAddress,
@@ -22,6 +27,7 @@ import {
 import { sha3_256 } from "js-sha3";
 
 export * from "./types";
+export { TxnBuilderTypes, BCS, HexString, SupraAccount };
 
 /**
  * Provides methods for interacting with supra rpc node.
@@ -691,7 +697,7 @@ export class SupraClient {
   }
 
   private signSupraTransaction(
-    senderAccount: AptosAccount,
+    senderAccount: SupraAccount,
     rawTxn: TxnBuilderTypes.RawTransaction
   ) {
     let preHash = Uint8Array.from(
@@ -711,7 +717,7 @@ export class SupraClient {
   }
 
   private async getSendTxPayload(
-    senderAccount: AptosAccount,
+    senderAccount: SupraAccount,
     rawTxn: TxnBuilderTypes.RawTransaction
   ): Promise<SendTxPayload> {
     console.log("Sequence Number: ", rawTxn.sequence_number);
@@ -758,7 +764,7 @@ export class SupraClient {
    * @returns `TransactionResponse`
    */
   async sendTxUsingSerializedRawTransaction(
-    senderAccount: AptosAccount,
+    senderAccount: SupraAccount,
     serializedRawTransaction: Uint8Array
   ): Promise<TransactionResponse> {
     let sendTxPayload = await this.getSendTxPayload(
@@ -860,7 +866,7 @@ export class SupraClient {
    * @returns `TransactionResponse`
    */
   async transferSupraCoin(
-    senderAccount: AptosAccount,
+    senderAccount: SupraAccount,
     receiverAccountAddr: HexString,
     amount: bigint,
     waitForTransactionCompletion: boolean = false
@@ -908,7 +914,7 @@ export class SupraClient {
    * @returns `TransactionResponse`
    */
   async transferCoin(
-    senderAccount: AptosAccount,
+    senderAccount: SupraAccount,
     receiverAccountAddr: HexString,
     amount: bigint,
     coinType: string,
@@ -956,7 +962,7 @@ export class SupraClient {
    * @returns `TransactionResponse`
    */
   async publishPackage(
-    senderAccount: AptosAccount,
+    senderAccount: SupraAccount,
     packageMetadata: Uint8Array,
     modulesCode: Uint8Array[]
   ): Promise<TransactionResponse> {

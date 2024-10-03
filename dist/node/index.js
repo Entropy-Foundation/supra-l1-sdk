@@ -10819,9 +10819,13 @@ var require_follow_redirects = __commonJS({
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
+  BCS: () => import_aptos.BCS,
+  HexString: () => import_aptos.HexString,
+  SupraAccount: () => import_aptos.AptosAccount,
   SupraClient: () => SupraClient,
   TransactionStatus: () => TransactionStatus,
-  TxTypeForTransactionInsights: () => TxTypeForTransactionInsights
+  TxTypeForTransactionInsights: () => TxTypeForTransactionInsights,
+  TxnBuilderTypes: () => import_aptos.TxnBuilderTypes
 });
 module.exports = __toCommonJS(src_exports);
 var import_aptos = require("aptos");
@@ -14913,9 +14917,13 @@ var SupraClient = class _SupraClient {
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  BCS,
+  HexString,
+  SupraAccount,
   SupraClient,
   TransactionStatus,
-  TxTypeForTransactionInsights
+  TxTypeForTransactionInsights,
+  TxnBuilderTypes
 });
 /*! Bundled license information:
 
