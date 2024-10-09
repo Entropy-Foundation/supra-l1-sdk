@@ -24,6 +24,15 @@ import {
   CoinChange,
   FaucetRequestResponse,
 } from "./types";
+import {
+  DEFAULT_CHAIN_ID,
+  DEFAULT_GAS_UNIT_PRICE,
+  DEFAULT_MAX_GAS_UNITS,
+  DEFAULT_RECORDS_ITEMS_COUNT,
+  DEFAULT_TX_EXPIRATION_DURATION,
+  DELAY_BETWEEN_POOLING_REQUEST,
+  MAX_RETRY_FOR_TRANSACTION_COMPLETION,
+} from "./constants";
 import { sha3_256 } from "js-sha3";
 
 export * from "./types";
@@ -35,10 +44,8 @@ export { TxnBuilderTypes, BCS, HexString, SupraAccount };
 export class SupraClient {
   supraNodeURL: string;
   chainId: TxnBuilderTypes.ChainId;
-  maxRetryForTransactionCompletion = 300;
-  delayBetweenPoolingRequest = 1000; // 1 Second
 
-  constructor(url: string, chainId: number = Number(3)) {
+  constructor(url: string, chainId: number = DEFAULT_CHAIN_ID) {
     this.supraNodeURL = url;
     this.chainId = new TxnBuilderTypes.ChainId(chainId);
   }
@@ -446,7 +453,7 @@ export class SupraClient {
    */
   async getAccountTransactionsDetail(
     account: HexString,
-    count: number = 15,
+    count: number = DEFAULT_RECORDS_ITEMS_COUNT,
     start: number | null = null
   ): Promise<TransactionDetail[]> {
     let requestPath = `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}`;
@@ -497,7 +504,7 @@ export class SupraClient {
    */
   async getCoinTransactionsDetail(
     account: HexString,
-    count: number = 15,
+    count: number = DEFAULT_RECORDS_ITEMS_COUNT,
     start: number | null = null
   ): Promise<TransactionDetail[]> {
     let requestPath = `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}`;
@@ -549,7 +556,7 @@ export class SupraClient {
    */
   async getAccountCompleteTransactionsDetail(
     account: HexString,
-    count: number = 15
+    count: number = DEFAULT_RECORDS_ITEMS_COUNT
   ): Promise<TransactionDetail[]> {
     let coinTransactions = await this.sendRequest(
       true,
@@ -665,10 +672,10 @@ export class SupraClient {
   private async waitForTransactionCompletion(
     txHash: string
   ): Promise<TransactionStatus> {
-    for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
+    for (let i = 0; i < MAX_RETRY_FOR_TRANSACTION_COMPLETION; i++) {
       let txStatus = await this.getTransactionStatus(txHash);
       if (txStatus === null || txStatus == TransactionStatus.Pending) {
-        await sleep(this.delayBetweenPoolingRequest);
+        await sleep(DELAY_BETWEEN_POOLING_REQUEST);
       } else {
         return txStatus;
       }
@@ -786,8 +793,8 @@ export class SupraClient {
     functionTypeArgs: TxnBuilderTypes.TypeTag[],
     functionArgs: Uint8Array[],
     chainId: TxnBuilderTypes.ChainId,
-    maxGas: bigint = BigInt(500000),
-    gasUnitPrice: bigint = BigInt(100),
+    maxGas: bigint = DEFAULT_MAX_GAS_UNITS,
+    gasUnitPrice: bigint = DEFAULT_GAS_UNIT_PRICE,
     txExpiryTime: bigint | undefined = undefined
   ): Promise<TxnBuilderTypes.RawTransaction> {
     return new TxnBuilderTypes.RawTransaction(
@@ -809,7 +816,7 @@ export class SupraClient {
       maxGas,
       gasUnitPrice,
       txExpiryTime === undefined
-        ? BigInt(Math.ceil(Date.now() / 1000) + 60 * 5)
+        ? BigInt(Math.ceil(Date.now() / 1000) + DEFAULT_TX_EXPIRATION_DURATION)
         : txExpiryTime,
       chainId
     );
@@ -839,8 +846,8 @@ export class SupraClient {
     functionTypeArgs: TxnBuilderTypes.TypeTag[],
     functionArgs: Uint8Array[],
     chainId: TxnBuilderTypes.ChainId,
-    maxGas: bigint = BigInt(500000),
-    gasUnitPrice: bigint = BigInt(100),
+    maxGas: bigint = DEFAULT_MAX_GAS_UNITS,
+    gasUnitPrice: bigint = DEFAULT_GAS_UNIT_PRICE,
     txExpiryTime: bigint | undefined = undefined
   ): Promise<Uint8Array> {
     return BCS.bcsToBytes(
@@ -856,7 +863,9 @@ export class SupraClient {
         maxGas,
         gasUnitPrice,
         txExpiryTime === undefined
-          ? BigInt(Math.ceil(Date.now() / 1000) + 60 * 5)
+          ? BigInt(
+              Math.ceil(Date.now() / 1000) + DEFAULT_TX_EXPIRATION_DURATION
+            )
           : txExpiryTime
       )
     );

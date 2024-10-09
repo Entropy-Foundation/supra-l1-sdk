@@ -112,8 +112,6 @@ interface FaucetRequestResponse {
 declare class SupraClient {
     supraNodeURL: string;
     chainId: TxnBuilderTypes.ChainId;
-    maxRetryForTransactionCompletion: number;
-    delayBetweenPoolingRequest: number;
     constructor(url: string, chainId?: number);
     /**
      * Creates and initializes `SupraClient` instance
