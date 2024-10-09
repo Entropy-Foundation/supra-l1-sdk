@@ -788,7 +788,7 @@ export class SupraClient {
     chainId: TxnBuilderTypes.ChainId,
     maxGas: bigint = BigInt(500000),
     gasUnitPrice: bigint = BigInt(100),
-    txExpiryTime: bigint = BigInt(999999999999999)
+    txExpiryTime: bigint | undefined = undefined
   ): Promise<TxnBuilderTypes.RawTransaction> {
     return new TxnBuilderTypes.RawTransaction(
       new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
@@ -808,7 +808,9 @@ export class SupraClient {
       ),
       maxGas,
       gasUnitPrice,
-      txExpiryTime,
+      txExpiryTime === undefined
+        ? BigInt(Math.ceil(Date.now() / 1000) + 60 * 5)
+        : txExpiryTime,
       chainId
     );
   }
@@ -839,7 +841,7 @@ export class SupraClient {
     chainId: TxnBuilderTypes.ChainId,
     maxGas: bigint = BigInt(500000),
     gasUnitPrice: bigint = BigInt(100),
-    txExpiryTime: bigint = BigInt(999999999999999)
+    txExpiryTime: bigint | undefined = undefined
   ): Promise<Uint8Array> {
     return BCS.bcsToBytes(
       await SupraClient.createRawTxObject(
@@ -853,7 +855,9 @@ export class SupraClient {
         chainId,
         maxGas,
         gasUnitPrice,
-        txExpiryTime
+        txExpiryTime === undefined
+          ? BigInt(Math.ceil(Date.now() / 1000) + 60 * 5)
+          : txExpiryTime
       )
     );
   }

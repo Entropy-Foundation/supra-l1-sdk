@@ -14742,7 +14742,7 @@ var SupraClient = class _SupraClient {
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
   }
-  static async createRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, chainId, maxGas = BigInt(5e5), gasUnitPrice = BigInt(100), txExpiryTime = BigInt(999999999999999)) {
+  static async createRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, chainId, maxGas = BigInt(5e5), gasUnitPrice = BigInt(100), txExpiryTime = void 0) {
     return new TxnBuilderTypes.RawTransaction(
       new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
       senderSequenceNumber,
@@ -14761,7 +14761,7 @@ var SupraClient = class _SupraClient {
       ),
       maxGas,
       gasUnitPrice,
-      txExpiryTime,
+      txExpiryTime === void 0 ? BigInt(Math.ceil(Date.now() / 1e3) + 60 * 5) : txExpiryTime,
       chainId
     );
   }
@@ -14780,7 +14780,7 @@ var SupraClient = class _SupraClient {
    * @param txExpiryTime Expiry time for transaction
    * @returns Serialized raw transaction object
    */
-  static async createSerializedRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, chainId, maxGas = BigInt(5e5), gasUnitPrice = BigInt(100), txExpiryTime = BigInt(999999999999999)) {
+  static async createSerializedRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, chainId, maxGas = BigInt(5e5), gasUnitPrice = BigInt(100), txExpiryTime = void 0) {
     return BCS.bcsToBytes(
       await _SupraClient.createRawTxObject(
         senderAddr,
@@ -14793,7 +14793,7 @@ var SupraClient = class _SupraClient {
         chainId,
         maxGas,
         gasUnitPrice,
-        txExpiryTime
+        txExpiryTime === void 0 ? BigInt(Math.ceil(Date.now() / 1e3) + 60 * 5) : txExpiryTime
       )
     );
   }
