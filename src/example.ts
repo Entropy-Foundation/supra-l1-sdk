@@ -1,4 +1,4 @@
-import { HexString, SupraAccount, SupraClient } from "./index";
+import { HexString, SupraAccount, SupraClient, BCS } from "./index";
 
 // To run this example, install `ts-node` (e.g. `npm install -g ts-node`), enter the directory
 // that contains this file and run `ts-node ./example.ts`.
@@ -138,6 +138,30 @@ import { HexString, SupraAccount, SupraClient } from "./index";
   console.log(
     await supraClient.getAccountCompleteTransactionsDetail(
       new HexString(senderAccount.address().toString())
+    )
+  );
+
+  // To create a serialized raw transaction
+  let supraCoinTransferSerializedRawTransaction =
+    await SupraClient.createSerializedRawTxObject(
+      senderAccount.address(),
+      (
+        await supraClient.getAccountInfo(senderAccount.address())
+      ).sequence_number,
+      "0000000000000000000000000000000000000000000000000000000000000001",
+      "supra_account",
+      "transfer",
+      [],
+      [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)],
+      supraClient.chainId
+    );
+
+  // To simulate transaction using serialized raw transaction data
+  console.log(
+    await supraClient.simulateTxUsingSerializedRawTransaction(
+      senderAccount.address(),
+      senderAccount.pubKey(),
+      supraCoinTransferSerializedRawTransaction
     )
   );
 })();

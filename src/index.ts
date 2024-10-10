@@ -33,7 +33,7 @@ import {
   DELAY_BETWEEN_POOLING_REQUEST,
   MAX_RETRY_FOR_TRANSACTION_COMPLETION,
   MILLISECONDS_PER_SECOND,
-  DUMMY_32BYTES_DATA,
+  SUPRA_FRAMEWORK_ADDRESS,
 } from "./constants";
 import { sha3_256 } from "js-sha3";
 
@@ -630,7 +630,7 @@ export class SupraClient {
   async getCoinInfo(coinType: string): Promise<CoinInfo> {
     let coinInfoResource = await this.getResourceData(
       new HexString(coinType.substring(2, 66)),
-      `0x0000000000000000000000000000000000000000000000000000000000000001::coin::CoinInfo<${coinType}>`
+      `${SUPRA_FRAMEWORK_ADDRESS}::coin::CoinInfo<${coinType}>`
     );
     return {
       name: coinInfoResource.name,
@@ -920,7 +920,7 @@ export class SupraClient {
         (
           await this.getAccountInfo(senderAccount.address())
         ).sequence_number,
-        "0000000000000000000000000000000000000000000000000000000000000001",
+        SUPRA_FRAMEWORK_ADDRESS,
         "supra_account",
         "transfer",
         [],
@@ -968,7 +968,7 @@ export class SupraClient {
         (
           await this.getAccountInfo(senderAccount.address())
         ).sequence_number,
-        "0000000000000000000000000000000000000000000000000000000000000001",
+        SUPRA_FRAMEWORK_ADDRESS,
         "supra_account",
         "transfer_coins",
         [new TxnBuilderTypes.TypeTagParser(coinType).parseTypeTag()],
@@ -1009,7 +1009,7 @@ export class SupraClient {
         (
           await this.getAccountInfo(senderAccount.address())
         ).sequence_number,
-        "0000000000000000000000000000000000000000000000000000000000000001",
+        SUPRA_FRAMEWORK_ADDRESS,
         "code",
         "publish_package_txn",
         [],
@@ -1049,6 +1049,7 @@ export class SupraClient {
    */
   async simulateTxUsingSerializedRawTransaction(
     senderAccountAddress: HexString,
+    senderAccountPubKey: HexString,
     serializedRawTransaction: Uint8Array
   ): Promise<any> {
     let sendTxPayload = {
@@ -1061,8 +1062,8 @@ export class SupraClient {
         ),
         authenticator: {
           Ed25519: {
-            public_key: DUMMY_32BYTES_DATA,
-            signature: DUMMY_32BYTES_DATA,
+            public_key: senderAccountPubKey.toString(),
+            signature: "0".repeat(128),
           },
         },
       },
