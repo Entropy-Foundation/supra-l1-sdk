@@ -283,7 +283,7 @@ declare class SupraClient {
      * @param senderAccountAddress Tx sender account address
      * @param serializedRawTransaction Serialized raw transaction data
      */
-    simulateTxUsingSerializedRawTransaction(senderAccountAddress: HexString, serializedRawTransaction: Uint8Array): Promise<any>;
+    simulateTxUsingSerializedRawTransaction(senderAccountAddress: HexString, senderAccountPubKey: HexString, serializedRawTransaction: Uint8Array): Promise<any>;
 }
 
 export { type AccountInfo, type AccountResources, type CoinChange, type CoinInfo, type FaucetRequestResponse, type FunctionTypeArgs, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };

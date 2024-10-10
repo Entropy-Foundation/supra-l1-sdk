@@ -14162,7 +14162,7 @@ var DEFAULT_GAS_UNIT_PRICE = BigInt(100);
 var DEFAULT_MAX_GAS_UNITS = BigInt(5e5);
 var DEFAULT_TX_EXPIRATION_DURATION = 300;
 var MILLISECONDS_PER_SECOND = 1e3;
-var DUMMY_32BYTES_DATA = "0x0000000000000000000000000000000000000000000000000000000000000000";
+var SUPRA_FRAMEWORK_ADDRESS = "0x0000000000000000000000000000000000000000000000000000000000000001";
 
 // src/index.ts
 var import_js_sha3 = require("js-sha3");
@@ -14634,7 +14634,7 @@ var SupraClient = class _SupraClient {
   async getCoinInfo(coinType) {
     let coinInfoResource = await this.getResourceData(
       new import_aptos.HexString(coinType.substring(2, 66)),
-      `0x0000000000000000000000000000000000000000000000000000000000000001::coin::CoinInfo<${coinType}>`
+      `${SUPRA_FRAMEWORK_ADDRESS}::coin::CoinInfo<${coinType}>`
     );
     return {
       name: coinInfoResource.name,
@@ -14835,7 +14835,7 @@ var SupraClient = class _SupraClient {
       await _SupraClient.createRawTxObject(
         senderAccount.address(),
         (await this.getAccountInfo(senderAccount.address())).sequence_number,
-        "0000000000000000000000000000000000000000000000000000000000000001",
+        SUPRA_FRAMEWORK_ADDRESS,
         "supra_account",
         "transfer",
         [],
@@ -14868,7 +14868,7 @@ var SupraClient = class _SupraClient {
       await _SupraClient.createRawTxObject(
         senderAccount.address(),
         (await this.getAccountInfo(senderAccount.address())).sequence_number,
-        "0000000000000000000000000000000000000000000000000000000000000001",
+        SUPRA_FRAMEWORK_ADDRESS,
         "supra_account",
         "transfer_coins",
         [new import_aptos.TxnBuilderTypes.TypeTagParser(coinType).parseTypeTag()],
@@ -14901,7 +14901,7 @@ var SupraClient = class _SupraClient {
       await _SupraClient.createRawTxObject(
         senderAccount.address(),
         (await this.getAccountInfo(senderAccount.address())).sequence_number,
-        "0000000000000000000000000000000000000000000000000000000000000001",
+        SUPRA_FRAMEWORK_ADDRESS,
         "code",
         "publish_package_txn",
         [],
@@ -14935,7 +14935,7 @@ var SupraClient = class _SupraClient {
    * @param senderAccountAddress Tx sender account address
    * @param serializedRawTransaction Serialized raw transaction data
    */
-  async simulateTxUsingSerializedRawTransaction(senderAccountAddress, serializedRawTransaction) {
+  async simulateTxUsingSerializedRawTransaction(senderAccountAddress, senderAccountPubKey, serializedRawTransaction) {
     let sendTxPayload = {
       Move: {
         raw_txn: this.getRawTxDataInJson(
@@ -14946,8 +14946,8 @@ var SupraClient = class _SupraClient {
         ),
         authenticator: {
           Ed25519: {
-            public_key: DUMMY_32BYTES_DATA,
-            signature: DUMMY_32BYTES_DATA
+            public_key: senderAccountPubKey.toString(),
+            signature: "0".repeat(128)
           }
         }
       }
