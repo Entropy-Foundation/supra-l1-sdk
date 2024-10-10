@@ -14,8 +14,8 @@ import { HexString, SupraAccount, SupraClient } from "./index";
   // To Create Instance Of Supra Client, But In This Method We Don't Need To Pass ChainId.
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await SupraClient.init(
-    // "http://localhost:27001/"
-    "https://rpc-testnet.supra.com/"
+    "http://localhost:27001/"
+    // "https://rpc-testnet.supra.com/"
   );
 
   let senderAccount = new SupraAccount(

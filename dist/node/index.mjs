@@ -14739,14 +14739,16 @@ var SupraClient = class _SupraClient {
    * @param serializedRawTransaction Serialized raw transaction data
    * @returns `TransactionResponse`
    */
-  async sendTxUsingSerializedRawTransaction(senderAccount, serializedRawTransaction) {
+  async sendTxUsingSerializedRawTransaction(senderAccount, serializedRawTransaction, shouldSimulateTx = false) {
     let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
       TxnBuilderTypes.RawTransaction.deserialize(
         new BCS.Deserializer(serializedRawTransaction)
       )
     );
-    await this.simulateTx(sendTxPayload);
+    if (shouldSimulateTx == true) {
+      await this.simulateTx(sendTxPayload);
+    }
     return await this.sendTx(sendTxPayload);
   }
   static async createRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, chainId, maxGas = DEFAULT_MAX_GAS_UNITS, gasUnitPrice = DEFAULT_GAS_UNIT_PRICE, txExpiryTime = void 0) {
@@ -14921,7 +14923,21 @@ var SupraClient = class _SupraClient {
       );
     }
     console.log("Transaction Simulation Done");
-    return;
+    return resData.data;
+  }
+  /**
+   * Simulate a transaction using the provided Serialized raw transaction data
+   * @param serializedRawTransaction Serialized raw transaction data
+   */
+  // TODO: Remove dependency from `senderAccount` parameter
+  async simulateTxUsingSerializedRawTransaction(senderAccount, serializedRawTransaction) {
+    let sendTxPayload = await this.getSendTxPayload(
+      senderAccount,
+      TxnBuilderTypes.RawTransaction.deserialize(
+        new BCS.Deserializer(serializedRawTransaction)
+      )
+    );
+    return await this.simulateTx(sendTxPayload);
   }
 };
 export {

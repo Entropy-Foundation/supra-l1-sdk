@@ -229,7 +229,7 @@ declare class SupraClient {
      * @param serializedRawTransaction Serialized raw transaction data
      * @returns `TransactionResponse`
      */
-    sendTxUsingSerializedRawTransaction(senderAccount: AptosAccount, serializedRawTransaction: Uint8Array): Promise<TransactionResponse>;
+    sendTxUsingSerializedRawTransaction(senderAccount: AptosAccount, serializedRawTransaction: Uint8Array, shouldSimulateTx?: boolean): Promise<TransactionResponse>;
     static createRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint, gasUnitPrice?: bigint, txExpiryTime?: bigint | undefined): Promise<TxnBuilderTypes.RawTransaction>;
     /**
      * Create serialized raw transaction object for `entry_function_payload` type tx
@@ -276,7 +276,12 @@ declare class SupraClient {
      * Simulate a transaction using the provided transaction payload
      * @param sendTxPayload Transaction payload
      */
-    simulateTx(sendTxPayload: SendTxPayload): Promise<void>;
+    simulateTx(sendTxPayload: SendTxPayload): Promise<any>;
+    /**
+     * Simulate a transaction using the provided Serialized raw transaction data
+     * @param serializedRawTransaction Serialized raw transaction data
+     */
+    simulateTxUsingSerializedRawTransaction(senderAccount: AptosAccount, serializedRawTransaction: Uint8Array): Promise<any>;
 }
 
 export { type AccountInfo, type AccountResources, type CoinChange, type CoinInfo, type FaucetRequestResponse, type FunctionTypeArgs, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };

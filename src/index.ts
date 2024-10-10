@@ -773,7 +773,8 @@ export class SupraClient {
    */
   async sendTxUsingSerializedRawTransaction(
     senderAccount: SupraAccount,
-    serializedRawTransaction: Uint8Array
+    serializedRawTransaction: Uint8Array,
+    shouldSimulateTx: boolean = false
   ): Promise<TransactionResponse> {
     let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
@@ -781,7 +782,9 @@ export class SupraClient {
         new BCS.Deserializer(serializedRawTransaction)
       )
     );
-    await this.simulateTx(sendTxPayload);
+    if (shouldSimulateTx==true) {
+      await this.simulateTx(sendTxPayload);
+    }
     return await this.sendTx(sendTxPayload);
   }
 
@@ -1015,7 +1018,7 @@ export class SupraClient {
    * Simulate a transaction using the provided transaction payload
    * @param sendTxPayload Transaction payload
    */
-  async simulateTx(sendTxPayload: SendTxPayload): Promise<void> {
+  async simulateTx(sendTxPayload: SendTxPayload): Promise<any> {
     let resData = await this.sendRequest(
       false,
       "/rpc/v1/transactions/simulate",
@@ -1029,6 +1032,24 @@ export class SupraClient {
       );
     }
     console.log("Transaction Simulation Done");
-    return;
+    return resData.data;
+  }
+
+  /**
+   * Simulate a transaction using the provided Serialized raw transaction data
+   * @param serializedRawTransaction Serialized raw transaction data
+   */
+  // TODO: Remove dependency from `senderAccount` parameter
+  async simulateTxUsingSerializedRawTransaction(
+    senderAccount: SupraAccount,
+    serializedRawTransaction: Uint8Array
+  ): Promise<any> {
+    let sendTxPayload = await this.getSendTxPayload(
+      senderAccount,
+      TxnBuilderTypes.RawTransaction.deserialize(
+        new BCS.Deserializer(serializedRawTransaction)
+      )
+    );
+    return await this.simulateTx(sendTxPayload);
   }
 }
