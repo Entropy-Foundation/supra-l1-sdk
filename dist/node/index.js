@@ -14161,6 +14161,7 @@ var DEFAULT_RECORDS_ITEMS_COUNT = 15;
 var DEFAULT_GAS_UNIT_PRICE = BigInt(100);
 var DEFAULT_MAX_GAS_UNITS = BigInt(5e5);
 var DEFAULT_TX_EXPIRATION_DURATION = 300;
+var MILLISECONDS_PER_SECOND = 1e3;
 
 // src/index.ts
 var import_js_sha3 = require("js-sha3");
@@ -14735,7 +14736,7 @@ var SupraClient = class _SupraClient {
     };
   }
   /**
-   * Send `entry_function_payload` type tx using serialized raw transaction datas
+   * Send `entry_function_payload` type tx using serialized raw transaction data
    * @param senderAccount Sender KeyPair
    * @param serializedRawTransaction Serialized raw transaction data
    * @returns `TransactionResponse`
@@ -14769,7 +14770,9 @@ var SupraClient = class _SupraClient {
       ),
       maxGas,
       gasUnitPrice,
-      txExpiryTime === void 0 ? BigInt(Math.ceil(Date.now() / 1e3) + DEFAULT_TX_EXPIRATION_DURATION) : txExpiryTime,
+      txExpiryTime === void 0 ? BigInt(
+        Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) + DEFAULT_TX_EXPIRATION_DURATION
+      ) : txExpiryTime,
       chainId
     );
   }
@@ -14802,7 +14805,7 @@ var SupraClient = class _SupraClient {
         maxGas,
         gasUnitPrice,
         txExpiryTime === void 0 ? BigInt(
-          Math.ceil(Date.now() / 1e3) + DEFAULT_TX_EXPIRATION_DURATION
+          Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) + DEFAULT_TX_EXPIRATION_DURATION
         ) : txExpiryTime
       )
     );

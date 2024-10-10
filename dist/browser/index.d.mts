@@ -224,7 +224,7 @@ declare class SupraClient {
     private signSupraTransaction;
     private getSendTxPayload;
     /**
-     * Send `entry_function_payload` type tx using serialized raw transaction datas
+     * Send `entry_function_payload` type tx using serialized raw transaction data
      * @param senderAccount Sender KeyPair
      * @param serializedRawTransaction Serialized raw transaction data
      * @returns `TransactionResponse`

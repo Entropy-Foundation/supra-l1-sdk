@@ -32,6 +32,7 @@ import {
   DEFAULT_TX_EXPIRATION_DURATION,
   DELAY_BETWEEN_POOLING_REQUEST,
   MAX_RETRY_FOR_TRANSACTION_COMPLETION,
+  MILLISECONDS_PER_SECOND,
 } from "./constants";
 import { sha3_256 } from "js-sha3";
 
@@ -765,7 +766,7 @@ export class SupraClient {
   }
 
   /**
-   * Send `entry_function_payload` type tx using serialized raw transaction datas
+   * Send `entry_function_payload` type tx using serialized raw transaction data
    * @param senderAccount Sender KeyPair
    * @param serializedRawTransaction Serialized raw transaction data
    * @returns `TransactionResponse`
@@ -816,7 +817,10 @@ export class SupraClient {
       maxGas,
       gasUnitPrice,
       txExpiryTime === undefined
-        ? BigInt(Math.ceil(Date.now() / 1000) + DEFAULT_TX_EXPIRATION_DURATION)
+        ? BigInt(
+            Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) +
+              DEFAULT_TX_EXPIRATION_DURATION
+          )
         : txExpiryTime,
       chainId
     );
@@ -864,7 +868,8 @@ export class SupraClient {
         gasUnitPrice,
         txExpiryTime === undefined
           ? BigInt(
-              Math.ceil(Date.now() / 1000) + DEFAULT_TX_EXPIRATION_DURATION
+              Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) +
+                DEFAULT_TX_EXPIRATION_DURATION
             )
           : txExpiryTime
       )
