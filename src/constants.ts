@@ -1,0 +1,8 @@
+export const DEFAULT_CHAIN_ID = 6;
+export const MAX_RETRY_FOR_TRANSACTION_COMPLETION = 300;
+export const DELAY_BETWEEN_POOLING_REQUEST = 1000; // 1 Second
+export const DEFAULT_RECORDS_ITEMS_COUNT = 15;
+export const DEFAULT_GAS_UNIT_PRICE = BigInt(100);
+export const DEFAULT_MAX_GAS_UNITS = BigInt(500000);
+export const DEFAULT_TX_EXPIRATION_DURATION = 300; // 5 Minutes
+export const MILLISECONDS_PER_SECOND = 1000;

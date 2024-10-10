@@ -14153,13 +14153,20 @@ var TxTypeForTransactionInsights = /* @__PURE__ */ ((TxTypeForTransactionInsight
   return TxTypeForTransactionInsights2;
 })(TxTypeForTransactionInsights || {});
 
+// src/constants.ts
+var DEFAULT_CHAIN_ID = 6;
+var MAX_RETRY_FOR_TRANSACTION_COMPLETION = 300;
+var DELAY_BETWEEN_POOLING_REQUEST = 1e3;
+var DEFAULT_RECORDS_ITEMS_COUNT = 15;
+var DEFAULT_GAS_UNIT_PRICE = BigInt(100);
+var DEFAULT_MAX_GAS_UNITS = BigInt(5e5);
+var DEFAULT_TX_EXPIRATION_DURATION = 300;
+var MILLISECONDS_PER_SECOND = 1e3;
+
 // src/index.ts
 var import_js_sha3 = require("js-sha3");
 var SupraClient = class _SupraClient {
-  // 1 Second
-  constructor(url2, chainId = Number(3)) {
-    this.maxRetryForTransactionCompletion = 300;
-    this.delayBetweenPoolingRequest = 1e3;
+  constructor(url2, chainId = DEFAULT_CHAIN_ID) {
     this.supraNodeURL = url2;
     this.chainId = new import_aptos.TxnBuilderTypes.ChainId(chainId);
   }
@@ -14482,7 +14489,7 @@ var SupraClient = class _SupraClient {
    * @param start Cursor for pagination based response
    * @returns List of `TransactionDetail`
    */
-  async getAccountTransactionsDetail(account, count = 15, start = null) {
+  async getAccountTransactionsDetail(account, count = DEFAULT_RECORDS_ITEMS_COUNT, start = null) {
     let requestPath = `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}`;
     if (start != null) {
       requestPath += `&start=${start}`;
@@ -14524,7 +14531,7 @@ var SupraClient = class _SupraClient {
    * @param start Cursor for pagination based response
    * @returns List of `TransactionDetail`
    */
-  async getCoinTransactionsDetail(account, count = 15, start = null) {
+  async getCoinTransactionsDetail(account, count = DEFAULT_RECORDS_ITEMS_COUNT, start = null) {
     let requestPath = `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}`;
     if (start != null) {
       requestPath += `&start=${start}`;
@@ -14566,7 +14573,7 @@ var SupraClient = class _SupraClient {
    * For instance if the value is `N` so total `N*2` transactions will be returned.
    * @returns List of `TransactionDetail`
    */
-  async getAccountCompleteTransactionsDetail(account, count = 15) {
+  async getAccountCompleteTransactionsDetail(account, count = DEFAULT_RECORDS_ITEMS_COUNT) {
     let coinTransactions = await this.sendRequest(
       true,
       `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}`
@@ -14659,10 +14666,10 @@ var SupraClient = class _SupraClient {
     );
   }
   async waitForTransactionCompletion(txHash) {
-    for (let i = 0; i < this.maxRetryForTransactionCompletion; i++) {
+    for (let i = 0; i < MAX_RETRY_FOR_TRANSACTION_COMPLETION; i++) {
       let txStatus = await this.getTransactionStatus(txHash);
       if (txStatus === null || txStatus == "Pending" /* Pending */) {
-        await sleep(this.delayBetweenPoolingRequest);
+        await sleep(DELAY_BETWEEN_POOLING_REQUEST);
       } else {
         return txStatus;
       }
@@ -14729,7 +14736,7 @@ var SupraClient = class _SupraClient {
     };
   }
   /**
-   * Send `entry_function_payload` type tx using serialized raw transaction datas
+   * Send `entry_function_payload` type tx using serialized raw transaction data
    * @param senderAccount Sender KeyPair
    * @param serializedRawTransaction Serialized raw transaction data
    * @returns `TransactionResponse`
@@ -14744,7 +14751,7 @@ var SupraClient = class _SupraClient {
     await this.simulateTx(sendTxPayload);
     return await this.sendTx(sendTxPayload);
   }
-  static async createRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, chainId, maxGas = BigInt(5e5), gasUnitPrice = BigInt(100), txExpiryTime = BigInt(999999999999999)) {
+  static async createRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, chainId, maxGas = DEFAULT_MAX_GAS_UNITS, gasUnitPrice = DEFAULT_GAS_UNIT_PRICE, txExpiryTime = void 0) {
     return new import_aptos.TxnBuilderTypes.RawTransaction(
       new import_aptos.TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
       senderSequenceNumber,
@@ -14763,7 +14770,9 @@ var SupraClient = class _SupraClient {
       ),
       maxGas,
       gasUnitPrice,
-      txExpiryTime,
+      txExpiryTime === void 0 ? BigInt(
+        Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) + DEFAULT_TX_EXPIRATION_DURATION
+      ) : txExpiryTime,
       chainId
     );
   }
@@ -14782,7 +14791,7 @@ var SupraClient = class _SupraClient {
    * @param txExpiryTime Expiry time for transaction
    * @returns Serialized raw transaction object
    */
-  static async createSerializedRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, chainId, maxGas = BigInt(5e5), gasUnitPrice = BigInt(100), txExpiryTime = BigInt(999999999999999)) {
+  static async createSerializedRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, chainId, maxGas = DEFAULT_MAX_GAS_UNITS, gasUnitPrice = DEFAULT_GAS_UNIT_PRICE, txExpiryTime = void 0) {
     return import_aptos.BCS.bcsToBytes(
       await _SupraClient.createRawTxObject(
         senderAddr,
@@ -14795,7 +14804,9 @@ var SupraClient = class _SupraClient {
         chainId,
         maxGas,
         gasUnitPrice,
-        txExpiryTime
+        txExpiryTime === void 0 ? BigInt(
+          Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) + DEFAULT_TX_EXPIRATION_DURATION
+        ) : txExpiryTime
       )
     );
   }

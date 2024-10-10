@@ -112,8 +112,6 @@ interface FaucetRequestResponse {
 declare class SupraClient {
     supraNodeURL: string;
     chainId: TxnBuilderTypes.ChainId;
-    maxRetryForTransactionCompletion: number;
-    delayBetweenPoolingRequest: number;
     constructor(url: string, chainId?: number);
     /**
      * Creates and initializes `SupraClient` instance
@@ -226,13 +224,13 @@ declare class SupraClient {
     private signSupraTransaction;
     private getSendTxPayload;
     /**
-     * Send `entry_function_payload` type tx using serialized raw transaction datas
+     * Send `entry_function_payload` type tx using serialized raw transaction data
      * @param senderAccount Sender KeyPair
      * @param serializedRawTransaction Serialized raw transaction data
      * @returns `TransactionResponse`
      */
     sendTxUsingSerializedRawTransaction(senderAccount: AptosAccount, serializedRawTransaction: Uint8Array): Promise<TransactionResponse>;
-    static createRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint, gasUnitPrice?: bigint, txExpiryTime?: bigint): Promise<TxnBuilderTypes.RawTransaction>;
+    static createRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint, gasUnitPrice?: bigint, txExpiryTime?: bigint | undefined): Promise<TxnBuilderTypes.RawTransaction>;
     /**
      * Create serialized raw transaction object for `entry_function_payload` type tx
      * @param senderAddr Sender account address
@@ -248,7 +246,7 @@ declare class SupraClient {
      * @param txExpiryTime Expiry time for transaction
      * @returns Serialized raw transaction object
      */
-    static createSerializedRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint, gasUnitPrice?: bigint, txExpiryTime?: bigint): Promise<Uint8Array>;
+    static createSerializedRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint, gasUnitPrice?: bigint, txExpiryTime?: bigint | undefined): Promise<Uint8Array>;
     /**
      * Transfer supra coin
      * @param senderAccount Sender KeyPair
