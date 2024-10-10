@@ -33,6 +33,7 @@ import {
   DELAY_BETWEEN_POOLING_REQUEST,
   MAX_RETRY_FOR_TRANSACTION_COMPLETION,
   MILLISECONDS_PER_SECOND,
+  DUMMY_32BYTES_DATA,
 } from "./constants";
 import { sha3_256 } from "js-sha3";
 
@@ -724,37 +725,42 @@ export class SupraClient {
     return senderAccount.signBuffer(signatureMessage).toString();
   }
 
-  private async getSendTxPayload(
-    senderAccount: SupraAccount,
+  private getRawTxDataInJson(
+    senderAccountAddress: HexString,
     rawTxn: TxnBuilderTypes.RawTransaction
-  ): Promise<SendTxPayload> {
-    console.log("Sequence Number: ", rawTxn.sequence_number);
-
+  ): any {
     let txPayload = (
       rawTxn.payload as TxnBuilderTypes.TransactionPayloadEntryFunction
     ).value;
 
     return {
-      Move: {
-        raw_txn: {
-          sender: senderAccount.address().toString(),
-          sequence_number: Number(rawTxn.sequence_number),
-          payload: {
-            EntryFunction: {
-              module: {
-                address: txPayload.module_name.address.toHexString().toString(),
-                name: txPayload.module_name.name.value,
-              },
-              function: txPayload.function_name.value,
-              ty_args: parseFunctionTypeArgs(txPayload.ty_args),
-              args: fromUint8ArrayToJSArray(txPayload.args),
-            },
+      sender: senderAccountAddress.toString(),
+      sequence_number: Number(rawTxn.sequence_number),
+      payload: {
+        EntryFunction: {
+          module: {
+            address: txPayload.module_name.address.toHexString().toString(),
+            name: txPayload.module_name.name.value,
           },
-          max_gas_amount: Number(rawTxn.max_gas_amount),
-          gas_unit_price: Number(rawTxn.gas_unit_price),
-          expiration_timestamp_secs: Number(rawTxn.expiration_timestamp_secs),
-          chain_id: rawTxn.chain_id.value,
+          function: txPayload.function_name.value,
+          ty_args: parseFunctionTypeArgs(txPayload.ty_args),
+          args: fromUint8ArrayToJSArray(txPayload.args),
         },
+      },
+      max_gas_amount: Number(rawTxn.max_gas_amount),
+      gas_unit_price: Number(rawTxn.gas_unit_price),
+      expiration_timestamp_secs: Number(rawTxn.expiration_timestamp_secs),
+      chain_id: rawTxn.chain_id.value,
+    };
+  }
+
+  private async getSendTxPayload(
+    senderAccount: SupraAccount,
+    rawTxn: TxnBuilderTypes.RawTransaction
+  ): Promise<SendTxPayload> {
+    return {
+      Move: {
+        raw_txn: this.getRawTxDataInJson(senderAccount.address(), rawTxn),
         authenticator: {
           Ed25519: {
             public_key: senderAccount.pubKey().toString(),
@@ -782,9 +788,10 @@ export class SupraClient {
         new BCS.Deserializer(serializedRawTransaction)
       )
     );
-    if (shouldSimulateTx==true) {
+    if (shouldSimulateTx === true) {
       await this.simulateTx(sendTxPayload);
     }
+
     return await this.sendTx(sendTxPayload);
   }
 
@@ -1037,19 +1044,30 @@ export class SupraClient {
 
   /**
    * Simulate a transaction using the provided Serialized raw transaction data
+   * @param senderAccountAddress Tx sender account address
    * @param serializedRawTransaction Serialized raw transaction data
    */
-  // TODO: Remove dependency from `senderAccount` parameter
   async simulateTxUsingSerializedRawTransaction(
-    senderAccount: SupraAccount,
+    senderAccountAddress: HexString,
     serializedRawTransaction: Uint8Array
   ): Promise<any> {
-    let sendTxPayload = await this.getSendTxPayload(
-      senderAccount,
-      TxnBuilderTypes.RawTransaction.deserialize(
-        new BCS.Deserializer(serializedRawTransaction)
-      )
-    );
+    let sendTxPayload = {
+      Move: {
+        raw_txn: this.getRawTxDataInJson(
+          senderAccountAddress,
+          TxnBuilderTypes.RawTransaction.deserialize(
+            new BCS.Deserializer(serializedRawTransaction)
+          )
+        ),
+        authenticator: {
+          Ed25519: {
+            public_key: DUMMY_32BYTES_DATA,
+            signature: DUMMY_32BYTES_DATA,
+          },
+        },
+      },
+    };
+
     return await this.simulateTx(sendTxPayload);
   }
 }

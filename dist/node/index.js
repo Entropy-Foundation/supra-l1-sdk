@@ -14162,6 +14162,7 @@ var DEFAULT_GAS_UNIT_PRICE = BigInt(100);
 var DEFAULT_MAX_GAS_UNITS = BigInt(5e5);
 var DEFAULT_TX_EXPIRATION_DURATION = 300;
 var MILLISECONDS_PER_SECOND = 1e3;
+var DUMMY_32BYTES_DATA = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 // src/index.ts
 var import_js_sha3 = require("js-sha3");
@@ -14702,30 +14703,32 @@ var SupraClient = class _SupraClient {
     signatureMessage.set(rawTxSerializedData, preHash.length);
     return senderAccount.signBuffer(signatureMessage).toString();
   }
-  async getSendTxPayload(senderAccount, rawTxn) {
-    console.log("Sequence Number: ", rawTxn.sequence_number);
+  getRawTxDataInJson(senderAccountAddress, rawTxn) {
     let txPayload = rawTxn.payload.value;
     return {
-      Move: {
-        raw_txn: {
-          sender: senderAccount.address().toString(),
-          sequence_number: Number(rawTxn.sequence_number),
-          payload: {
-            EntryFunction: {
-              module: {
-                address: txPayload.module_name.address.toHexString().toString(),
-                name: txPayload.module_name.name.value
-              },
-              function: txPayload.function_name.value,
-              ty_args: parseFunctionTypeArgs(txPayload.ty_args),
-              args: fromUint8ArrayToJSArray(txPayload.args)
-            }
+      sender: senderAccountAddress.toString(),
+      sequence_number: Number(rawTxn.sequence_number),
+      payload: {
+        EntryFunction: {
+          module: {
+            address: txPayload.module_name.address.toHexString().toString(),
+            name: txPayload.module_name.name.value
           },
-          max_gas_amount: Number(rawTxn.max_gas_amount),
-          gas_unit_price: Number(rawTxn.gas_unit_price),
-          expiration_timestamp_secs: Number(rawTxn.expiration_timestamp_secs),
-          chain_id: rawTxn.chain_id.value
-        },
+          function: txPayload.function_name.value,
+          ty_args: parseFunctionTypeArgs(txPayload.ty_args),
+          args: fromUint8ArrayToJSArray(txPayload.args)
+        }
+      },
+      max_gas_amount: Number(rawTxn.max_gas_amount),
+      gas_unit_price: Number(rawTxn.gas_unit_price),
+      expiration_timestamp_secs: Number(rawTxn.expiration_timestamp_secs),
+      chain_id: rawTxn.chain_id.value
+    };
+  }
+  async getSendTxPayload(senderAccount, rawTxn) {
+    return {
+      Move: {
+        raw_txn: this.getRawTxDataInJson(senderAccount.address(), rawTxn),
         authenticator: {
           Ed25519: {
             public_key: senderAccount.pubKey().toString(),
@@ -14748,7 +14751,7 @@ var SupraClient = class _SupraClient {
         new import_aptos.BCS.Deserializer(serializedRawTransaction)
       )
     );
-    if (shouldSimulateTx == true) {
+    if (shouldSimulateTx === true) {
       await this.simulateTx(sendTxPayload);
     }
     return await this.sendTx(sendTxPayload);
@@ -14929,16 +14932,26 @@ var SupraClient = class _SupraClient {
   }
   /**
    * Simulate a transaction using the provided Serialized raw transaction data
+   * @param senderAccountAddress Tx sender account address
    * @param serializedRawTransaction Serialized raw transaction data
    */
-  // TODO: Remove dependency from `senderAccount` parameter
-  async simulateTxUsingSerializedRawTransaction(senderAccount, serializedRawTransaction) {
-    let sendTxPayload = await this.getSendTxPayload(
-      senderAccount,
-      import_aptos.TxnBuilderTypes.RawTransaction.deserialize(
-        new import_aptos.BCS.Deserializer(serializedRawTransaction)
-      )
-    );
+  async simulateTxUsingSerializedRawTransaction(senderAccountAddress, serializedRawTransaction) {
+    let sendTxPayload = {
+      Move: {
+        raw_txn: this.getRawTxDataInJson(
+          senderAccountAddress,
+          import_aptos.TxnBuilderTypes.RawTransaction.deserialize(
+            new import_aptos.BCS.Deserializer(serializedRawTransaction)
+          )
+        ),
+        authenticator: {
+          Ed25519: {
+            public_key: DUMMY_32BYTES_DATA,
+            signature: DUMMY_32BYTES_DATA
+          }
+        }
+      }
+    };
     return await this.simulateTx(sendTxPayload);
   }
 };

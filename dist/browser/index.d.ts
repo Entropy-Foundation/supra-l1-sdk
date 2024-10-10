@@ -222,6 +222,7 @@ declare class SupraClient {
     private waitForTransactionCompletion;
     private sendTx;
     private signSupraTransaction;
+    private getRawTxDataInJson;
     private getSendTxPayload;
     /**
      * Send `entry_function_payload` type tx using serialized raw transaction data
@@ -279,9 +280,10 @@ declare class SupraClient {
     simulateTx(sendTxPayload: SendTxPayload): Promise<any>;
     /**
      * Simulate a transaction using the provided Serialized raw transaction data
+     * @param senderAccountAddress Tx sender account address
      * @param serializedRawTransaction Serialized raw transaction data
      */
-    simulateTxUsingSerializedRawTransaction(senderAccount: AptosAccount, serializedRawTransaction: Uint8Array): Promise<any>;
+    simulateTxUsingSerializedRawTransaction(senderAccountAddress: HexString, serializedRawTransaction: Uint8Array): Promise<any>;
 }
 
 export { type AccountInfo, type AccountResources, type CoinChange, type CoinInfo, type FaucetRequestResponse, type FunctionTypeArgs, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };
