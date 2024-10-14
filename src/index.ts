@@ -26,10 +26,12 @@ import {
 } from "./types";
 import {
   DEFAULT_CHAIN_ID,
+  DEFAULT_ENABLE_SIMULATION,
   DEFAULT_GAS_UNIT_PRICE,
   DEFAULT_MAX_GAS_UNITS,
   DEFAULT_RECORDS_ITEMS_COUNT,
   DEFAULT_TX_EXPIRATION_DURATION,
+  DEFAULT_WAIT_FOR_TX_COMPLETION,
   DELAY_BETWEEN_POOLING_REQUEST,
   MAX_RETRY_FOR_TRANSACTION_COMPLETION,
   MILLISECONDS_PER_SECOND,
@@ -687,8 +689,13 @@ export class SupraClient {
 
   private async sendTx(
     sendTxJsonPayload: SendTxPayload,
-    waitForTransactionCompletion: boolean = true
+    enableSimulation: boolean = DEFAULT_ENABLE_SIMULATION,
+    waitForTransactionCompletion: boolean = DEFAULT_WAIT_FOR_TX_COMPLETION
   ): Promise<TransactionResponse> {
+    if (enableSimulation === true) {
+      await this.simulateTx(sendTxJsonPayload);
+    }
+
     let resData = await this.sendRequest(
       false,
       "/rpc/v1/transactions/submit",
@@ -699,7 +706,7 @@ export class SupraClient {
     return {
       txHash: resData.data,
       result:
-        waitForTransactionCompletion == true
+        waitForTransactionCompletion === true
           ? await this.waitForTransactionCompletion(resData.data)
           : TransactionStatus.Pending,
     };
@@ -775,12 +782,15 @@ export class SupraClient {
    * Send `entry_function_payload` type tx using serialized raw transaction data
    * @param senderAccount Sender KeyPair
    * @param serializedRawTransaction Serialized raw transaction data
+   * @param enableSimulation should enable simulation
+   * @param waitForTransactionCompletion should wait for transaction completion
    * @returns `TransactionResponse`
    */
   async sendTxUsingSerializedRawTransaction(
     senderAccount: SupraAccount,
     serializedRawTransaction: Uint8Array,
-    shouldSimulateTx: boolean = false
+    enableSimulation: boolean = DEFAULT_ENABLE_SIMULATION,
+    waitForTransactionCompletion: boolean = DEFAULT_WAIT_FOR_TX_COMPLETION
   ): Promise<TransactionResponse> {
     let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
@@ -788,11 +798,12 @@ export class SupraClient {
         new BCS.Deserializer(serializedRawTransaction)
       )
     );
-    if (shouldSimulateTx === true) {
-      await this.simulateTx(sendTxPayload);
-    }
 
-    return await this.sendTx(sendTxPayload);
+    return await this.sendTx(
+      sendTxPayload,
+      enableSimulation,
+      waitForTransactionCompletion
+    );
   }
 
   static async createRawTxObject(
@@ -891,13 +902,16 @@ export class SupraClient {
    * @param senderAccount Sender KeyPair
    * @param receiverAccountAddr Receiver Supra Account address
    * @param amount Amount to transfer
+   * @param enableSimulation should enable simulation
+   * @param waitForTransactionCompletion should wait for transaction completion
    * @returns `TransactionResponse`
    */
   async transferSupraCoin(
     senderAccount: SupraAccount,
     receiverAccountAddr: HexString,
     amount: bigint,
-    waitForTransactionCompletion: boolean = false
+    enableSimulation: boolean = DEFAULT_ENABLE_SIMULATION,
+    waitForTransactionCompletion: boolean = DEFAULT_WAIT_FOR_TX_COMPLETION
   ): Promise<TransactionResponse> {
     let maxGas = BigInt(10);
     if ((await this.isAccountExists(receiverAccountAddr)) == false) {
@@ -929,8 +943,12 @@ export class SupraClient {
         maxGas
       )
     );
-    await this.simulateTx(sendTxPayload);
-    return await this.sendTx(sendTxPayload, waitForTransactionCompletion);
+
+    return await this.sendTx(
+      sendTxPayload,
+      enableSimulation,
+      waitForTransactionCompletion
+    );
   }
 
   /**
@@ -939,6 +957,8 @@ export class SupraClient {
    * @param receiverAccountAddr Receiver Supra Account address
    * @param amount Amount to transfer
    * @param coinType Type of coin
+   * @param enableSimulation should enable simulation
+   * @param waitForTransactionCompletion should wait for transaction completion
    * @returns `TransactionResponse`
    */
   async transferCoin(
@@ -946,7 +966,8 @@ export class SupraClient {
     receiverAccountAddr: HexString,
     amount: bigint,
     coinType: string,
-    waitForTransactionCompletion: boolean = false
+    enableSimulation: boolean = DEFAULT_ENABLE_SIMULATION,
+    waitForTransactionCompletion: boolean = DEFAULT_WAIT_FOR_TX_COMPLETION
   ): Promise<TransactionResponse> {
     let maxGas = BigInt(50000);
     if (
@@ -978,8 +999,11 @@ export class SupraClient {
       )
     );
 
-    await this.simulateTx(sendTxPayload);
-    return await this.sendTx(sendTxPayload, waitForTransactionCompletion);
+    return await this.sendTx(
+      sendTxPayload,
+      enableSimulation,
+      waitForTransactionCompletion
+    );
   }
 
   /**
@@ -987,12 +1011,16 @@ export class SupraClient {
    * @param senderAccount Module Publisher KeyPair
    * @param packageMetadata Package Metadata
    * @param modulesCode module code
+   * @param enableSimulation should enable simulation
+   * @param waitForTransactionCompletion should wait for transaction completion
    * @returns `TransactionResponse`
    */
   async publishPackage(
     senderAccount: SupraAccount,
     packageMetadata: Uint8Array,
-    modulesCode: Uint8Array[]
+    modulesCode: Uint8Array[],
+    enableSimulation: boolean = DEFAULT_ENABLE_SIMULATION,
+    waitForTransactionCompletion: boolean = DEFAULT_WAIT_FOR_TX_COMPLETION
   ): Promise<TransactionResponse> {
     let codeSerializer = new BCS.Serializer();
     let modulesTypeCode: TxnBuilderTypes.Module[] = [];
@@ -1017,8 +1045,12 @@ export class SupraClient {
         this.chainId
       )
     );
-    await this.simulateTx(sendTxPayload);
-    return await this.sendTx(sendTxPayload);
+
+    return await this.sendTx(
+      sendTxPayload,
+      enableSimulation,
+      waitForTransactionCompletion
+    );
   }
 
   /**

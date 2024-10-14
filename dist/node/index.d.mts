@@ -228,9 +228,11 @@ declare class SupraClient {
      * Send `entry_function_payload` type tx using serialized raw transaction data
      * @param senderAccount Sender KeyPair
      * @param serializedRawTransaction Serialized raw transaction data
+     * @param enableSimulation should enable simulation
+     * @param waitForTransactionCompletion should wait for transaction completion
      * @returns `TransactionResponse`
      */
-    sendTxUsingSerializedRawTransaction(senderAccount: AptosAccount, serializedRawTransaction: Uint8Array, shouldSimulateTx?: boolean): Promise<TransactionResponse>;
+    sendTxUsingSerializedRawTransaction(senderAccount: AptosAccount, serializedRawTransaction: Uint8Array, enableSimulation?: boolean, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
     static createRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint, gasUnitPrice?: bigint, txExpiryTime?: bigint | undefined): Promise<TxnBuilderTypes.RawTransaction>;
     /**
      * Create serialized raw transaction object for `entry_function_payload` type tx
@@ -253,26 +255,32 @@ declare class SupraClient {
      * @param senderAccount Sender KeyPair
      * @param receiverAccountAddr Receiver Supra Account address
      * @param amount Amount to transfer
+     * @param enableSimulation should enable simulation
+     * @param waitForTransactionCompletion should wait for transaction completion
      * @returns `TransactionResponse`
      */
-    transferSupraCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
+    transferSupraCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, enableSimulation?: boolean, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
     /**
      * Transfer coin
      * @param senderAccount Sender KeyPair
      * @param receiverAccountAddr Receiver Supra Account address
      * @param amount Amount to transfer
      * @param coinType Type of coin
+     * @param enableSimulation should enable simulation
+     * @param waitForTransactionCompletion should wait for transaction completion
      * @returns `TransactionResponse`
      */
-    transferCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, coinType: string, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
+    transferCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, coinType: string, enableSimulation?: boolean, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
     /**
      * Publish package or module on supra network
      * @param senderAccount Module Publisher KeyPair
      * @param packageMetadata Package Metadata
      * @param modulesCode module code
+     * @param enableSimulation should enable simulation
+     * @param waitForTransactionCompletion should wait for transaction completion
      * @returns `TransactionResponse`
      */
-    publishPackage(senderAccount: AptosAccount, packageMetadata: Uint8Array, modulesCode: Uint8Array[]): Promise<TransactionResponse>;
+    publishPackage(senderAccount: AptosAccount, packageMetadata: Uint8Array, modulesCode: Uint8Array[], enableSimulation?: boolean, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
     /**
      * Simulate a transaction using the provided transaction payload
      * @param sendTxPayload Transaction payload

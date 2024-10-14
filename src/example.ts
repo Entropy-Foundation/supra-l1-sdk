@@ -14,8 +14,8 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
   // To Create Instance Of Supra Client, But In This Method We Don't Need To Pass ChainId.
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await SupraClient.init(
-    "http://localhost:27001/"
-    // "https://rpc-testnet.supra.com/"
+    // "http://localhost:27001/"
+    "https://rpc-testnet.supra.com/"
   );
 
   let senderAccount = new SupraAccount(
@@ -63,6 +63,7 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
     senderAccount,
     receiverAddress,
     BigInt(1000),
+    true,
     true
   );
   console.log("Transfer SupraCoin TxRes: ", txResData);
@@ -94,6 +95,7 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
       receiverAddress,
       BigInt(1000),
       coinType,
+      true,
       true
     )
   );
@@ -162,6 +164,15 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
       senderAccount.address(),
       senderAccount.pubKey(),
       supraCoinTransferSerializedRawTransaction
+    )
+  );
+
+  console.log(
+    await supraClient.sendTxUsingSerializedRawTransaction(
+      senderAccount,
+      supraCoinTransferSerializedRawTransaction,
+      true,
+      true
     )
   );
 })();
