@@ -409,6 +409,9 @@ export class SupraClient {
         gasUnitPrice: resData.data.header.gas_unit_price,
         gasUsed: undefined,
         transactionCost: undefined,
+        txExpirationTimestamp: Number(
+          resData.data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: undefined,
         status: resData.data.status,
         events: undefined,
@@ -430,6 +433,9 @@ export class SupraClient {
       gasUsed: resData.data.output?.Move.gas_used,
       transactionCost:
         resData.data.header.gas_unit_price * resData.data.output?.Move.gas_used,
+      txExpirationTimestamp: Number(
+        resData.data.header.expiration_timestamp.microseconds_since_unix_epoch
+      ),
       txConfirmationTime: Number(
         resData.data.block_header.timestamp.microseconds_since_unix_epoch
       ),
@@ -479,6 +485,9 @@ export class SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txExpirationTimestamp: Number(
+          data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: Number(
           data.block_header.timestamp.microseconds_since_unix_epoch
         ),
@@ -531,6 +540,9 @@ export class SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txExpirationTimestamp: Number(
+          data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: Number(
           data.block_header.timestamp.microseconds_since_unix_epoch
         ),
@@ -604,6 +616,9 @@ export class SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txExpirationTimestamp: Number(
+          data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: Number(
           data.block_header.timestamp.microseconds_since_unix_epoch
         ),
@@ -815,8 +830,8 @@ export class SupraClient {
     functionTypeArgs: TxnBuilderTypes.TypeTag[],
     functionArgs: Uint8Array[],
     chainId: TxnBuilderTypes.ChainId,
-    maxGas: bigint = DEFAULT_MAX_GAS_UNITS,
-    gasUnitPrice: bigint = DEFAULT_GAS_UNIT_PRICE,
+    maxGas: bigint | undefined = DEFAULT_MAX_GAS_UNITS,
+    gasUnitPrice: bigint | undefined = DEFAULT_GAS_UNIT_PRICE,
     txExpiryTime: bigint | undefined = undefined
   ): Promise<TxnBuilderTypes.RawTransaction> {
     return new TxnBuilderTypes.RawTransaction(

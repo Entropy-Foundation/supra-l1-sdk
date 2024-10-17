@@ -14451,6 +14451,9 @@ var SupraClient = class _SupraClient {
         gasUnitPrice: resData.data.header.gas_unit_price,
         gasUsed: void 0,
         transactionCost: void 0,
+        txExpirationTimestamp: Number(
+          resData.data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: void 0,
         status: resData.data.status,
         events: void 0,
@@ -14471,6 +14474,9 @@ var SupraClient = class _SupraClient {
       gasUnitPrice: resData.data.header.gas_unit_price,
       gasUsed: (_a = resData.data.output) == null ? void 0 : _a.Move.gas_used,
       transactionCost: resData.data.header.gas_unit_price * ((_b = resData.data.output) == null ? void 0 : _b.Move.gas_used),
+      txExpirationTimestamp: Number(
+        resData.data.header.expiration_timestamp.microseconds_since_unix_epoch
+      ),
       txConfirmationTime: Number(
         resData.data.block_header.timestamp.microseconds_since_unix_epoch
       ),
@@ -14511,6 +14517,9 @@ var SupraClient = class _SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txExpirationTimestamp: Number(
+          data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: Number(
           data.block_header.timestamp.microseconds_since_unix_epoch
         ),
@@ -14553,6 +14562,9 @@ var SupraClient = class _SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txExpirationTimestamp: Number(
+          data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: Number(
           data.block_header.timestamp.microseconds_since_unix_epoch
         ),
@@ -14612,6 +14624,9 @@ var SupraClient = class _SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txExpirationTimestamp: Number(
+          data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: Number(
           data.block_header.timestamp.microseconds_since_unix_epoch
         ),

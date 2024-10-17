@@ -62,6 +62,7 @@ export interface TransactionDetail {
   gasUnitPrice: number;
   gasUsed: number | undefined;
   transactionCost: number | undefined;
+  txExpirationTimestamp: number | undefined;
   txConfirmationTime: number | undefined;
   status: TransactionStatus;
   events: any;

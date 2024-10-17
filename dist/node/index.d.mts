@@ -56,6 +56,7 @@ interface TransactionDetail {
     gasUnitPrice: number;
     gasUsed: number | undefined;
     transactionCost: number | undefined;
+    txExpirationTimestamp: number | undefined;
     txConfirmationTime: number | undefined;
     status: TransactionStatus;
     events: any;
@@ -233,7 +234,7 @@ declare class SupraClient {
      * @returns `TransactionResponse`
      */
     sendTxUsingSerializedRawTransaction(senderAccount: AptosAccount, serializedRawTransaction: Uint8Array, enableSimulation?: boolean, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
-    static createRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint, gasUnitPrice?: bigint, txExpiryTime?: bigint | undefined): Promise<TxnBuilderTypes.RawTransaction>;
+    static createRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint | undefined, gasUnitPrice?: bigint | undefined, txExpiryTime?: bigint | undefined): Promise<TxnBuilderTypes.RawTransaction>;
     /**
      * Create serialized raw transaction object for `entry_function_payload` type tx
      * @param senderAddr Sender account address
