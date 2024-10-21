@@ -14162,6 +14162,9 @@ var DEFAULT_GAS_UNIT_PRICE = BigInt(100);
 var DEFAULT_MAX_GAS_UNITS = BigInt(5e5);
 var DEFAULT_TX_EXPIRATION_DURATION = 300;
 var MILLISECONDS_PER_SECOND = 1e3;
+var SUPRA_FRAMEWORK_ADDRESS = "0x0000000000000000000000000000000000000000000000000000000000000001";
+var DEFAULT_ENABLE_SIMULATION = false;
+var DEFAULT_WAIT_FOR_TX_COMPLETION = false;
 
 // src/index.ts
 var import_js_sha3 = require("js-sha3");
@@ -14439,7 +14442,7 @@ var SupraClient = class _SupraClient {
     if (resData.data == null) {
       return null;
     }
-    if (resData.data.status === "Pending" /* Pending */) {
+    if (resData.data.status === "Pending" /* Pending */ || resData.data.output === null || resData.data.header === null) {
       return {
         txHash: transactionHash,
         sender: resData.data.header.sender.Move,
@@ -14448,6 +14451,9 @@ var SupraClient = class _SupraClient {
         gasUnitPrice: resData.data.header.gas_unit_price,
         gasUsed: void 0,
         transactionCost: void 0,
+        txExpirationTimestamp: Number(
+          resData.data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: void 0,
         status: resData.data.status,
         events: void 0,
@@ -14468,6 +14474,9 @@ var SupraClient = class _SupraClient {
       gasUnitPrice: resData.data.header.gas_unit_price,
       gasUsed: (_a = resData.data.output) == null ? void 0 : _a.Move.gas_used,
       transactionCost: resData.data.header.gas_unit_price * ((_b = resData.data.output) == null ? void 0 : _b.Move.gas_used),
+      txExpirationTimestamp: Number(
+        resData.data.header.expiration_timestamp.microseconds_since_unix_epoch
+      ),
       txConfirmationTime: Number(
         resData.data.block_header.timestamp.microseconds_since_unix_epoch
       ),
@@ -14508,6 +14517,9 @@ var SupraClient = class _SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txExpirationTimestamp: Number(
+          data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: Number(
           data.block_header.timestamp.microseconds_since_unix_epoch
         ),
@@ -14550,6 +14562,9 @@ var SupraClient = class _SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txExpirationTimestamp: Number(
+          data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: Number(
           data.block_header.timestamp.microseconds_since_unix_epoch
         ),
@@ -14609,6 +14624,9 @@ var SupraClient = class _SupraClient {
         gasUnitPrice: data.header.gas_unit_price,
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
+        txExpirationTimestamp: Number(
+          data.header.expiration_timestamp.microseconds_since_unix_epoch
+        ),
         txConfirmationTime: Number(
           data.block_header.timestamp.microseconds_since_unix_epoch
         ),
@@ -14633,7 +14651,7 @@ var SupraClient = class _SupraClient {
   async getCoinInfo(coinType) {
     let coinInfoResource = await this.getResourceData(
       new import_aptos.HexString(coinType.substring(2, 66)),
-      `0x0000000000000000000000000000000000000000000000000000000000000001::coin::CoinInfo<${coinType}>`
+      `${SUPRA_FRAMEWORK_ADDRESS}::coin::CoinInfo<${coinType}>`
     );
     return {
       name: coinInfoResource.name,
@@ -14676,7 +14694,10 @@ var SupraClient = class _SupraClient {
     }
     return "Pending" /* Pending */;
   }
-  async sendTx(sendTxJsonPayload, waitForTransactionCompletion = true) {
+  async sendTx(sendTxJsonPayload, enableSimulation = DEFAULT_ENABLE_SIMULATION, waitForTransactionCompletion = DEFAULT_WAIT_FOR_TX_COMPLETION) {
+    if (enableSimulation === true) {
+      await this.simulateTx(sendTxJsonPayload);
+    }
     let resData = await this.sendRequest(
       false,
       "/rpc/v1/transactions/submit",
@@ -14685,7 +14706,7 @@ var SupraClient = class _SupraClient {
     console.log("Transaction Request Sent, Waiting For Completion");
     return {
       txHash: resData.data,
-      result: waitForTransactionCompletion == true ? await this.waitForTransactionCompletion(resData.data) : "Pending" /* Pending */
+      result: waitForTransactionCompletion === true ? await this.waitForTransactionCompletion(resData.data) : "Pending" /* Pending */
     };
   }
   signSupraTransaction(senderAccount, rawTxn) {
@@ -14702,30 +14723,32 @@ var SupraClient = class _SupraClient {
     signatureMessage.set(rawTxSerializedData, preHash.length);
     return senderAccount.signBuffer(signatureMessage).toString();
   }
-  async getSendTxPayload(senderAccount, rawTxn) {
-    console.log("Sequence Number: ", rawTxn.sequence_number);
+  getRawTxDataInJson(senderAccountAddress, rawTxn) {
     let txPayload = rawTxn.payload.value;
     return {
-      Move: {
-        raw_txn: {
-          sender: senderAccount.address().toString(),
-          sequence_number: Number(rawTxn.sequence_number),
-          payload: {
-            EntryFunction: {
-              module: {
-                address: txPayload.module_name.address.toHexString().toString(),
-                name: txPayload.module_name.name.value
-              },
-              function: txPayload.function_name.value,
-              ty_args: parseFunctionTypeArgs(txPayload.ty_args),
-              args: fromUint8ArrayToJSArray(txPayload.args)
-            }
+      sender: senderAccountAddress.toString(),
+      sequence_number: Number(rawTxn.sequence_number),
+      payload: {
+        EntryFunction: {
+          module: {
+            address: txPayload.module_name.address.toHexString().toString(),
+            name: txPayload.module_name.name.value
           },
-          max_gas_amount: Number(rawTxn.max_gas_amount),
-          gas_unit_price: Number(rawTxn.gas_unit_price),
-          expiration_timestamp_secs: Number(rawTxn.expiration_timestamp_secs),
-          chain_id: rawTxn.chain_id.value
-        },
+          function: txPayload.function_name.value,
+          ty_args: parseFunctionTypeArgs(txPayload.ty_args),
+          args: fromUint8ArrayToJSArray(txPayload.args)
+        }
+      },
+      max_gas_amount: Number(rawTxn.max_gas_amount),
+      gas_unit_price: Number(rawTxn.gas_unit_price),
+      expiration_timestamp_secs: Number(rawTxn.expiration_timestamp_secs),
+      chain_id: rawTxn.chain_id.value
+    };
+  }
+  async getSendTxPayload(senderAccount, rawTxn) {
+    return {
+      Move: {
+        raw_txn: this.getRawTxDataInJson(senderAccount.address(), rawTxn),
         authenticator: {
           Ed25519: {
             public_key: senderAccount.pubKey().toString(),
@@ -14739,17 +14762,22 @@ var SupraClient = class _SupraClient {
    * Send `entry_function_payload` type tx using serialized raw transaction data
    * @param senderAccount Sender KeyPair
    * @param serializedRawTransaction Serialized raw transaction data
+   * @param enableSimulation should enable simulation
+   * @param waitForTransactionCompletion should wait for transaction completion
    * @returns `TransactionResponse`
    */
-  async sendTxUsingSerializedRawTransaction(senderAccount, serializedRawTransaction) {
+  async sendTxUsingSerializedRawTransaction(senderAccount, serializedRawTransaction, enableSimulation = DEFAULT_ENABLE_SIMULATION, waitForTransactionCompletion = DEFAULT_WAIT_FOR_TX_COMPLETION) {
     let sendTxPayload = await this.getSendTxPayload(
       senderAccount,
       import_aptos.TxnBuilderTypes.RawTransaction.deserialize(
         new import_aptos.BCS.Deserializer(serializedRawTransaction)
       )
     );
-    await this.simulateTx(sendTxPayload);
-    return await this.sendTx(sendTxPayload);
+    return await this.sendTx(
+      sendTxPayload,
+      enableSimulation,
+      waitForTransactionCompletion
+    );
   }
   static async createRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, chainId, maxGas = DEFAULT_MAX_GAS_UNITS, gasUnitPrice = DEFAULT_GAS_UNIT_PRICE, txExpiryTime = void 0) {
     return new import_aptos.TxnBuilderTypes.RawTransaction(
@@ -14815,9 +14843,11 @@ var SupraClient = class _SupraClient {
    * @param senderAccount Sender KeyPair
    * @param receiverAccountAddr Receiver Supra Account address
    * @param amount Amount to transfer
+   * @param enableSimulation should enable simulation
+   * @param waitForTransactionCompletion should wait for transaction completion
    * @returns `TransactionResponse`
    */
-  async transferSupraCoin(senderAccount, receiverAccountAddr, amount, waitForTransactionCompletion = false) {
+  async transferSupraCoin(senderAccount, receiverAccountAddr, amount, enableSimulation = DEFAULT_ENABLE_SIMULATION, waitForTransactionCompletion = DEFAULT_WAIT_FOR_TX_COMPLETION) {
     let maxGas = BigInt(10);
     if (await this.isAccountExists(receiverAccountAddr) == false) {
       maxGas = BigInt(1020);
@@ -14830,7 +14860,7 @@ var SupraClient = class _SupraClient {
       await _SupraClient.createRawTxObject(
         senderAccount.address(),
         (await this.getAccountInfo(senderAccount.address())).sequence_number,
-        "0000000000000000000000000000000000000000000000000000000000000001",
+        SUPRA_FRAMEWORK_ADDRESS,
         "supra_account",
         "transfer",
         [],
@@ -14839,8 +14869,11 @@ var SupraClient = class _SupraClient {
         maxGas
       )
     );
-    await this.simulateTx(sendTxPayload);
-    return await this.sendTx(sendTxPayload, waitForTransactionCompletion);
+    return await this.sendTx(
+      sendTxPayload,
+      enableSimulation,
+      waitForTransactionCompletion
+    );
   }
   /**
    * Transfer coin
@@ -14848,9 +14881,11 @@ var SupraClient = class _SupraClient {
    * @param receiverAccountAddr Receiver Supra Account address
    * @param amount Amount to transfer
    * @param coinType Type of coin
+   * @param enableSimulation should enable simulation
+   * @param waitForTransactionCompletion should wait for transaction completion
    * @returns `TransactionResponse`
    */
-  async transferCoin(senderAccount, receiverAccountAddr, amount, coinType, waitForTransactionCompletion = false) {
+  async transferCoin(senderAccount, receiverAccountAddr, amount, coinType, enableSimulation = DEFAULT_ENABLE_SIMULATION, waitForTransactionCompletion = DEFAULT_WAIT_FOR_TX_COMPLETION) {
     let maxGas = BigInt(5e4);
     if (BigInt(0) + maxGas * BigInt(100) > await this.getAccountSupraCoinBalance(senderAccount.address())) {
       throw new Error("Insufficient Supra Coins");
@@ -14863,7 +14898,7 @@ var SupraClient = class _SupraClient {
       await _SupraClient.createRawTxObject(
         senderAccount.address(),
         (await this.getAccountInfo(senderAccount.address())).sequence_number,
-        "0000000000000000000000000000000000000000000000000000000000000001",
+        SUPRA_FRAMEWORK_ADDRESS,
         "supra_account",
         "transfer_coins",
         [new import_aptos.TxnBuilderTypes.TypeTagParser(coinType).parseTypeTag()],
@@ -14872,17 +14907,22 @@ var SupraClient = class _SupraClient {
         maxGas
       )
     );
-    await this.simulateTx(sendTxPayload);
-    return await this.sendTx(sendTxPayload, waitForTransactionCompletion);
+    return await this.sendTx(
+      sendTxPayload,
+      enableSimulation,
+      waitForTransactionCompletion
+    );
   }
   /**
    * Publish package or module on supra network
    * @param senderAccount Module Publisher KeyPair
    * @param packageMetadata Package Metadata
    * @param modulesCode module code
+   * @param enableSimulation should enable simulation
+   * @param waitForTransactionCompletion should wait for transaction completion
    * @returns `TransactionResponse`
    */
-  async publishPackage(senderAccount, packageMetadata, modulesCode) {
+  async publishPackage(senderAccount, packageMetadata, modulesCode, enableSimulation = DEFAULT_ENABLE_SIMULATION, waitForTransactionCompletion = DEFAULT_WAIT_FOR_TX_COMPLETION) {
     let codeSerializer = new import_aptos.BCS.Serializer();
     let modulesTypeCode = [];
     for (let i = 0; i < modulesCode.length; i++) {
@@ -14896,7 +14936,7 @@ var SupraClient = class _SupraClient {
       await _SupraClient.createRawTxObject(
         senderAccount.address(),
         (await this.getAccountInfo(senderAccount.address())).sequence_number,
-        "0000000000000000000000000000000000000000000000000000000000000001",
+        SUPRA_FRAMEWORK_ADDRESS,
         "code",
         "publish_package_txn",
         [],
@@ -14904,8 +14944,11 @@ var SupraClient = class _SupraClient {
         this.chainId
       )
     );
-    await this.simulateTx(sendTxPayload);
-    return await this.sendTx(sendTxPayload);
+    return await this.sendTx(
+      sendTxPayload,
+      enableSimulation,
+      waitForTransactionCompletion
+    );
   }
   /**
    * Simulate a transaction using the provided transaction payload
@@ -14923,7 +14966,31 @@ var SupraClient = class _SupraClient {
       );
     }
     console.log("Transaction Simulation Done");
-    return;
+    return resData.data;
+  }
+  /**
+   * Simulate a transaction using the provided Serialized raw transaction data
+   * @param senderAccountAddress Tx sender account address
+   * @param serializedRawTransaction Serialized raw transaction data
+   */
+  async simulateTxUsingSerializedRawTransaction(senderAccountAddress, senderAccountPubKey, serializedRawTransaction) {
+    let sendTxPayload = {
+      Move: {
+        raw_txn: this.getRawTxDataInJson(
+          senderAccountAddress,
+          import_aptos.TxnBuilderTypes.RawTransaction.deserialize(
+            new import_aptos.BCS.Deserializer(serializedRawTransaction)
+          )
+        ),
+        authenticator: {
+          Ed25519: {
+            public_key: senderAccountPubKey.toString(),
+            signature: "0".repeat(128)
+          }
+        }
+      }
+    };
+    return await this.simulateTx(sendTxPayload);
   }
 };
 // Annotate the CommonJS export names for ESM import in node:
