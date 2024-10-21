@@ -14440,7 +14440,7 @@ var SupraClient = class _SupraClient {
     if (resData.data == null) {
       return null;
     }
-    if (resData.data.status === "Pending" /* Pending */ || resData.data.output === null || resData.data.header) {
+    if (resData.data.status === "Pending" /* Pending */ || resData.data.output === null || resData.data.header === null) {
       return {
         txHash: transactionHash,
         sender: resData.data.header.sender.Move,

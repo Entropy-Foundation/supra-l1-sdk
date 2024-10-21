@@ -400,11 +400,11 @@ export class SupraClient {
       return null;
     }
 
-    // Added Patch to resolve inconsistencies issue of `rpc_node` 
+    // Added Patch to resolve inconsistencies issue of `rpc_node`
     if (
       resData.data.status === TransactionStatus.Pending ||
       resData.data.output === null ||
-      resData.data.header
+      resData.data.header === null
     ) {
       return {
         txHash: transactionHash,
