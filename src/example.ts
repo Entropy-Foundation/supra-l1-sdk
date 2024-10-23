@@ -39,7 +39,7 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
     // "1000000000000000000000000000000000000000000000000000000000000000"
     "0xb8922417130785087f9c7926e76542531b703693fdc74c9386b65cf4427f4e80"
   );
-  console.log("Receiver", receiverAddress);
+  console.log("Receiver: ", receiverAddress);
 
   console.log(
     "Receiver Account Exists: ",
@@ -167,10 +167,52 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
     )
   );
 
+  // To send serialized transaction
   console.log(
     await supraClient.sendTxUsingSerializedRawTransaction(
       senderAccount,
       supraCoinTransferSerializedRawTransaction,
+      true,
+      true
+    )
+  );
+
+  // To create a raw transaction
+  // Note: Process to create a `rawTx` and `serializedRawTx` is almost similar
+  let supraCoinTransferRawTransaction = await SupraClient.createRawTxObject(
+    senderAccount.address(),
+    (
+      await supraClient.getAccountInfo(senderAccount.address())
+    ).sequence_number,
+    "0000000000000000000000000000000000000000000000000000000000000001",
+    "supra_account",
+    "transfer",
+    [],
+    [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(10000)],
+    supraClient.chainId
+  );
+
+  // To create signed transaction
+  let supraCoinTransferSignedTransaction = SupraClient.createSignedTransaction(
+    senderAccount,
+    supraCoinTransferRawTransaction
+  );
+
+  // To create transaction hash locally
+  console.log(
+    SupraClient.deriveTransactionHash(supraCoinTransferSignedTransaction)
+  );
+
+  // Generating serialized `rawTx` using `rawTx` Object
+  // and sending transaction using generated serialized `rawTx`
+  let supraCoinTransferRawTransactionSerializer = new BCS.Serializer();
+  supraCoinTransferRawTransaction.serialize(
+    supraCoinTransferRawTransactionSerializer
+  );
+  console.log(
+    await supraClient.sendTxUsingSerializedRawTransaction(
+      senderAccount,
+      supraCoinTransferRawTransactionSerializer.getBytes(),
       true,
       true
     )

@@ -222,9 +222,9 @@ declare class SupraClient {
     getAccountCoinBalance(account: HexString, coinType: string): Promise<bigint>;
     private waitForTransactionCompletion;
     private sendTx;
-    private signSupraTransaction;
+    static signSupraTransaction(senderAccount: AptosAccount, rawTxn: TxnBuilderTypes.RawTransaction): HexString;
     private getRawTxDataInJson;
-    private getSendTxPayload;
+    getSendTxPayload(senderAccount: AptosAccount, rawTxn: TxnBuilderTypes.RawTransaction): Promise<SendTxPayload>;
     /**
      * Send `entry_function_payload` type tx using serialized raw transaction data
      * @param senderAccount Sender KeyPair
@@ -251,6 +251,8 @@ declare class SupraClient {
      * @returns Serialized raw transaction object
      */
     static createSerializedRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint, gasUnitPrice?: bigint, txExpiryTime?: bigint | undefined): Promise<Uint8Array>;
+    static createSignedTransaction(senderAccount: AptosAccount, rawTxn: TxnBuilderTypes.RawTransaction): TxnBuilderTypes.SignedTransaction;
+    static deriveTransactionHash(signedTransaction: TxnBuilderTypes.SignedTransaction): string;
     /**
      * Transfer supra coin
      * @param senderAccount Sender KeyPair
