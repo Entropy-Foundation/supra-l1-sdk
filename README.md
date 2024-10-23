@@ -25,6 +25,10 @@ Check [./src/example.ts](https://github.com/Entropy-Foundation/supra-l1-sdk/blob
 - [x] Transfer coin
 - [x] Publish Package
 - [X] `entry_function_payload` type tx
+- [X] Transaction payload generation
+- [X] Transaction simulation
+- [X] Transaction signing
+- [X] Transaction hash generation
 - [ ] `script_payload` type tx
 - [ ] Sponsor transaction
 - [ ] Multi-agent transaction

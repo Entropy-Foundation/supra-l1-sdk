@@ -106,6 +106,19 @@ interface FaucetRequestResponse {
     status: TransactionStatus;
     transactionHash: string;
 }
+interface EnableTransactionWaitAndSimulationArgs {
+    enableWaitForTransaction?: boolean;
+    enableTransactionSimulation?: boolean;
+}
+interface OptionalTransactionPayloadArgs {
+    maxGas?: bigint;
+    gasUnitPrice?: bigint;
+    txExpiryTime?: bigint;
+}
+interface OptionalTransactionArgs {
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs;
+    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs;
+}
 
 /**
  * Provides methods for interacting with supra rpc node.
@@ -116,8 +129,15 @@ declare class SupraClient {
     constructor(url: string, chainId?: number);
     /**
      * Creates and initializes `SupraClient` instance
+     * The chain id will be fetched from defined `rpc_url`
      * @param url rpc url of supra rpc node
      * @returns `SupraClient` initialized instance
+     * @example
+     * ```typescript
+     * let supraClient = await SupraClient.init(
+     *    "http://localhost:27001/"
+     * );
+     * ```
      */
     static init(url: string): Promise<SupraClient>;
     private sendRequest;
@@ -222,21 +242,32 @@ declare class SupraClient {
     getAccountCoinBalance(account: HexString, coinType: string): Promise<bigint>;
     private waitForTransactionCompletion;
     private sendTx;
+    /**
+     * Generate `ed25519_signature` for supra transaction using `RawTransaction`
+     * @param senderAccount Sender KeyPair
+     * @param rawTxn Raw transaction data
+     * @returns ed25519 signature in `HexString`
+     */
     static signSupraTransaction(senderAccount: AptosAccount, rawTxn: TxnBuilderTypes.RawTransaction): HexString;
     private getRawTxDataInJson;
-    getSendTxPayload(senderAccount: AptosAccount, rawTxn: TxnBuilderTypes.RawTransaction): Promise<SendTxPayload>;
+    /**
+     * Generate `SendTxPayload` using `RawTransaction` to send transaction request
+     * Generated data can be used to send transaction directly using `/rpc/v1/transactions/submit` endpoint of `rpc_node`
+     * @param senderAccount Sender KeyPair
+     * @param rawTxn Raw transaction data
+     * @returns `SendTxPayload`
+     */
+    getSendTxPayload(senderAccount: AptosAccount, rawTxn: TxnBuilderTypes.RawTransaction): SendTxPayload;
     /**
      * Send `entry_function_payload` type tx using serialized raw transaction data
      * @param senderAccount Sender KeyPair
      * @param serializedRawTransaction Serialized raw transaction data
-     * @param enableSimulation should enable simulation
-     * @param waitForTransactionCompletion should wait for transaction completion
+     * @param enableTransactionWaitAndSimulationArgs enable transaction wait and simulation arguments
      * @returns `TransactionResponse`
      */
-    sendTxUsingSerializedRawTransaction(senderAccount: AptosAccount, serializedRawTransaction: Uint8Array, enableSimulation?: boolean, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
-    static createRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint | undefined, gasUnitPrice?: bigint | undefined, txExpiryTime?: bigint | undefined): Promise<TxnBuilderTypes.RawTransaction>;
+    sendTxUsingSerializedRawTransaction(senderAccount: AptosAccount, serializedRawTransaction: Uint8Array, enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs): Promise<TransactionResponse>;
     /**
-     * Create serialized raw transaction object for `entry_function_payload` type tx
+     * Create raw transaction object for `entry_function_payload` type tx
      * @param senderAddr Sender account address
      * @param senderSequenceNumber Sender account sequence number
      * @param moduleAddr Target module address
@@ -244,13 +275,25 @@ declare class SupraClient {
      * @param functionName Target function name
      * @param functionTypeArgs Target function type args
      * @param functionArgs Target function args
-     * @param chainId Supra network chain id
-     * @param maxGas Maximum gas for transaction
-     * @param gasUnitPrice Maximum gas unit price for transaction
-     * @param txExpiryTime Expiry time for transaction
+     * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
      * @returns Serialized raw transaction object
      */
-    static createSerializedRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], chainId: TxnBuilderTypes.ChainId, maxGas?: bigint, gasUnitPrice?: bigint, txExpiryTime?: bigint | undefined): Promise<Uint8Array>;
+    createRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs): Promise<TxnBuilderTypes.RawTransaction>;
+    /**
+     * Create serialized raw transaction for `entry_function_payload` type tx
+     * Under the hood the method utilizes `createRawTxObject` method to create a raw transaction
+     * and then it serializes using bcs serializer
+     * @param senderAddr Sender account address
+     * @param senderSequenceNumber Sender account sequence number
+     * @param moduleAddr Target module address
+     * @param moduleName Target module name
+     * @param functionName Target function name
+     * @param functionTypeArgs Target function type args
+     * @param functionArgs Target function args
+     * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
+     * @returns Serialized raw transaction object
+     */
+    createSerializedRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs): Promise<Uint8Array>;
     static createSignedTransaction(senderAccount: AptosAccount, rawTxn: TxnBuilderTypes.RawTransaction): TxnBuilderTypes.SignedTransaction;
     static deriveTransactionHash(signedTransaction: TxnBuilderTypes.SignedTransaction): string;
     /**
@@ -258,43 +301,42 @@ declare class SupraClient {
      * @param senderAccount Sender KeyPair
      * @param receiverAccountAddr Receiver Supra Account address
      * @param amount Amount to transfer
-     * @param enableSimulation should enable simulation
-     * @param waitForTransactionCompletion should wait for transaction completion
+     * @param optionalTransactionArgs optional arguments for transaction
      * @returns `TransactionResponse`
      */
-    transferSupraCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, enableSimulation?: boolean, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
+    transferSupraCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, optionalTransactionArgs?: OptionalTransactionArgs): Promise<TransactionResponse>;
     /**
-     * Transfer coin
+     * Transfer custom type of coin
      * @param senderAccount Sender KeyPair
      * @param receiverAccountAddr Receiver Supra Account address
      * @param amount Amount to transfer
-     * @param coinType Type of coin
-     * @param enableSimulation should enable simulation
-     * @param waitForTransactionCompletion should wait for transaction completion
+     * @param coinType Type of custom coin
+     * @param optionalTransactionArgs optional arguments for transaction
      * @returns `TransactionResponse`
      */
-    transferCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, coinType: string, enableSimulation?: boolean, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
+    transferCoin(senderAccount: AptosAccount, receiverAccountAddr: HexString, amount: bigint, coinType: string, optionalTransactionArgs?: OptionalTransactionArgs): Promise<TransactionResponse>;
     /**
      * Publish package or module on supra network
      * @param senderAccount Module Publisher KeyPair
      * @param packageMetadata Package Metadata
      * @param modulesCode module code
-     * @param enableSimulation should enable simulation
-     * @param waitForTransactionCompletion should wait for transaction completion
+     * @param optionalTransactionArgs optional arguments for transaction
      * @returns `TransactionResponse`
      */
-    publishPackage(senderAccount: AptosAccount, packageMetadata: Uint8Array, modulesCode: Uint8Array[], enableSimulation?: boolean, waitForTransactionCompletion?: boolean): Promise<TransactionResponse>;
+    publishPackage(senderAccount: AptosAccount, packageMetadata: Uint8Array, modulesCode: Uint8Array[], optionalTransactionArgs?: OptionalTransactionArgs): Promise<TransactionResponse>;
     /**
      * Simulate a transaction using the provided transaction payload
      * @param sendTxPayload Transaction payload
+     * @returns Transaction simulation result
      */
     simulateTx(sendTxPayload: SendTxPayload): Promise<any>;
     /**
      * Simulate a transaction using the provided Serialized raw transaction data
      * @param senderAccountAddress Tx sender account address
      * @param serializedRawTransaction Serialized raw transaction data
+     * @returns Transaction simulation result
      */
     simulateTxUsingSerializedRawTransaction(senderAccountAddress: HexString, senderAccountPubKey: HexString, serializedRawTransaction: Uint8Array): Promise<any>;
 }
 
-export { type AccountInfo, type AccountResources, type CoinChange, type CoinInfo, type FaucetRequestResponse, type FunctionTypeArgs, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };
+export { type AccountInfo, type AccountResources, type CoinChange, type CoinInfo, type EnableTransactionWaitAndSimulationArgs, type FaucetRequestResponse, type FunctionTypeArgs, type OptionalTransactionArgs, type OptionalTransactionPayloadArgs, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };

@@ -115,3 +115,19 @@ export interface FaucetRequestResponse {
   status: TransactionStatus;
   transactionHash: string;
 }
+
+export interface EnableTransactionWaitAndSimulationArgs {
+  enableWaitForTransaction?: boolean;
+  enableTransactionSimulation?: boolean;
+}
+
+export interface OptionalTransactionPayloadArgs {
+  maxGas?: bigint;
+  gasUnitPrice?: bigint;
+  txExpiryTime?: bigint;
+}
+
+export interface OptionalTransactionArgs {
+  optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs;
+  enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs;
+}
