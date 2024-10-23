@@ -14168,6 +14168,7 @@ var DEFAULT_WAIT_FOR_TX_COMPLETION = false;
 
 // src/index.ts
 var import_js_sha3 = require("js-sha3");
+var import_keccak256 = require("@ethersproject/keccak256");
 var SupraClient = class _SupraClient {
   constructor(url2, chainId = DEFAULT_CHAIN_ID) {
     this.supraNodeURL = url2;
@@ -14295,7 +14296,7 @@ var SupraClient = class _SupraClient {
     return (await this.sendRequest(
       true,
       `/rpc/v1/accounts/${account.toString()}/resources`
-    )).data.resources;
+    )).data.Resources.resource;
   }
   /**
    * Get data of resource held by given supra account
@@ -14709,7 +14710,7 @@ var SupraClient = class _SupraClient {
       result: waitForTransactionCompletion === true ? await this.waitForTransactionCompletion(resData.data) : "Pending" /* Pending */
     };
   }
-  signSupraTransaction(senderAccount, rawTxn) {
+  static signSupraTransaction(senderAccount, rawTxn) {
     let preHash = Uint8Array.from(
       Buffer.from((0, import_js_sha3.sha3_256)("SUPRA::RawTransaction"), "hex")
     );
@@ -14721,7 +14722,7 @@ var SupraClient = class _SupraClient {
     );
     signatureMessage.set(preHash);
     signatureMessage.set(rawTxSerializedData, preHash.length);
-    return senderAccount.signBuffer(signatureMessage).toString();
+    return senderAccount.signBuffer(signatureMessage);
   }
   getRawTxDataInJson(senderAccountAddress, rawTxn) {
     let txPayload = rawTxn.payload.value;
@@ -14752,7 +14753,10 @@ var SupraClient = class _SupraClient {
         authenticator: {
           Ed25519: {
             public_key: senderAccount.pubKey().toString(),
-            signature: this.signSupraTransaction(senderAccount, rawTxn)
+            signature: _SupraClient.signSupraTransaction(
+              senderAccount,
+              rawTxn
+            ).toString()
           }
         }
       }
@@ -14837,6 +14841,24 @@ var SupraClient = class _SupraClient {
         ) : txExpiryTime
       )
     );
+  }
+  static createSignedTransaction(senderAccount, rawTxn) {
+    return new import_aptos.TxnBuilderTypes.SignedTransaction(
+      rawTxn,
+      new import_aptos.TxnBuilderTypes.AccountAuthenticatorEd25519(
+        new import_aptos.TxnBuilderTypes.Ed25519PublicKey(
+          senderAccount.pubKey().toUint8Array()
+        ),
+        new import_aptos.TxnBuilderTypes.Ed25519Signature(
+          _SupraClient.signSupraTransaction(senderAccount, rawTxn).toUint8Array()
+        )
+      )
+    );
+  }
+  static deriveTransactionHash(signedTransaction) {
+    let serializer = new import_aptos.BCS.Serializer();
+    signedTransaction.serialize(serializer);
+    return (0, import_keccak256.keccak256)(serializer.getBytes());
   }
   /**
    * Transfer supra coin

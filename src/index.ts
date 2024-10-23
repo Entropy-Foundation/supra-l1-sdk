@@ -38,6 +38,7 @@ import {
   SUPRA_FRAMEWORK_ADDRESS,
 } from "./constants";
 import { sha3_256 } from "js-sha3";
+import { keccak256 } from "@ethersproject/keccak256";
 
 export * from "./types";
 export { TxnBuilderTypes, BCS, HexString, SupraAccount };
@@ -197,7 +198,7 @@ export class SupraClient {
         true,
         `/rpc/v1/accounts/${account.toString()}/resources`
       )
-    ).data.resources as AccountResources;
+    ).data.Resources.resource as AccountResources;
   }
 
   /**
@@ -732,10 +733,10 @@ export class SupraClient {
     };
   }
 
-  private signSupraTransaction(
+  static signSupraTransaction(
     senderAccount: SupraAccount,
     rawTxn: TxnBuilderTypes.RawTransaction
-  ) {
+  ): HexString {
     let preHash = Uint8Array.from(
       Buffer.from(sha3_256("SUPRA::RawTransaction"), "hex")
     );
@@ -749,7 +750,7 @@ export class SupraClient {
     );
     signatureMessage.set(preHash);
     signatureMessage.set(rawTxSerializedData, preHash.length);
-    return senderAccount.signBuffer(signatureMessage).toString();
+    return senderAccount.signBuffer(signatureMessage);
   }
 
   private getRawTxDataInJson(
@@ -781,7 +782,7 @@ export class SupraClient {
     };
   }
 
-  private async getSendTxPayload(
+  async getSendTxPayload(
     senderAccount: SupraAccount,
     rawTxn: TxnBuilderTypes.RawTransaction
   ): Promise<SendTxPayload> {
@@ -791,7 +792,10 @@ export class SupraClient {
         authenticator: {
           Ed25519: {
             public_key: senderAccount.pubKey().toString(),
-            signature: this.signSupraTransaction(senderAccount, rawTxn),
+            signature: SupraClient.signSupraTransaction(
+              senderAccount,
+              rawTxn
+            ).toString(),
           },
         },
       },
@@ -915,6 +919,31 @@ export class SupraClient {
           : txExpiryTime
       )
     );
+  }
+
+  static createSignedTransaction(
+    senderAccount: SupraAccount,
+    rawTxn: TxnBuilderTypes.RawTransaction
+  ): TxnBuilderTypes.SignedTransaction {
+    return new TxnBuilderTypes.SignedTransaction(
+      rawTxn,
+      new TxnBuilderTypes.AccountAuthenticatorEd25519(
+        new TxnBuilderTypes.Ed25519PublicKey(
+          senderAccount.pubKey().toUint8Array()
+        ),
+        new TxnBuilderTypes.Ed25519Signature(
+          SupraClient.signSupraTransaction(senderAccount, rawTxn).toUint8Array()
+        )
+      )
+    );
+  }
+
+  static deriveTransactionHash(
+    signedTransaction: TxnBuilderTypes.SignedTransaction
+  ): string {
+    let serializer = new BCS.Serializer();
+    signedTransaction.serialize(serializer);
+    return keccak256(serializer.getBytes());
   }
 
   /**

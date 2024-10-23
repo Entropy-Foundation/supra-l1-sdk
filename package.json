@@ -30,6 +30,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ethersproject/keccak256": "^5.7.0",
     "aptos": "^1.21.0",
     "js-sha3": "^0.9.3"
   },
