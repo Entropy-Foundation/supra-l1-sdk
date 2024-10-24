@@ -4,9 +4,8 @@ export interface AccountInfo {
   authentication_key: string;
 }
 
-export interface AccountResources {
-  module: Array<[string, { address: string; name: string }]>;
-  struct_type: Array<
+export type AccountResources = Array<
+  Array<
     [
       string,
       {
@@ -16,8 +15,8 @@ export interface AccountResources {
         type_args: Array<TxnBuilderTypes.StructTag>;
       }
     ]
-  >;
-}
+  >
+>;
 
 export interface CoinInfo {
   name: string;
@@ -114,4 +113,20 @@ export interface FunctionTypeArgs {
 export interface FaucetRequestResponse {
   status: TransactionStatus;
   transactionHash: string;
+}
+
+export interface EnableTransactionWaitAndSimulationArgs {
+  enableWaitForTransaction?: boolean;
+  enableTransactionSimulation?: boolean;
+}
+
+export interface OptionalTransactionPayloadArgs {
+  maxGas?: bigint;
+  gasUnitPrice?: bigint;
+  txExpiryTime?: bigint;
+}
+
+export interface OptionalTransactionArgs {
+  optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs;
+  enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs;
 }
