@@ -1,6 +1,6 @@
 {
   "name": "supra-l1-sdk",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "Typescript SDK for Supra",
   "exports": {
     "browser": {
