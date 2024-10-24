@@ -5,21 +5,15 @@ interface AccountInfo {
     sequence_number: bigint;
     authentication_key: string;
 }
-interface AccountResources {
-    module: Array<[string, {
+type AccountResources = Array<Array<[
+    string,
+    {
         address: string;
+        module: string;
         name: string;
-    }]>;
-    struct_type: Array<[
-        string,
-        {
-            address: string;
-            module: string;
-            name: string;
-            type_args: Array<TxnBuilderTypes.StructTag>;
-        }
-    ]>;
-}
+        type_args: Array<TxnBuilderTypes.StructTag>;
+    }
+]>>;
 interface CoinInfo {
     name: string;
     symbol: string;
@@ -129,7 +123,7 @@ declare class SupraClient {
     constructor(url: string, chainId?: number);
     /**
      * Creates and initializes `SupraClient` instance
-     * The chain id will be fetched from defined `rpc_url`
+     * The chain id will be fetched from the provided `url`
      * @param url rpc url of supra rpc node
      * @returns `SupraClient` initialized instance
      * @example
@@ -180,6 +174,13 @@ declare class SupraClient {
      * @param account Hex-encoded 32 byte Supra account address
      * @param resourceType Type of a resource
      * @returns Resource data
+     * @example
+     * ```typescript
+     * let supraCoinInfo = await supraClient.getResourceData(
+     *   new HexString("0x1"),
+     *   "0x1::coin::CoinInfo<0x1::supra_coin::SupraCoin>"
+     * )
+     * ```
      */
     getResourceData(account: HexString, resourceType: string): Promise<any>;
     /**
@@ -277,6 +278,20 @@ declare class SupraClient {
      * @param functionArgs Target function args
      * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
      * @returns Serialized raw transaction object
+     * @example
+     * ```typescript
+     * let supraCoinTransferRawTransaction = await supraClient.createRawTxObject(
+     *   senderAccount.address(),
+     *   (
+     *     await supraClient.getAccountInfo(senderAccount.address())
+     *   ).sequence_number,
+     *   "0000000000000000000000000000000000000000000000000000000000000001",
+     *   "supra_account",
+     *   "transfer",
+     *   [],
+     *   [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(10000)]
+     * );
+     * ```
      */
     createRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs): Promise<TxnBuilderTypes.RawTransaction>;
     /**
@@ -294,7 +309,28 @@ declare class SupraClient {
      * @returns Serialized raw transaction object
      */
     createSerializedRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs): Promise<Uint8Array>;
+    /**
+     * Create signed transaction payload
+     * @param senderAccount Sender KeyPair
+     * @param rawTxn Raw transaction payload
+     * @returns `SignedTransaction`
+     */
     static createSignedTransaction(senderAccount: AptosAccount, rawTxn: TxnBuilderTypes.RawTransaction): TxnBuilderTypes.SignedTransaction;
+    /**
+     * Generate transaction hash locally
+     * @param signedTransaction Signed transaction payload
+     * @returns `SignedTransaction`
+     * @example
+     * ```typescript
+     *  let supraCoinTransferSignedTransaction = SupraClient.createSignedTransaction(
+     *     senderAccount,
+     *     supraCoinTransferRawTransaction
+     *  );
+     *  console.log(
+     *     SupraClient.deriveTransactionHash(supraCoinTransferSignedTransaction)
+     *  );
+     * ```
+     */
     static deriveTransactionHash(signedTransaction: TxnBuilderTypes.SignedTransaction): string;
     /**
      * Transfer supra coin
@@ -333,6 +369,7 @@ declare class SupraClient {
     /**
      * Simulate a transaction using the provided Serialized raw transaction data
      * @param senderAccountAddress Tx sender account address
+     * @param senderAccountPubKey Tx sender account public key
      * @param serializedRawTransaction Serialized raw transaction data
      * @returns Transaction simulation result
      */

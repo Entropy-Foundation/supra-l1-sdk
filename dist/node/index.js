@@ -14177,7 +14177,7 @@ var SupraClient = class _SupraClient {
   }
   /**
    * Creates and initializes `SupraClient` instance
-   * The chain id will be fetched from defined `rpc_url`
+   * The chain id will be fetched from the provided `url`
    * @param url rpc url of supra rpc node
    * @returns `SupraClient` initialized instance
    * @example
@@ -14311,6 +14311,13 @@ var SupraClient = class _SupraClient {
    * @param account Hex-encoded 32 byte Supra account address
    * @param resourceType Type of a resource
    * @returns Resource data
+   * @example
+   * ```typescript
+   * let supraCoinInfo = await supraClient.getResourceData(
+   *   new HexString("0x1"),
+   *   "0x1::coin::CoinInfo<0x1::supra_coin::SupraCoin>"
+   * )
+   * ```
    */
   async getResourceData(account, resourceType) {
     let resData = await this.sendRequest(
@@ -14814,6 +14821,20 @@ var SupraClient = class _SupraClient {
    * @param functionArgs Target function args
    * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
    * @returns Serialized raw transaction object
+   * @example 
+   * ```typescript
+   * let supraCoinTransferRawTransaction = await supraClient.createRawTxObject(
+   *   senderAccount.address(),
+   *   (
+   *     await supraClient.getAccountInfo(senderAccount.address())
+   *   ).sequence_number,
+   *   "0000000000000000000000000000000000000000000000000000000000000001",
+   *   "supra_account",
+   *   "transfer",
+   *   [],
+   *   [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(10000)]
+   * );
+   * ```
    */
   async createRawTxObject(senderAddr, senderSequenceNumber, moduleAddr, moduleName, functionName, functionTypeArgs, functionArgs, optionalTransactionPayloadArgs) {
     var _a, _b, _c;
@@ -14869,6 +14890,12 @@ var SupraClient = class _SupraClient {
       )
     );
   }
+  /**
+   * Create signed transaction payload
+   * @param senderAccount Sender KeyPair
+   * @param rawTxn Raw transaction payload
+   * @returns `SignedTransaction`
+   */
   static createSignedTransaction(senderAccount, rawTxn) {
     return new import_aptos.TxnBuilderTypes.SignedTransaction(
       rawTxn,
@@ -14882,6 +14909,21 @@ var SupraClient = class _SupraClient {
       )
     );
   }
+  /**
+   * Generate transaction hash locally
+   * @param signedTransaction Signed transaction payload
+   * @returns `SignedTransaction`
+   * @example
+   * ```typescript
+   *  let supraCoinTransferSignedTransaction = SupraClient.createSignedTransaction(
+   *     senderAccount,
+   *     supraCoinTransferRawTransaction
+   *  );
+   *  console.log(
+   *     SupraClient.deriveTransactionHash(supraCoinTransferSignedTransaction)
+   *  );
+   * ```
+   */
   static deriveTransactionHash(signedTransaction) {
     let serializer = new import_aptos.BCS.Serializer();
     signedTransaction.serialize(serializer);
@@ -15011,6 +15053,7 @@ var SupraClient = class _SupraClient {
   /**
    * Simulate a transaction using the provided Serialized raw transaction data
    * @param senderAccountAddress Tx sender account address
+   * @param senderAccountPubKey Tx sender account public key
    * @param serializedRawTransaction Serialized raw transaction data
    * @returns Transaction simulation result
    */

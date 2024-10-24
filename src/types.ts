@@ -4,9 +4,8 @@ export interface AccountInfo {
   authentication_key: string;
 }
 
-export interface AccountResources {
-  module: Array<[string, { address: string; name: string }]>;
-  struct_type: Array<
+export type AccountResources = Array<
+  Array<
     [
       string,
       {
@@ -16,8 +15,8 @@ export interface AccountResources {
         type_args: Array<TxnBuilderTypes.StructTag>;
       }
     ]
-  >;
-}
+  >
+>;
 
 export interface CoinInfo {
   name: string;
