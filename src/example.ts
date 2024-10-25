@@ -63,8 +63,12 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
     senderAccount,
     receiverAddress,
     BigInt(1000),
-    true,
-    true
+    {
+      enableTransactionWaitAndSimulationArgs: {
+        enableWaitForTransaction: true,
+        enableTransactionSimulation: true,
+      },
+    }
   );
   console.log("Transfer SupraCoin TxRes: ", txResData);
 
@@ -77,8 +81,7 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
     )
   );
 
-  let coinType =
-    "0x0000000000000000000000000000000000000000000000000000000000000001::supra_coin::SupraCoin";
+  let coinType = "0x0000000000000000000000000000000000000000000000000000000000000001::supra_coin::SupraCoin";
   // To Fetch coin info
   console.log("Coin Info", await supraClient.getCoinInfo(coinType));
 
@@ -95,8 +98,12 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
       receiverAddress,
       BigInt(1000),
       coinType,
-      true,
-      true
+      {
+        enableTransactionWaitAndSimulationArgs: {
+          enableWaitForTransaction: true,
+          enableTransactionSimulation: true,
+        },
+      }
     )
   );
 
@@ -145,7 +152,7 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
 
   // To create a serialized raw transaction
   let supraCoinTransferSerializedRawTransaction =
-    await SupraClient.createSerializedRawTxObject(
+    await supraClient.createSerializedRawTxObject(
       senderAccount.address(),
       (
         await supraClient.getAccountInfo(senderAccount.address())
@@ -154,8 +161,7 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
       "supra_account",
       "transfer",
       [],
-      [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)],
-      supraClient.chainId
+      [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)]
     );
 
   // To simulate transaction using serialized raw transaction data
@@ -172,14 +178,16 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
     await supraClient.sendTxUsingSerializedRawTransaction(
       senderAccount,
       supraCoinTransferSerializedRawTransaction,
-      true,
-      true
+      {
+        enableTransactionSimulation: true,
+        enableWaitForTransaction: false,
+      }
     )
   );
 
   // To create a raw transaction
   // Note: Process to create a `rawTx` and `serializedRawTx` is almost similar
-  let supraCoinTransferRawTransaction = await SupraClient.createRawTxObject(
+  let supraCoinTransferRawTransaction = await supraClient.createRawTxObject(
     senderAccount.address(),
     (
       await supraClient.getAccountInfo(senderAccount.address())
@@ -188,8 +196,7 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
     "supra_account",
     "transfer",
     [],
-    [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(10000)],
-    supraClient.chainId
+    [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(10000)]
   );
 
   // To create signed transaction
@@ -213,8 +220,10 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
     await supraClient.sendTxUsingSerializedRawTransaction(
       senderAccount,
       supraCoinTransferRawTransactionSerializer.getBytes(),
-      true,
-      true
+      {
+        enableWaitForTransaction: true,
+        enableTransactionSimulation: true,
+      }
     )
   );
 })();
