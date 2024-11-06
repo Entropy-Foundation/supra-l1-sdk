@@ -73,33 +73,53 @@ export interface AccountCoinTransactionsDetail {
   cursor: number;
 }
 
+export interface EntryFunctionPayloadJSON {
+  EntryFunction: {
+    module: {
+      address: string;
+      name: string;
+    };
+    function: string;
+    ty_args: Array<FunctionTypeArgs>;
+    args: Array<Array<number>>;
+  };
+}
+
+export interface RawTxnJSON {
+  sender: string;
+  sequence_number: number;
+  payload: EntryFunctionPayloadJSON;
+  max_gas_amount: number;
+  gas_unit_price: number;
+  expiration_timestamp_secs: number;
+  chain_id: number;
+}
+
+export interface Ed25519AuthenticatorJSON {
+  Ed25519: {
+    public_key: string;
+    signature: string;
+  };
+}
+
+export interface SponsorTransactionAuthenticatorJSON {
+  FeePayer: {
+    sender: Ed25519AuthenticatorJSON;
+    secondary_signer_addresses: Array<string>;
+    secondary_signers: Array<Ed25519AuthenticatorJSON>;
+    fee_payer_address: string;
+    fee_payer_signer: Ed25519AuthenticatorJSON;
+  };
+}
+
+export type AnyAuthenticatorJSON =
+  | Ed25519AuthenticatorJSON
+  | SponsorTransactionAuthenticatorJSON;
+
 export interface SendTxPayload {
   Move: {
-    raw_txn: {
-      sender: string;
-      sequence_number: number;
-      payload: {
-        EntryFunction: {
-          module: {
-            address: string;
-            name: string;
-          };
-          function: string;
-          ty_args: Array<FunctionTypeArgs>;
-          args: Array<Array<number>>;
-        };
-      };
-      max_gas_amount: number;
-      gas_unit_price: number;
-      expiration_timestamp_secs: number;
-      chain_id: number;
-    };
-    authenticator: {
-      Ed25519: {
-        public_key: string;
-        signature: string;
-      };
-    };
+    raw_txn: RawTxnJSON;
+    authenticator: AnyAuthenticatorJSON;
   };
 }
 
