@@ -184,7 +184,7 @@ import {
       supraCoinTransferSerializedRawTransaction,
       {
         enableTransactionSimulation: true,
-        enableWaitForTransaction: false,
+        enableWaitForTransaction: true,
       }
     )
   );
