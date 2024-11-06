@@ -4,19 +4,17 @@ export interface AccountInfo {
   authentication_key: string;
 }
 
-export type AccountResources = Array<
-  Array<
-    [
-      string,
-      {
-        address: string;
-        module: string;
-        name: string;
-        type_args: Array<TxnBuilderTypes.StructTag>;
-      }
-    ]
-  >
->;
+export interface ResourceInfo {
+  address: string;
+  module: string;
+  name: string;
+  type_args: Array<{ struct: TxnBuilderTypes.StructTag }>;
+}
+
+export interface AccountResources {
+  resources: Array<[string, ResourceInfo]>;
+  cursor: string;
+}
 
 export interface CoinInfo {
   name: string;
@@ -52,23 +50,27 @@ export interface TransactionInsights {
   type: TxTypeForTransactionInsights;
 }
 
-// Note: Suggested by wallet team to use undefined instead of null
 export interface TransactionDetail {
   txHash: string;
   sender: string;
   sequenceNumber: number;
   maxGasAmount: number;
   gasUnitPrice: number;
-  gasUsed: number | undefined;
-  transactionCost: number | undefined;
-  txExpirationTimestamp: number | undefined;
-  txConfirmationTime: number | undefined;
+  gasUsed?: number;
+  transactionCost?: number;
+  txExpirationTimestamp?: number;
+  txConfirmationTime?: number;
   status: TransactionStatus;
   events: any;
-  blockNumber: number | undefined;
-  blockHash: string | undefined;
+  blockNumber?: number;
+  blockHash?: string;
   transactionInsights: TransactionInsights;
-  vm_status: string | undefined;
+  vm_status?: string;
+}
+
+export interface AccountCoinTransactionsDetail {
+  transactions: Array<TransactionDetail>;
+  cursor: number;
 }
 
 export interface SendTxPayload {
@@ -129,4 +131,9 @@ export interface OptionalTransactionPayloadArgs {
 export interface OptionalTransactionArgs {
   optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs;
   enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs;
+}
+
+export interface PaginationArgs {
+  count?: number;
+  start?: string | number;
 }
