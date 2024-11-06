@@ -14298,13 +14298,16 @@ var SupraClient = class _SupraClient {
   /**
    * Get list of all resources held by given supra account
    * @param account Hex-encoded 32 byte Supra account address
+   * @param paginationArgs Arguments for pagination response
    * @returns `AccountResources`
    */
-  async getAccountResources(account) {
-    return (await this.sendRequest(
-      true,
-      `/rpc/v1/accounts/${account.toString()}/resources`
-    )).data.Resources.resource;
+  async getAccountResources(account, paginationArgs) {
+    var _a;
+    let requestPath = `/rpc/v1/accounts/${account.toString()}/resources?count=${(_a = paginationArgs == null ? void 0 : paginationArgs.count) != null ? _a : DEFAULT_RECORDS_ITEMS_COUNT}`;
+    if (paginationArgs == null ? void 0 : paginationArgs.start) {
+      requestPath += `&start=${paginationArgs.start}`;
+    }
+    return (await this.sendRequest(true, requestPath)).data.Resources;
   }
   /**
    * Get data of resource held by given supra account
@@ -14510,14 +14513,14 @@ var SupraClient = class _SupraClient {
   /**
    * Get transactions sent by the account
    * @param account Supra account address
-   * @param count Number of transactions details
-   * @param start Cursor for pagination based response
+   * @param paginationArgs Arguments for pagination response
    * @returns List of `TransactionDetail`
    */
-  async getAccountTransactionsDetail(account, count = DEFAULT_RECORDS_ITEMS_COUNT, start = null) {
-    let requestPath = `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}`;
-    if (start != null) {
-      requestPath += `&start=${start}`;
+  async getAccountTransactionsDetail(account, paginationArgs) {
+    var _a;
+    let requestPath = `/rpc/v1/accounts/${account.toString()}/transactions?count=${(_a = paginationArgs == null ? void 0 : paginationArgs.count) != null ? _a : DEFAULT_RECORDS_ITEMS_COUNT}`;
+    if (paginationArgs == null ? void 0 : paginationArgs.start) {
+      requestPath += `&start=${paginationArgs.start}`;
     }
     let resData = await this.sendRequest(true, requestPath);
     if (resData.data.record == null) {
@@ -14555,14 +14558,14 @@ var SupraClient = class _SupraClient {
   /**
    * Get Coin Transfer related transactions associated with the account
    * @param account Supra account address
-   * @param count Number of transactions details
-   * @param start Cursor for pagination based response
+   * @param account Supra account address
    * @returns List of `TransactionDetail`
    */
-  async getCoinTransactionsDetail(account, count = DEFAULT_RECORDS_ITEMS_COUNT, start = null) {
-    let requestPath = `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}`;
-    if (start != null) {
-      requestPath += `&start=${start}`;
+  async getCoinTransactionsDetail(account, paginationArgs) {
+    var _a;
+    let requestPath = `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${(_a = paginationArgs == null ? void 0 : paginationArgs.count) != null ? _a : DEFAULT_RECORDS_ITEMS_COUNT}`;
+    if (paginationArgs == null ? void 0 : paginationArgs.start) {
+      requestPath += `&start=${paginationArgs == null ? void 0 : paginationArgs.start}`;
     }
     let resData = await this.sendRequest(true, requestPath);
     if (resData.data.record == null) {
@@ -14595,7 +14598,10 @@ var SupraClient = class _SupraClient {
         vm_status: data.output.Move.vm_status
       });
     });
-    return coinTransactionsDetail;
+    return {
+      transactions: coinTransactionsDetail,
+      cursor: resData.data.cursor
+    };
   }
   /**
    * Get transactions sent by the account and Coin transfer related transactions
@@ -14821,7 +14827,7 @@ var SupraClient = class _SupraClient {
    * @param functionArgs Target function args
    * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
    * @returns Serialized raw transaction object
-   * @example 
+   * @example
    * ```typescript
    * let supraCoinTransferRawTransaction = await supraClient.createRawTxObject(
    *   senderAccount.address(),

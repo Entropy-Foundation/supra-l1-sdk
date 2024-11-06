@@ -81,7 +81,8 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
     )
   );
 
-  let coinType = "0x0000000000000000000000000000000000000000000000000000000000000001::supra_coin::SupraCoin";
+  let coinType =
+    "0x0000000000000000000000000000000000000000000000000000000000000001::supra_coin::SupraCoin";
   // To Fetch coin info
   console.log("Coin Info", await supraClient.getCoinInfo(coinType));
 

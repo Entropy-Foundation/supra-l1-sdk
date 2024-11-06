@@ -26,6 +26,8 @@ import {
   EnableTransactionWaitAndSimulationArgs,
   OptionalTransactionPayloadArgs,
   OptionalTransactionArgs,
+  PaginationArgs,
+  AccountCoinTransactionsDetail,
 } from "./types";
 import {
   DEFAULT_CHAIN_ID,
@@ -201,15 +203,22 @@ export class SupraClient {
   /**
    * Get list of all resources held by given supra account
    * @param account Hex-encoded 32 byte Supra account address
+   * @param paginationArgs Arguments for pagination response
    * @returns `AccountResources`
    */
-  async getAccountResources(account: HexString): Promise<AccountResources> {
-    return (
-      await this.sendRequest(
-        true,
-        `/rpc/v1/accounts/${account.toString()}/resources`
-      )
-    ).data.Resources.resource as AccountResources;
+  async getAccountResources(
+    account: HexString,
+    paginationArgs?: PaginationArgs
+  ): Promise<AccountResources> {
+    let requestPath = `/rpc/v1/accounts/${account.toString()}/resources?count=${
+      paginationArgs?.count ?? DEFAULT_RECORDS_ITEMS_COUNT
+    }`;
+    if (paginationArgs?.start) {
+      requestPath += `&start=${paginationArgs.start}`;
+    }
+
+    return (await this.sendRequest(true, requestPath)).data
+      .Resources as AccountResources;
   }
 
   /**
@@ -481,19 +490,20 @@ export class SupraClient {
   /**
    * Get transactions sent by the account
    * @param account Supra account address
-   * @param count Number of transactions details
-   * @param start Cursor for pagination based response
+   * @param paginationArgs Arguments for pagination response
    * @returns List of `TransactionDetail`
    */
   async getAccountTransactionsDetail(
     account: HexString,
-    count: number = DEFAULT_RECORDS_ITEMS_COUNT,
-    start: number | null = null
+    paginationArgs?: PaginationArgs
   ): Promise<TransactionDetail[]> {
-    let requestPath = `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}`;
-    if (start != null) {
-      requestPath += `&start=${start}`;
+    let requestPath = `/rpc/v1/accounts/${account.toString()}/transactions?count=${
+      paginationArgs?.count ?? DEFAULT_RECORDS_ITEMS_COUNT
+    }`;
+    if (paginationArgs?.start) {
+      requestPath += `&start=${paginationArgs.start}`;
     }
+
     let resData = await this.sendRequest(true, requestPath);
     if (resData.data.record == null) {
       throw new Error("Account Not Exists, Or Invalid Account Is Passed");
@@ -535,18 +545,18 @@ export class SupraClient {
   /**
    * Get Coin Transfer related transactions associated with the account
    * @param account Supra account address
-   * @param count Number of transactions details
-   * @param start Cursor for pagination based response
+   * @param account Supra account address
    * @returns List of `TransactionDetail`
    */
   async getCoinTransactionsDetail(
     account: HexString,
-    count: number = DEFAULT_RECORDS_ITEMS_COUNT,
-    start: number | null = null
-  ): Promise<TransactionDetail[]> {
-    let requestPath = `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}`;
-    if (start != null) {
-      requestPath += `&start=${start}`;
+    paginationArgs?: PaginationArgs
+  ): Promise<AccountCoinTransactionsDetail> {
+    let requestPath = `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${
+      paginationArgs?.count ?? DEFAULT_RECORDS_ITEMS_COUNT
+    }`;
+    if (paginationArgs?.start) {
+      requestPath += `&start=${paginationArgs?.start}`;
     }
 
     let resData = await this.sendRequest(true, requestPath);
@@ -584,7 +594,10 @@ export class SupraClient {
         vm_status: data.output.Move.vm_status,
       });
     });
-    return coinTransactionsDetail;
+    return {
+      transactions: coinTransactionsDetail,
+      cursor: resData.data.cursor,
+    };
   }
 
   /**
@@ -872,7 +885,7 @@ export class SupraClient {
    * @param functionArgs Target function args
    * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
    * @returns Serialized raw transaction object
-   * @example 
+   * @example
    * ```typescript
    * let supraCoinTransferRawTransaction = await supraClient.createRawTxObject(
    *   senderAccount.address(),
