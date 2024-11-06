@@ -20,8 +20,8 @@ import {
   // To Create Instance Of Supra Client, But In This Method We Don't Need To Pass ChainId.
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await SupraClient.init(
-    "http://localhost:27001/"
-    // "https://rpc-testnet.supra.com/"
+    // "http://localhost:27001/"
+    "https://rpc-testnet.supra.com/"
   );
 
   let senderAccount = new SupraAccount(
@@ -236,16 +236,16 @@ import {
 
   let feePayerAccount = new SupraAccount(
     Buffer.from(
-      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d88",
+      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d86",
       "hex"
     )
   );
   console.log("FeePayer Address: ", feePayerAccount.address());
-
+  
   if ((await supraClient.isAccountExists(feePayerAccount.address())) == false) {
     console.log(
       "Funding FeePayer Account With Faucet: ",
-      await supraClient.fundAccountWithFaucet(senderAccount.address())
+      await supraClient.fundAccountWithFaucet(feePayerAccount.address())
     );
   }
 

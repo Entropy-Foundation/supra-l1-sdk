@@ -176,10 +176,12 @@ export class SupraClient {
    * @returns `true` if account exists otherwise `false`
    */
   async isAccountExists(account: HexString): Promise<boolean> {
-    if (
-      (await this.sendRequest(true, `/rpc/v1/accounts/${account.toString()}`))
-        .data == null
-    ) {
+    let resData = await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}`
+    );
+
+    if (resData.data === null || resData.status === 202) {
       return false;
     }
     return true;
@@ -774,7 +776,7 @@ export class SupraClient {
 
   /**
    * Generate `ed25519_signature` for supra transaction using `RawTransaction`
-   * @param signer the account to sign on the transaction
+   * @param senderAccount the account to sign on the transaction
    * @param rawTxn a RawTransaction, MultiAgentRawTransaction or FeePayerRawTransaction
    * @returns ed25519 signature in `HexString`
    */
