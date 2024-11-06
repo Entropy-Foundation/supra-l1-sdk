@@ -5,15 +5,18 @@ interface AccountInfo {
     sequence_number: bigint;
     authentication_key: string;
 }
-type AccountResources = Array<Array<[
-    string,
-    {
-        address: string;
-        module: string;
-        name: string;
-        type_args: Array<TxnBuilderTypes.StructTag>;
-    }
-]>>;
+interface ResourceInfo {
+    address: string;
+    module: string;
+    name: string;
+    type_args: Array<{
+        struct: TxnBuilderTypes.StructTag;
+    }>;
+}
+interface AccountResources {
+    resources: Array<[string, ResourceInfo]>;
+    cursor: string;
+}
 interface CoinInfo {
     name: string;
     symbol: string;
@@ -48,16 +51,20 @@ interface TransactionDetail {
     sequenceNumber: number;
     maxGasAmount: number;
     gasUnitPrice: number;
-    gasUsed: number | undefined;
-    transactionCost: number | undefined;
-    txExpirationTimestamp: number | undefined;
-    txConfirmationTime: number | undefined;
+    gasUsed?: number;
+    transactionCost?: number;
+    txExpirationTimestamp?: number;
+    txConfirmationTime?: number;
     status: TransactionStatus;
     events: any;
-    blockNumber: number | undefined;
-    blockHash: string | undefined;
+    blockNumber?: number;
+    blockHash?: string;
     transactionInsights: TransactionInsights;
-    vm_status: string | undefined;
+    vm_status?: string;
+}
+interface AccountCoinTransactionsDetail {
+    transactions: Array<TransactionDetail>;
+    cursor: number;
 }
 interface SendTxPayload {
     Move: {
@@ -113,6 +120,10 @@ interface OptionalTransactionArgs {
     optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs;
     enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs;
 }
+interface PaginationArgs {
+    count?: number;
+    start?: string | number;
+}
 
 /**
  * Provides methods for interacting with supra rpc node.
@@ -166,9 +177,10 @@ declare class SupraClient {
     /**
      * Get list of all resources held by given supra account
      * @param account Hex-encoded 32 byte Supra account address
+     * @param paginationArgs Arguments for pagination response
      * @returns `AccountResources`
      */
-    getAccountResources(account: HexString): Promise<AccountResources>;
+    getAccountResources(account: HexString, paginationArgs?: PaginationArgs): Promise<AccountResources>;
     /**
      * Get data of resource held by given supra account
      * @param account Hex-encoded 32 byte Supra account address
@@ -201,19 +213,17 @@ declare class SupraClient {
     /**
      * Get transactions sent by the account
      * @param account Supra account address
-     * @param count Number of transactions details
-     * @param start Cursor for pagination based response
+     * @param paginationArgs Arguments for pagination response
      * @returns List of `TransactionDetail`
      */
-    getAccountTransactionsDetail(account: HexString, count?: number, start?: number | null): Promise<TransactionDetail[]>;
+    getAccountTransactionsDetail(account: HexString, paginationArgs?: PaginationArgs): Promise<TransactionDetail[]>;
     /**
      * Get Coin Transfer related transactions associated with the account
      * @param account Supra account address
-     * @param count Number of transactions details
-     * @param start Cursor for pagination based response
+     * @param account Supra account address
      * @returns List of `TransactionDetail`
      */
-    getCoinTransactionsDetail(account: HexString, count?: number, start?: number | null): Promise<TransactionDetail[]>;
+    getCoinTransactionsDetail(account: HexString, paginationArgs?: PaginationArgs): Promise<AccountCoinTransactionsDetail>;
     /**
      * Get transactions sent by the account and Coin transfer related transactions
      * @param account Supra account address
@@ -376,4 +386,4 @@ declare class SupraClient {
     simulateTxUsingSerializedRawTransaction(senderAccountAddress: HexString, senderAccountPubKey: HexString, serializedRawTransaction: Uint8Array): Promise<any>;
 }
 
-export { type AccountInfo, type AccountResources, type CoinChange, type CoinInfo, type EnableTransactionWaitAndSimulationArgs, type FaucetRequestResponse, type FunctionTypeArgs, type OptionalTransactionArgs, type OptionalTransactionPayloadArgs, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };
+export { type AccountCoinTransactionsDetail, type AccountInfo, type AccountResources, type CoinChange, type CoinInfo, type EnableTransactionWaitAndSimulationArgs, type FaucetRequestResponse, type FunctionTypeArgs, type OptionalTransactionArgs, type OptionalTransactionPayloadArgs, type PaginationArgs, type ResourceInfo, type SendTxPayload, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };
