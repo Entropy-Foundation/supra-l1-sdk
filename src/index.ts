@@ -3,6 +3,7 @@ import {
   BCS,
   HexString,
   AptosAccount as SupraAccount,
+  AnyRawTransaction,
 } from "aptos";
 import axios, { AxiosResponse } from "axios";
 import {
@@ -40,6 +41,8 @@ import {
   SUPRA_FRAMEWORK_ADDRESS,
   DEFAULT_MAX_GAS_FOR_SUPRA_TRANSFER_WHEN_RECEIVER_EXISTS,
   DEFAULT_MAX_GAS_FOR_SUPRA_TRANSFER_WHEN_RECEIVER_NOT_EXISTS,
+  RAW_TRANSACTION_SALT,
+  RAW_TRANSACTION_WITH_DATA_SALT,
 } from "./constants";
 import { sha3_256 } from "js-sha3";
 import { keccak256 } from "@ethersproject/keccak256";
@@ -756,28 +759,56 @@ export class SupraClient {
 
   /**
    * Generate `ed25519_signature` for supra transaction using `RawTransaction`
-   * @param senderAccount Sender KeyPair
-   * @param rawTxn Raw transaction data
+   * @param signer the account to sign on the transaction
+   * @param rawTxn a RawTransaction, MultiAgentRawTransaction or FeePayerRawTransaction
    * @returns ed25519 signature in `HexString`
    */
   static signSupraTransaction(
     senderAccount: SupraAccount,
-    rawTxn: TxnBuilderTypes.RawTransaction
+    rawTxn: AnyRawTransaction
   ): HexString {
     let preHash = Uint8Array.from(
-      Buffer.from(sha3_256("SUPRA::RawTransaction"), "hex")
+      Buffer.from(
+        sha3_256(
+          rawTxn instanceof TxnBuilderTypes.RawTransaction
+            ? RAW_TRANSACTION_SALT
+            : RAW_TRANSACTION_WITH_DATA_SALT
+        ),
+        "hex"
+      )
     );
 
-    let serializer = new BCS.Serializer();
-    rawTxn.serialize(serializer);
-    let rawTxSerializedData = new Uint8Array(serializer.getBytes());
-
+    let rawTxSerializedData = new Uint8Array(BCS.bcsToBytes(rawTxn));
     let signatureMessage = new Uint8Array(
       preHash.length + rawTxSerializedData.length
     );
     signatureMessage.set(preHash);
     signatureMessage.set(rawTxSerializedData, preHash.length);
     return senderAccount.signBuffer(signatureMessage);
+  }
+
+  /**
+   * Signs a multi transaction type (multi agent / fee payer) and returns the
+   * signer authenticator to be used to submit the transaction.
+   * @param signer the account to sign on the transaction
+   * @param rawTxn a MultiAgentRawTransaction or FeePayerRawTransaction
+   * @returns signer authenticator
+   */
+  static signSupraMultiTransaction(
+    signer: SupraAccount,
+    rawTxn:
+      | TxnBuilderTypes.MultiAgentRawTransaction
+      | TxnBuilderTypes.FeePayerRawTransaction
+  ): TxnBuilderTypes.AccountAuthenticatorEd25519 {
+    const signerSignature = new TxnBuilderTypes.Ed25519Signature(
+      SupraClient.signSupraTransaction(signer, rawTxn).toUint8Array()
+    );
+    const signerAuthenticator = new TxnBuilderTypes.AccountAuthenticatorEd25519(
+      new TxnBuilderTypes.Ed25519PublicKey(signer.signingKey.publicKey),
+      signerSignature
+    );
+
+    return signerAuthenticator;
   }
 
   private getRawTxDataInJson(
@@ -872,7 +903,7 @@ export class SupraClient {
    * @param functionArgs Target function args
    * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
    * @returns Serialized raw transaction object
-   * @example 
+   * @example
    * ```typescript
    * let supraCoinTransferRawTransaction = await supraClient.createRawTxObject(
    *   senderAccount.address(),
@@ -1004,9 +1035,7 @@ export class SupraClient {
   static deriveTransactionHash(
     signedTransaction: TxnBuilderTypes.SignedTransaction
   ): string {
-    let serializer = new BCS.Serializer();
-    signedTransaction.serialize(serializer);
-    return keccak256(serializer.getBytes());
+    return keccak256(BCS.bcsToBytes(signedTransaction));
   }
 
   /**
