@@ -20,8 +20,8 @@ import {
   // To Create Instance Of Supra Client, But In This Method We Don't Need To Pass ChainId.
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await SupraClient.init(
-    // "http://localhost:27001/"
-    "https://rpc-testnet.supra.com/"
+    "http://localhost:27001/"
+    // "https://rpc-testnet.supra.com/"
   );
 
   let senderAccount = new SupraAccount(
@@ -99,20 +99,19 @@ import {
   );
 
   // To transfer coin
-  console.log(
-    await supraClient.transferCoin(
-      senderAccount,
-      receiverAddress,
-      BigInt(1000),
-      coinType,
-      {
-        enableTransactionWaitAndSimulationArgs: {
-          enableWaitForTransaction: true,
-          enableTransactionSimulation: true,
-        },
-      }
-    )
+  let supraCoinTransferResData = await supraClient.transferCoin(
+    senderAccount,
+    receiverAddress,
+    BigInt(1000),
+    coinType,
+    {
+      enableTransactionWaitAndSimulationArgs: {
+        enableWaitForTransaction: true,
+        enableTransactionSimulation: true,
+      },
+    }
   );
+  console.log(supraCoinTransferResData);
 
   console.log(
     "Sender Coin Balance After Tx: ",
@@ -129,10 +128,8 @@ import {
   );
 
   let txData = await supraClient.getTransactionDetail(
-    new HexString(
-      "0x4f88ad501b780c12290a6fa63e1e1500eaa5fd5ba945896ce77ee8c53a2f6d00"
-    ),
-    "0x338e8d8db2177c3e4ae94890dc63bdf00bd558a685b6fc42fe685a85b4bac6d9"
+    senderAccount.address(),
+    supraCoinTransferResData.txHash
   );
   if (txData != null) {
     console.log("Transaction Detail: ", txData.transactionInsights);
@@ -241,7 +238,7 @@ import {
     )
   );
   console.log("FeePayer Address: ", feePayerAccount.address());
-  
+
   if ((await supraClient.isAccountExists(feePayerAccount.address())) == false) {
     console.log(
       "Funding FeePayer Account With Faucet: ",
