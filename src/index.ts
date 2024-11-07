@@ -273,9 +273,9 @@ export class SupraClient {
     }
 
     return resData.data.status == "Unexecuted"
-      ? "Pending"
+      ? TransactionStatus.Pending
       : resData.data.status == "Fail"
-      ? "Failed"
+      ? TransactionStatus.Failed
       : resData.data.status;
   }
 
@@ -828,7 +828,7 @@ export class SupraClient {
     return signerAuthenticator;
   }
 
-  private getRawTxnDataInJSON(
+  private getRawTxnJSON(
     senderAccountAddress: HexString,
     rawTxn: TxnBuilderTypes.RawTransaction
   ): RawTxnJSON {
@@ -870,7 +870,7 @@ export class SupraClient {
   ): SendTxPayload {
     return {
       Move: {
-        raw_txn: this.getRawTxnDataInJSON(senderAccount.address(), rawTxn),
+        raw_txn: this.getRawTxnJSON(senderAccount.address(), rawTxn),
         authenticator: {
           Ed25519: {
             public_key: senderAccount.pubKey().toString(),
@@ -933,47 +933,26 @@ export class SupraClient {
   ): Promise<TransactionResponse> {
     let secondarySignersAuthenticatorJSON: Array<Ed25519AuthenticatorJSON> = [];
     secondarySignersAuthenticator.forEach((authenticator) => {
-      secondarySignersAuthenticatorJSON.push({
-        Ed25519: {
-          public_key: Buffer.from(authenticator.public_key.value).toString(
-            "hex"
-          ),
-          signature: Buffer.from(authenticator.signature.value).toString("hex"),
-        },
-      });
+      secondarySignersAuthenticatorJSON.push(
+        this.getED25519AuthenticatorJSON(authenticator)
+      );
     });
 
     let sendTxPayload: SendTxPayload = {
       Move: {
-        raw_txn: this.getRawTxnDataInJSON(
+        raw_txn: this.getRawTxnJSON(
           new HexString(senderAccountAddress),
           rawTxn
         ),
         authenticator: {
           FeePayer: {
-            sender: {
-              Ed25519: {
-                public_key: Buffer.from(
-                  senderAuthenticator.public_key.value
-                ).toString("hex"),
-                signature: Buffer.from(
-                  senderAuthenticator.signature.value
-                ).toString("hex"),
-              },
-            },
+            sender: this.getED25519AuthenticatorJSON(senderAuthenticator),
             secondary_signer_addresses: secondarySignersAccountAddress,
             secondary_signers: secondarySignersAuthenticatorJSON,
             fee_payer_address: feePayerAddress,
-            fee_payer_signer: {
-              Ed25519: {
-                public_key: Buffer.from(
-                  feePayerAuthenticator.public_key.value
-                ).toString("hex"),
-                signature: Buffer.from(
-                  feePayerAuthenticator.signature.value
-                ).toString("hex"),
-              },
-            },
+            fee_payer_signer: this.getED25519AuthenticatorJSON(
+              feePayerAuthenticator
+            ),
           },
         },
       },
@@ -983,6 +962,17 @@ export class SupraClient {
       sendTxPayload,
       enableTransactionWaitAndSimulationArgs
     );
+  }
+
+  private getED25519AuthenticatorJSON(
+    authenticator: TxnBuilderTypes.AccountAuthenticatorEd25519
+  ): Ed25519AuthenticatorJSON {
+    return {
+      Ed25519: {
+        public_key: Buffer.from(authenticator.public_key.value).toString("hex"),
+        signature: Buffer.from(authenticator.signature.value).toString("hex"),
+      },
+    };
   }
 
   /**
@@ -1301,7 +1291,7 @@ export class SupraClient {
   ): Promise<any> {
     let sendTxPayload = {
       Move: {
-        raw_txn: this.getRawTxnDataInJSON(
+        raw_txn: this.getRawTxnJSON(
           senderAccountAddress,
           TxnBuilderTypes.RawTransaction.deserialize(
             new BCS.Deserializer(serializedRawTransaction)

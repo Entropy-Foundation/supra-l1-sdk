@@ -231,6 +231,7 @@ import {
     )
   );
 
+  // Transaction sponsor keyPair
   let feePayerAccount = new SupraAccount(
     Buffer.from(
       "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d86",
@@ -246,6 +247,7 @@ import {
     );
   }
 
+  // Creating RawTransaction for sponsor transaction
   let sponsorTxSupraCoinTransferRawTransaction =
     await supraClient.createRawTxObject(
       senderAccount.address(),
@@ -259,21 +261,25 @@ import {
       [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(10000)]
     );
 
+  // Creating Sponsor Transaction Payload
   let sponsorTransactionPayload = new TxnBuilderTypes.FeePayerRawTransaction(
     sponsorTxSupraCoinTransferRawTransaction,
     [],
     new TxnBuilderTypes.AccountAddress(feePayerAccount.address().toUint8Array())
   );
 
+  // Generating sender authenticator
   let senderAuthenticator = SupraClient.signSupraMultiTransaction(
     senderAccount,
     sponsorTransactionPayload
   );
+  // Generating sponsor authenticator
   let feePayerAuthenticator = SupraClient.signSupraMultiTransaction(
     feePayerAccount,
     sponsorTransactionPayload
   );
 
+  // Sending sponsor transaction
   console.log(
     await supraClient.sendSponsorTransaction(
       senderAccount.address().toString(),
