@@ -917,7 +917,7 @@ export class SupraClient {
    * @param rawTxn The raw transaction to be submitted
    * @param senderAuthenticator The sender account authenticator
    * @param feePayerAuthenticator The feepayer account authenticator
-   * @param secondarySignersAuthenticator An optional array of the secondary signer account authenticators
+   * @param secondarySignersAuthenticator An optional array of the secondary signers account authenticator
    * @param enableTransactionWaitAndSimulationArgs enable transaction wait and simulation arguments
    * @returns `TransactionResponse`
    */
@@ -953,6 +953,53 @@ export class SupraClient {
             fee_payer_signer: this.getED25519AuthenticatorJSON(
               feePayerAuthenticator
             ),
+          },
+        },
+      },
+    };
+
+    return await this.sendTx(
+      sendTxPayload,
+      enableTransactionWaitAndSimulationArgs
+    );
+  }
+
+  /**
+   * Sends multi-agent transaction
+   * @param senderAccountAddress Account address of tx sender
+   * @param secondarySignersAccountAddress List of account address of tx secondary signers
+   * @param rawTxn The raw transaction to be submitted
+   * @param senderAuthenticator The sender account authenticator
+   * @param secondarySignersAuthenticator List of the secondary signers account authenticator
+   * @param enableTransactionWaitAndSimulationArgs enable transaction wait and simulation arguments
+   * @returns `TransactionResponse`
+   */
+  async sendMultiAgentTransaction(
+    senderAccountAddress: string,
+    secondarySignersAccountAddress: Array<string>,
+    rawTxn: TxnBuilderTypes.RawTransaction,
+    senderAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519,
+    secondarySignersAuthenticator: Array<TxnBuilderTypes.AccountAuthenticatorEd25519>,
+    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs
+  ): Promise<TransactionResponse> {
+    let secondarySignersAuthenticatorJSON: Array<Ed25519AuthenticatorJSON> = [];
+    secondarySignersAuthenticator.forEach((authenticator) => {
+      secondarySignersAuthenticatorJSON.push(
+        this.getED25519AuthenticatorJSON(authenticator)
+      );
+    });
+
+    let sendTxPayload: SendTxPayload = {
+      Move: {
+        raw_txn: this.getRawTxnJSON(
+          new HexString(senderAccountAddress),
+          rawTxn
+        ),
+        authenticator: {
+          MultiAgent: {
+            sender: this.getED25519AuthenticatorJSON(senderAuthenticator),
+            secondary_signer_addresses: secondarySignersAccountAddress,
+            secondary_signers: secondarySignersAuthenticatorJSON,
           },
         },
       },

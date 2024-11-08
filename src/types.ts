@@ -112,9 +112,18 @@ export interface SponsorTransactionAuthenticatorJSON {
   };
 }
 
+export interface MultiAgentTransactionAuthenticatorJSON {
+  MultiAgent: {
+    sender: Ed25519AuthenticatorJSON;
+    secondary_signer_addresses: Array<string>;
+    secondary_signers: Array<Ed25519AuthenticatorJSON>;
+  };
+}
+
 export type AnyAuthenticatorJSON =
   | Ed25519AuthenticatorJSON
-  | SponsorTransactionAuthenticatorJSON;
+  | SponsorTransactionAuthenticatorJSON
+  | MultiAgentTransactionAuthenticatorJSON;
 
 export interface SendTxPayload {
   Move: {
