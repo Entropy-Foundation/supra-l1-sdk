@@ -101,7 +101,14 @@ interface SponsorTransactionAuthenticatorJSON {
         fee_payer_signer: Ed25519AuthenticatorJSON;
     };
 }
-type AnyAuthenticatorJSON = Ed25519AuthenticatorJSON | SponsorTransactionAuthenticatorJSON;
+interface MultiAgentTransactionAuthenticatorJSON {
+    MultiAgent: {
+        sender: Ed25519AuthenticatorJSON;
+        secondary_signer_addresses: Array<string>;
+        secondary_signers: Array<Ed25519AuthenticatorJSON>;
+    };
+}
+type AnyAuthenticatorJSON = Ed25519AuthenticatorJSON | SponsorTransactionAuthenticatorJSON | MultiAgentTransactionAuthenticatorJSON;
 interface SendTxPayload {
     Move: {
         raw_txn: RawTxnJSON;
@@ -281,7 +288,7 @@ declare class SupraClient {
      * @returns signer authenticator
      */
     static signSupraMultiTransaction(signer: AptosAccount, rawTxn: TxnBuilderTypes.MultiAgentRawTransaction | TxnBuilderTypes.FeePayerRawTransaction): TxnBuilderTypes.AccountAuthenticatorEd25519;
-    private getRawTxnDataInJSON;
+    private getRawTxnJSON;
     /**
      * Generate `SendTxPayload` using `RawTransaction` to send transaction request
      * Generated data can be used to send transaction directly using `/rpc/v1/transactions/submit` endpoint of `rpc_node`
@@ -306,11 +313,23 @@ declare class SupraClient {
      * @param rawTxn The raw transaction to be submitted
      * @param senderAuthenticator The sender account authenticator
      * @param feePayerAuthenticator The feepayer account authenticator
-     * @param secondarySignersAuthenticator An optional array of the secondary signer account authenticators
+     * @param secondarySignersAuthenticator An optional array of the secondary signers account authenticator
      * @param enableTransactionWaitAndSimulationArgs enable transaction wait and simulation arguments
      * @returns `TransactionResponse`
      */
     sendSponsorTransaction(senderAccountAddress: string, feePayerAddress: string, secondarySignersAccountAddress: Array<string>, rawTxn: TxnBuilderTypes.RawTransaction, senderAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519, feePayerAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519, secondarySignersAuthenticator?: Array<TxnBuilderTypes.AccountAuthenticatorEd25519>, enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs): Promise<TransactionResponse>;
+    /**
+     * Sends multi-agent transaction
+     * @param senderAccountAddress Account address of tx sender
+     * @param secondarySignersAccountAddress List of account address of tx secondary signers
+     * @param rawTxn The raw transaction to be submitted
+     * @param senderAuthenticator The sender account authenticator
+     * @param secondarySignersAuthenticator List of the secondary signers account authenticator
+     * @param enableTransactionWaitAndSimulationArgs enable transaction wait and simulation arguments
+     * @returns `TransactionResponse`
+     */
+    sendMultiAgentTransaction(senderAccountAddress: string, secondarySignersAccountAddress: Array<string>, rawTxn: TxnBuilderTypes.RawTransaction, senderAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519, secondarySignersAuthenticator: Array<TxnBuilderTypes.AccountAuthenticatorEd25519>, enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs): Promise<TransactionResponse>;
+    private getED25519AuthenticatorJSON;
     /**
      * Create raw transaction object for `entry_function_payload` type tx
      * @param senderAddr Sender account address
@@ -420,4 +439,4 @@ declare class SupraClient {
     simulateTxUsingSerializedRawTransaction(senderAccountAddress: HexString, senderAccountPubKey: HexString, serializedRawTransaction: Uint8Array): Promise<any>;
 }
 
-export { type AccountCoinTransactionsDetail, type AccountInfo, type AccountResources, type AnyAuthenticatorJSON, type CoinChange, type CoinInfo, type Ed25519AuthenticatorJSON, type EnableTransactionWaitAndSimulationArgs, type EntryFunctionPayloadJSON, type FaucetRequestResponse, type FunctionTypeArgs, type OptionalTransactionArgs, type OptionalTransactionPayloadArgs, type PaginationArgs, type RawTxnJSON, type ResourceInfo, type SendTxPayload, type SponsorTransactionAuthenticatorJSON, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };
+export { type AccountCoinTransactionsDetail, type AccountInfo, type AccountResources, type AnyAuthenticatorJSON, type CoinChange, type CoinInfo, type Ed25519AuthenticatorJSON, type EnableTransactionWaitAndSimulationArgs, type EntryFunctionPayloadJSON, type FaucetRequestResponse, type FunctionTypeArgs, type MultiAgentTransactionAuthenticatorJSON, type OptionalTransactionArgs, type OptionalTransactionPayloadArgs, type PaginationArgs, type RawTxnJSON, type ResourceInfo, type SendTxPayload, type SponsorTransactionAuthenticatorJSON, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };

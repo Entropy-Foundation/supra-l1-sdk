@@ -14349,7 +14349,7 @@ var SupraClient = class _SupraClient {
     if (resData.data == null) {
       return null;
     }
-    return resData.data.status == "Unexecuted" ? "Pending" : resData.data.status == "Fail" ? "Failed" : resData.data.status;
+    return resData.data.status == "Unexecuted" ? "Pending" /* Pending */ : resData.data.status == "Fail" ? "Failed" /* Failed */ : resData.data.status;
   }
   getCoinChangeAmount(userAddress, events) {
     let coinChange = /* @__PURE__ */ new Map();
@@ -14776,7 +14776,7 @@ var SupraClient = class _SupraClient {
     );
     return signerAuthenticator;
   }
-  getRawTxnDataInJSON(senderAccountAddress, rawTxn) {
+  getRawTxnJSON(senderAccountAddress, rawTxn) {
     let txPayload = rawTxn.payload.value;
     return {
       sender: senderAccountAddress.toString(),
@@ -14808,7 +14808,7 @@ var SupraClient = class _SupraClient {
   getSendTxPayload(senderAccount, rawTxn) {
     return {
       Move: {
-        raw_txn: this.getRawTxnDataInJSON(senderAccount.address(), rawTxn),
+        raw_txn: this.getRawTxnJSON(senderAccount.address(), rawTxn),
         authenticator: {
           Ed25519: {
             public_key: senderAccount.pubKey().toString(),
@@ -14848,53 +14848,32 @@ var SupraClient = class _SupraClient {
    * @param rawTxn The raw transaction to be submitted
    * @param senderAuthenticator The sender account authenticator
    * @param feePayerAuthenticator The feepayer account authenticator
-   * @param secondarySignersAuthenticator An optional array of the secondary signer account authenticators
+   * @param secondarySignersAuthenticator An optional array of the secondary signers account authenticator
    * @param enableTransactionWaitAndSimulationArgs enable transaction wait and simulation arguments
    * @returns `TransactionResponse`
    */
   async sendSponsorTransaction(senderAccountAddress, feePayerAddress, secondarySignersAccountAddress, rawTxn, senderAuthenticator, feePayerAuthenticator, secondarySignersAuthenticator = [], enableTransactionWaitAndSimulationArgs) {
     let secondarySignersAuthenticatorJSON = [];
     secondarySignersAuthenticator.forEach((authenticator) => {
-      secondarySignersAuthenticatorJSON.push({
-        Ed25519: {
-          public_key: Buffer.from(authenticator.public_key.value).toString(
-            "hex"
-          ),
-          signature: Buffer.from(authenticator.signature.value).toString("hex")
-        }
-      });
+      secondarySignersAuthenticatorJSON.push(
+        this.getED25519AuthenticatorJSON(authenticator)
+      );
     });
     let sendTxPayload = {
       Move: {
-        raw_txn: this.getRawTxnDataInJSON(
+        raw_txn: this.getRawTxnJSON(
           new HexString(senderAccountAddress),
           rawTxn
         ),
         authenticator: {
           FeePayer: {
-            sender: {
-              Ed25519: {
-                public_key: Buffer.from(
-                  senderAuthenticator.public_key.value
-                ).toString("hex"),
-                signature: Buffer.from(
-                  senderAuthenticator.signature.value
-                ).toString("hex")
-              }
-            },
+            sender: this.getED25519AuthenticatorJSON(senderAuthenticator),
             secondary_signer_addresses: secondarySignersAccountAddress,
             secondary_signers: secondarySignersAuthenticatorJSON,
             fee_payer_address: feePayerAddress,
-            fee_payer_signer: {
-              Ed25519: {
-                public_key: Buffer.from(
-                  feePayerAuthenticator.public_key.value
-                ).toString("hex"),
-                signature: Buffer.from(
-                  feePayerAuthenticator.signature.value
-                ).toString("hex")
-              }
-            }
+            fee_payer_signer: this.getED25519AuthenticatorJSON(
+              feePayerAuthenticator
+            )
           }
         }
       }
@@ -14903,6 +14882,51 @@ var SupraClient = class _SupraClient {
       sendTxPayload,
       enableTransactionWaitAndSimulationArgs
     );
+  }
+  /**
+   * Sends multi-agent transaction
+   * @param senderAccountAddress Account address of tx sender
+   * @param secondarySignersAccountAddress List of account address of tx secondary signers
+   * @param rawTxn The raw transaction to be submitted
+   * @param senderAuthenticator The sender account authenticator
+   * @param secondarySignersAuthenticator List of the secondary signers account authenticator
+   * @param enableTransactionWaitAndSimulationArgs enable transaction wait and simulation arguments
+   * @returns `TransactionResponse`
+   */
+  async sendMultiAgentTransaction(senderAccountAddress, secondarySignersAccountAddress, rawTxn, senderAuthenticator, secondarySignersAuthenticator, enableTransactionWaitAndSimulationArgs) {
+    let secondarySignersAuthenticatorJSON = [];
+    secondarySignersAuthenticator.forEach((authenticator) => {
+      secondarySignersAuthenticatorJSON.push(
+        this.getED25519AuthenticatorJSON(authenticator)
+      );
+    });
+    let sendTxPayload = {
+      Move: {
+        raw_txn: this.getRawTxnJSON(
+          new HexString(senderAccountAddress),
+          rawTxn
+        ),
+        authenticator: {
+          MultiAgent: {
+            sender: this.getED25519AuthenticatorJSON(senderAuthenticator),
+            secondary_signer_addresses: secondarySignersAccountAddress,
+            secondary_signers: secondarySignersAuthenticatorJSON
+          }
+        }
+      }
+    };
+    return await this.sendTx(
+      sendTxPayload,
+      enableTransactionWaitAndSimulationArgs
+    );
+  }
+  getED25519AuthenticatorJSON(authenticator) {
+    return {
+      Ed25519: {
+        public_key: Buffer.from(authenticator.public_key.value).toString("hex"),
+        signature: Buffer.from(authenticator.signature.value).toString("hex")
+      }
+    };
   }
   /**
    * Create raw transaction object for `entry_function_payload` type tx
@@ -15152,7 +15176,7 @@ var SupraClient = class _SupraClient {
   async simulateTxUsingSerializedRawTransaction(senderAccountAddress, senderAccountPubKey, serializedRawTransaction) {
     let sendTxPayload = {
       Move: {
-        raw_txn: this.getRawTxnDataInJSON(
+        raw_txn: this.getRawTxnJSON(
           senderAccountAddress,
           TxnBuilderTypes.RawTransaction.deserialize(
             new BCS.Deserializer(serializedRawTransaction)
