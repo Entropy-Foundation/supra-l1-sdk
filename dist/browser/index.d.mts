@@ -14,7 +14,7 @@ interface ResourceInfo {
     }>;
 }
 interface AccountResources {
-    resources: Array<[string, ResourceInfo]>;
+    resource: Array<[string, ResourceInfo]>;
     cursor: string;
 }
 interface CoinInfo {

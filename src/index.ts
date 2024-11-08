@@ -1335,24 +1335,23 @@ export class SupraClient {
   }
 
   private unsetAuthenticatorSignatures(txAuthenticator: AnyAuthenticatorJSON) {
+    let nullSignature = "0x" + "0".repeat(128);
     if ("Ed25519" in txAuthenticator) {
-      txAuthenticator.Ed25519.signature = "0x" + "0".repeat(128);
+      txAuthenticator.Ed25519.signature = nullSignature;
     } else if ("FeePayer" in txAuthenticator) {
-      txAuthenticator.FeePayer.sender.Ed25519.signature =
-        "0x" + "0".repeat(128);
+      txAuthenticator.FeePayer.sender.Ed25519.signature = nullSignature;
       txAuthenticator.FeePayer.fee_payer_signer.Ed25519.signature =
-        "0x" + "0".repeat(128);
+        nullSignature;
       txAuthenticator.FeePayer.secondary_signers.forEach(
         (ed25519Authenticator) => {
-          ed25519Authenticator.Ed25519.signature = "0x" + "0".repeat(128);
+          ed25519Authenticator.Ed25519.signature = nullSignature;
         }
       );
     } else {
-      txAuthenticator.MultiAgent.sender.Ed25519.signature =
-        "0x" + "0".repeat(128);
+      txAuthenticator.MultiAgent.sender.Ed25519.signature = nullSignature;
       txAuthenticator.MultiAgent.secondary_signers.forEach(
         (ed25519Authenticator) => {
-          ed25519Authenticator.Ed25519.signature = "0x" + "0".repeat(128);
+          ed25519Authenticator.Ed25519.signature = nullSignature;
         }
       );
     }

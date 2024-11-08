@@ -12,7 +12,7 @@ export interface ResourceInfo {
 }
 
 export interface AccountResources {
-  resources: Array<[string, ResourceInfo]>;
+  resource: Array<[string, ResourceInfo]>;
   cursor: string;
 }
 
