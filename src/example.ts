@@ -172,7 +172,12 @@ import {
   console.log(
     await supraClient.simulateTxUsingSerializedRawTransaction(
       senderAccount.address(),
-      senderAccount.pubKey(),
+      {
+        Ed25519: {
+          public_key: senderAccount.pubKey().toString(),
+          signature: "0x" + "0".repeat(128),
+        },
+      },
       supraCoinTransferSerializedRawTransaction
     )
   );

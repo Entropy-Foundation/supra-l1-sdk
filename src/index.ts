@@ -29,8 +29,11 @@ import {
   OptionalTransactionArgs,
   PaginationArgs,
   AccountCoinTransactionsDetail,
-  Ed25519AuthenticatorJSON,
   RawTxnJSON,
+  AnyAuthenticatorJSON,
+  Ed25519AuthenticatorJSON,
+  SponsorTransactionAuthenticatorJSON,
+  MultiAgentTransactionAuthenticatorJSON,
 } from "./types";
 import {
   DEFAULT_CHAIN_ID,
@@ -1308,12 +1311,19 @@ export class SupraClient {
    * @returns Transaction simulation result
    */
   async simulateTx(sendTxPayload: SendTxPayload): Promise<any> {
+    let txAuthenticatorWithValidSignatures = sendTxPayload.Move.authenticator;
+    let txAuthenticatorClone = JSON.parse(
+      JSON.stringify(txAuthenticatorWithValidSignatures)
+    );
+    sendTxPayload.Move.authenticator = txAuthenticatorClone;
+    this.unsetAuthenticatorSignatures(sendTxPayload.Move.authenticator);
     let resData = await this.sendRequest(
       false,
       "/rpc/v1/transactions/simulate",
       sendTxPayload
     );
 
+    sendTxPayload.Move.authenticator = txAuthenticatorWithValidSignatures;
     if (resData.data.output.Move.vm_status !== "Executed successfully") {
       throw new Error(
         "Transaction Can Be Failed, Reason: " +
@@ -1324,16 +1334,40 @@ export class SupraClient {
     return resData.data;
   }
 
+  private unsetAuthenticatorSignatures(txAuthenticator: AnyAuthenticatorJSON) {
+    if ("Ed25519" in txAuthenticator) {
+      txAuthenticator.Ed25519.signature = "0x" + "0".repeat(128);
+    } else if ("FeePayer" in txAuthenticator) {
+      txAuthenticator.FeePayer.sender.Ed25519.signature =
+        "0x" + "0".repeat(128);
+      txAuthenticator.FeePayer.fee_payer_signer.Ed25519.signature =
+        "0x" + "0".repeat(128);
+      txAuthenticator.FeePayer.secondary_signers.forEach(
+        (ed25519Authenticator) => {
+          ed25519Authenticator.Ed25519.signature = "0x" + "0".repeat(128);
+        }
+      );
+    } else {
+      txAuthenticator.MultiAgent.sender.Ed25519.signature =
+        "0x" + "0".repeat(128);
+      txAuthenticator.MultiAgent.secondary_signers.forEach(
+        (ed25519Authenticator) => {
+          ed25519Authenticator.Ed25519.signature = "0x" + "0".repeat(128);
+        }
+      );
+    }
+  }
+
   /**
    * Simulate a transaction using the provided Serialized raw transaction data
    * @param senderAccountAddress Tx sender account address
-   * @param senderAccountPubKey Tx sender account public key
+   * @param txAuthenticator Transaction authenticator
    * @param serializedRawTransaction Serialized raw transaction data
    * @returns Transaction simulation result
    */
   async simulateTxUsingSerializedRawTransaction(
     senderAccountAddress: HexString,
-    senderAccountPubKey: HexString,
+    txAuthenticator: AnyAuthenticatorJSON,
     serializedRawTransaction: Uint8Array
   ): Promise<any> {
     let sendTxPayload = {
@@ -1344,12 +1378,7 @@ export class SupraClient {
             new BCS.Deserializer(serializedRawTransaction)
           )
         ),
-        authenticator: {
-          Ed25519: {
-            public_key: senderAccountPubKey.toString(),
-            signature: "0".repeat(128),
-          },
-        },
+        authenticator: txAuthenticator,
       },
     };
 

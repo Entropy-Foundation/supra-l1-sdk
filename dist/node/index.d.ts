@@ -429,14 +429,15 @@ declare class SupraClient {
      * @returns Transaction simulation result
      */
     simulateTx(sendTxPayload: SendTxPayload): Promise<any>;
+    private unsetAuthenticatorSignatures;
     /**
      * Simulate a transaction using the provided Serialized raw transaction data
      * @param senderAccountAddress Tx sender account address
-     * @param senderAccountPubKey Tx sender account public key
+     * @param txAuthenticator Transaction authenticator
      * @param serializedRawTransaction Serialized raw transaction data
      * @returns Transaction simulation result
      */
-    simulateTxUsingSerializedRawTransaction(senderAccountAddress: HexString, senderAccountPubKey: HexString, serializedRawTransaction: Uint8Array): Promise<any>;
+    simulateTxUsingSerializedRawTransaction(senderAccountAddress: HexString, txAuthenticator: AnyAuthenticatorJSON, serializedRawTransaction: Uint8Array): Promise<any>;
 }
 
 export { type AccountCoinTransactionsDetail, type AccountInfo, type AccountResources, type AnyAuthenticatorJSON, type CoinChange, type CoinInfo, type Ed25519AuthenticatorJSON, type EnableTransactionWaitAndSimulationArgs, type EntryFunctionPayloadJSON, type FaucetRequestResponse, type FunctionTypeArgs, type MultiAgentTransactionAuthenticatorJSON, type OptionalTransactionArgs, type OptionalTransactionPayloadArgs, type PaginationArgs, type RawTxnJSON, type ResourceInfo, type SendTxPayload, type SponsorTransactionAuthenticatorJSON, SupraClient, type TransactionDetail, type TransactionInsights, type TransactionResponse, TransactionStatus, TxTypeForTransactionInsights };
