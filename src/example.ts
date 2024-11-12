@@ -20,8 +20,8 @@ import {
   // To Create Instance Of Supra Client, But In This Method We Don't Need To Pass ChainId.
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await SupraClient.init(
-    "http://localhost:27001/"
-    // "https://rpc-testnet.supra.com/"
+    // "http://localhost:27001/"
+    "https://rpc-testnet.supra.com/"
   );
 
   let senderAccount = new SupraAccount(
@@ -236,10 +236,12 @@ import {
     )
   );
 
+  // Complete Sponsor transaction flow
+
   // Transaction sponsor keyPair
   let feePayerAccount = new SupraAccount(
     Buffer.from(
-      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d86",
+      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d88",
       "hex"
     )
   );
@@ -274,7 +276,7 @@ import {
   );
 
   // Generating sender authenticator
-  let senderAuthenticator = SupraClient.signSupraMultiTransaction(
+  let sponsorTxSenderAuthenticator = SupraClient.signSupraMultiTransaction(
     senderAccount,
     sponsorTransactionPayload
   );
@@ -291,9 +293,77 @@ import {
       feePayerAccount.address().toString(),
       [],
       sponsorTxSupraCoinTransferRawTransaction,
-      senderAuthenticator,
+      sponsorTxSenderAuthenticator,
       feePayerAuthenticator,
       [],
+      {
+        enableWaitForTransaction: true,
+        enableTransactionSimulation: true,
+      }
+    )
+  );
+
+  // Complete Multi-Agent transaction flow
+
+  // Secondary signer1 keyPair
+  let secondarySigner1 = new SupraAccount(
+    Buffer.from(
+      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d87",
+      "hex"
+    )
+  );
+  console.log("Secondary Signer1 Address: ", secondarySigner1.address());
+
+  if (
+    (await supraClient.isAccountExists(secondarySigner1.address())) == false
+  ) {
+    console.log(
+      "Funding Secondary Signer1 Account With Faucet: ",
+      await supraClient.fundAccountWithFaucet(secondarySigner1.address())
+    );
+  }
+
+  // Creating RawTransaction for multi-agent RawTransaction
+  // Note: The `7452ce103328320893993cb9fc656f680a9ed28b0f429ff2ecbf6834eefab3ad::wrapper` module is deployed on testnet
+  let multiAgentRawTransaction = await supraClient.createRawTxObject(
+    senderAccount.address(),
+    (
+      await supraClient.getAccountInfo(senderAccount.address())
+    ).sequence_number,
+    "7452ce103328320893993cb9fc656f680a9ed28b0f429ff2ecbf6834eefab3ad",
+    "wrapper",
+    "two_signers",
+    [],
+    []
+  );
+
+  // Creating Multi-Agent Transaction Payload
+  let multiAgentTransactionPayload =
+    new TxnBuilderTypes.MultiAgentRawTransaction(multiAgentRawTransaction, [
+      new TxnBuilderTypes.AccountAddress(
+        secondarySigner1.address().toUint8Array()
+      ),
+    ]);
+
+  // Generating sender authenticator
+  let multiAgentSenderAuthenticator = SupraClient.signSupraMultiTransaction(
+    senderAccount,
+    multiAgentTransactionPayload
+  );
+  // Generating Secondary Signer1 authenticator
+  let secondarySigner1Authenticator = SupraClient.signSupraMultiTransaction(
+    secondarySigner1,
+    multiAgentTransactionPayload
+  );
+
+  // Sending Multi-Agent transaction
+  console.log(
+    await supraClient.sendMultiAgentTransaction(
+      senderAccount.address().toString(),
+      [secondarySigner1.address().toString()],
+      multiAgentRawTransaction,
+      multiAgentSenderAuthenticator,
+      [secondarySigner1Authenticator],
       {
         enableWaitForTransaction: true,
         enableTransactionSimulation: true,
