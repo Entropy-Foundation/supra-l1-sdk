@@ -30,8 +30,8 @@ Check [./src/example.ts](https://github.com/Entropy-Foundation/supra-l1-sdk/blob
 - [X] Transaction signing
 - [X] Transaction hash generation
 - [ ] `script_payload` type tx
-- [ ] Sponsor transaction
-- [ ] Multi-agent transaction
+- [X] Sponsor transaction
+- [X] Multi-agent transaction
 - [X] Starkey wallet integration support
 
 ## Contributing
