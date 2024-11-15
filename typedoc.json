@@ -1,0 +1,15 @@
+{
+    "name": "Supra-L1-SDK",
+    "includeVersion": true,
+    "out": "./docs",
+    "entryPoints": [
+        "src/index.ts"
+    ],
+    "cname": "sdk-docs.supra.com",
+    "visibilityFilters": {
+        "protected": false,
+        "private": false,
+        "inherited": true,
+        "external": true,
+    }
+}
