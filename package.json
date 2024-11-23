@@ -26,8 +26,8 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsup --platform node --format cjs,esm --dts --out-dir dist/node && tsup --platform browser --format cjs,esm --dts  --minify --out-dir dist/browser",
-    "prepare": "npm run build",
-    "docs":"npx typedoc"
+    "prepare": "./.scripts/install_supra_aptos_sdk.sh aptosvm-v1.16_supra-v1.4.2 && npm run build",
+    "docs": "npx typedoc"
   },
   "author": "",
   "keywords": [
@@ -38,7 +38,7 @@
   "license": "ISC",
   "dependencies": {
     "@ethersproject/keccak256": "^5.7.0",
-    "aptos": "^1.21.0",
+    "supra": "file:.supra_aptos_sdk/aptos-core/ecosystem/typescript/sdk",
     "js-sha3": "^0.9.3"
   },
   "devDependencies": {

@@ -64,9 +64,6 @@ function install() {
     npm install || (echo "Failed to initialize the Supra Aptos TypeScript SDK" && exit 4)
     npm run build || (echo "Failed to build the Supra Aptos TypeScript SDK" && exit 5)
     cd "$L1_SDK_ROOT"
-
-    # And install it as a dependency of this project.
-    npm install "$REPO_ROOT"/ecosystem/typescript/sdk
 }
 
 function parse_git_branch() {    

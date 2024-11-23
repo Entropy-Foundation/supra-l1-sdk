@@ -4,7 +4,7 @@ import {
   HexString,
   AptosAccount as SupraAccount,
   AnyRawTransaction,
-} from "aptos";
+} from "supra";
 import axios, { AxiosResponse } from "axios";
 import {
   normalizeAddress,
@@ -278,8 +278,8 @@ export class SupraClient {
     return resData.data.status == "Unexecuted"
       ? TransactionStatus.Pending
       : resData.data.status == "Fail"
-      ? TransactionStatus.Failed
-      : resData.data.status;
+        ? TransactionStatus.Failed
+        : resData.data.status;
   }
 
   private getCoinChangeAmount(
@@ -1204,9 +1204,7 @@ export class SupraClient {
       senderAccount,
       await this.createRawTxObject(
         senderAccount.address(),
-        (
-          await this.getAccountInfo(senderAccount.address())
-        ).sequence_number,
+        (await this.getAccountInfo(senderAccount.address())).sequence_number,
         SUPRA_FRAMEWORK_ADDRESS,
         "supra_account",
         "transfer",
@@ -1242,9 +1240,7 @@ export class SupraClient {
       senderAccount,
       await this.createRawTxObject(
         senderAccount.address(),
-        (
-          await this.getAccountInfo(senderAccount.address())
-        ).sequence_number,
+        (await this.getAccountInfo(senderAccount.address())).sequence_number,
         SUPRA_FRAMEWORK_ADDRESS,
         "supra_account",
         "transfer_coins",
@@ -1287,9 +1283,7 @@ export class SupraClient {
       senderAccount,
       await this.createRawTxObject(
         senderAccount.address(),
-        (
-          await this.getAccountInfo(senderAccount.address())
-        ).sequence_number,
+        (await this.getAccountInfo(senderAccount.address())).sequence_number,
         SUPRA_FRAMEWORK_ADDRESS,
         "code",
         "publish_package_txn",
