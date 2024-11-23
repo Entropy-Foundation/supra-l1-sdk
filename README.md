@@ -7,7 +7,7 @@ The `supra-l1-sdk` provides a convenient way to interact with the supra chain an
 Install supra-l1-sdk with npm
 
 ```bash
-  npm install git+https://github.com/Entropy-Foundation/supra-l1-sdk.git
+  npm install supra-l1-sdk
 ```
 
 ## Reference Docs
