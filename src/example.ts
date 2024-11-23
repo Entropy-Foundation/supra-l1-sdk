@@ -1,4 +1,10 @@
-import { HexString, SupraAccount, SupraClient, BCS } from "./index";
+import {
+  HexString,
+  SupraAccount,
+  SupraClient,
+  BCS,
+  TxnBuilderTypes,
+} from "./index";
 
 // To run this example, install `ts-node` (e.g. `npm install -g ts-node`), enter the directory
 // that contains this file and run `ts-node ./example.ts`.
@@ -93,20 +99,19 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
   );
 
   // To transfer coin
-  console.log(
-    await supraClient.transferCoin(
-      senderAccount,
-      receiverAddress,
-      BigInt(1000),
-      coinType,
-      {
-        enableTransactionWaitAndSimulationArgs: {
-          enableWaitForTransaction: true,
-          enableTransactionSimulation: true,
-        },
-      }
-    )
+  let supraCoinTransferResData = await supraClient.transferCoin(
+    senderAccount,
+    receiverAddress,
+    BigInt(1000),
+    coinType,
+    {
+      enableTransactionWaitAndSimulationArgs: {
+        enableWaitForTransaction: true,
+        enableTransactionSimulation: true,
+      },
+    }
   );
+  console.log(supraCoinTransferResData);
 
   console.log(
     "Sender Coin Balance After Tx: ",
@@ -123,10 +128,8 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
   );
 
   let txData = await supraClient.getTransactionDetail(
-    new HexString(
-      "0x4f88ad501b780c12290a6fa63e1e1500eaa5fd5ba945896ce77ee8c53a2f6d00"
-    ),
-    "0x338e8d8db2177c3e4ae94890dc63bdf00bd558a685b6fc42fe685a85b4bac6d9"
+    senderAccount.address(),
+    supraCoinTransferResData.txHash
   );
   if (txData != null) {
     console.log("Transaction Detail: ", txData.transactionInsights);
@@ -169,7 +172,12 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
   console.log(
     await supraClient.simulateTxUsingSerializedRawTransaction(
       senderAccount.address(),
-      senderAccount.pubKey(),
+      {
+        Ed25519: {
+          public_key: senderAccount.pubKey().toString(),
+          signature: "0x" + "0".repeat(128),
+        },
+      },
       supraCoinTransferSerializedRawTransaction
     )
   );
@@ -181,7 +189,7 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
       supraCoinTransferSerializedRawTransaction,
       {
         enableTransactionSimulation: true,
-        enableWaitForTransaction: false,
+        enableWaitForTransaction: true,
       }
     )
   );
@@ -221,6 +229,141 @@ import { HexString, SupraAccount, SupraClient, BCS } from "./index";
     await supraClient.sendTxUsingSerializedRawTransaction(
       senderAccount,
       supraCoinTransferRawTransactionSerializer.getBytes(),
+      {
+        enableWaitForTransaction: true,
+        enableTransactionSimulation: true,
+      }
+    )
+  );
+
+  // Complete Sponsor transaction flow
+
+  // Transaction sponsor keyPair
+  let feePayerAccount = new SupraAccount(
+    Buffer.from(
+      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d88",
+      "hex"
+    )
+  );
+  console.log("FeePayer Address: ", feePayerAccount.address());
+
+  if ((await supraClient.isAccountExists(feePayerAccount.address())) == false) {
+    console.log(
+      "Funding FeePayer Account With Faucet: ",
+      await supraClient.fundAccountWithFaucet(feePayerAccount.address())
+    );
+  }
+
+  // Creating RawTransaction for sponsor transaction
+  let sponsorTxSupraCoinTransferRawTransaction =
+    await supraClient.createRawTxObject(
+      senderAccount.address(),
+      (
+        await supraClient.getAccountInfo(senderAccount.address())
+      ).sequence_number,
+      "0000000000000000000000000000000000000000000000000000000000000001",
+      "supra_account",
+      "transfer",
+      [],
+      [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(10000)]
+    );
+
+  // Creating Sponsor Transaction Payload
+  let sponsorTransactionPayload = new TxnBuilderTypes.FeePayerRawTransaction(
+    sponsorTxSupraCoinTransferRawTransaction,
+    [],
+    new TxnBuilderTypes.AccountAddress(feePayerAccount.address().toUint8Array())
+  );
+
+  // Generating sender authenticator
+  let sponsorTxSenderAuthenticator = SupraClient.signSupraMultiTransaction(
+    senderAccount,
+    sponsorTransactionPayload
+  );
+  // Generating sponsor authenticator
+  let feePayerAuthenticator = SupraClient.signSupraMultiTransaction(
+    feePayerAccount,
+    sponsorTransactionPayload
+  );
+
+  // Sending sponsor transaction
+  console.log(
+    await supraClient.sendSponsorTransaction(
+      senderAccount.address().toString(),
+      feePayerAccount.address().toString(),
+      [],
+      sponsorTxSupraCoinTransferRawTransaction,
+      sponsorTxSenderAuthenticator,
+      feePayerAuthenticator,
+      [],
+      {
+        enableWaitForTransaction: true,
+        enableTransactionSimulation: true,
+      }
+    )
+  );
+
+  // Complete Multi-Agent transaction flow
+
+  // Secondary signer1 keyPair
+  let secondarySigner1 = new SupraAccount(
+    Buffer.from(
+      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d87",
+      "hex"
+    )
+  );
+  console.log("Secondary Signer1 Address: ", secondarySigner1.address());
+
+  if (
+    (await supraClient.isAccountExists(secondarySigner1.address())) == false
+  ) {
+    console.log(
+      "Funding Secondary Signer1 Account With Faucet: ",
+      await supraClient.fundAccountWithFaucet(secondarySigner1.address())
+    );
+  }
+
+  // Creating RawTransaction for multi-agent RawTransaction
+  // Note: The `7452ce103328320893993cb9fc656f680a9ed28b0f429ff2ecbf6834eefab3ad::wrapper` module is deployed on testnet
+  let multiAgentRawTransaction = await supraClient.createRawTxObject(
+    senderAccount.address(),
+    (
+      await supraClient.getAccountInfo(senderAccount.address())
+    ).sequence_number,
+    "7452ce103328320893993cb9fc656f680a9ed28b0f429ff2ecbf6834eefab3ad",
+    "wrapper",
+    "two_signers",
+    [],
+    []
+  );
+
+  // Creating Multi-Agent Transaction Payload
+  let multiAgentTransactionPayload =
+    new TxnBuilderTypes.MultiAgentRawTransaction(multiAgentRawTransaction, [
+      new TxnBuilderTypes.AccountAddress(
+        secondarySigner1.address().toUint8Array()
+      ),
+    ]);
+
+  // Generating sender authenticator
+  let multiAgentSenderAuthenticator = SupraClient.signSupraMultiTransaction(
+    senderAccount,
+    multiAgentTransactionPayload
+  );
+  // Generating Secondary Signer1 authenticator
+  let secondarySigner1Authenticator = SupraClient.signSupraMultiTransaction(
+    secondarySigner1,
+    multiAgentTransactionPayload
+  );
+
+  // Sending Multi-Agent transaction
+  console.log(
+    await supraClient.sendMultiAgentTransaction(
+      senderAccount.address().toString(),
+      [secondarySigner1.address().toString()],
+      multiAgentRawTransaction,
+      multiAgentSenderAuthenticator,
+      [secondarySigner1Authenticator],
       {
         enableWaitForTransaction: true,
         enableTransactionSimulation: true,

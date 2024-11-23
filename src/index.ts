@@ -3,6 +3,7 @@ import {
   BCS,
   HexString,
   AptosAccount as SupraAccount,
+  AnyRawTransaction,
 } from "aptos";
 import axios, { AxiosResponse } from "axios";
 import {
@@ -28,6 +29,11 @@ import {
   OptionalTransactionArgs,
   PaginationArgs,
   AccountCoinTransactionsDetail,
+  RawTxnJSON,
+  AnyAuthenticatorJSON,
+  Ed25519AuthenticatorJSON,
+  SponsorTransactionAuthenticatorJSON,
+  MultiAgentTransactionAuthenticatorJSON,
 } from "./types";
 import {
   DEFAULT_CHAIN_ID,
@@ -42,6 +48,8 @@ import {
   SUPRA_FRAMEWORK_ADDRESS,
   DEFAULT_MAX_GAS_FOR_SUPRA_TRANSFER_WHEN_RECEIVER_EXISTS,
   DEFAULT_MAX_GAS_FOR_SUPRA_TRANSFER_WHEN_RECEIVER_NOT_EXISTS,
+  RAW_TRANSACTION_SALT,
+  RAW_TRANSACTION_WITH_DATA_SALT,
 } from "./constants";
 import { sha3_256 } from "js-sha3";
 import { keccak256 } from "@ethersproject/keccak256";
@@ -171,10 +179,12 @@ export class SupraClient {
    * @returns `true` if account exists otherwise `false`
    */
   async isAccountExists(account: HexString): Promise<boolean> {
-    if (
-      (await this.sendRequest(true, `/rpc/v1/accounts/${account.toString()}`))
-        .data == null
-    ) {
+    let resData = await this.sendRequest(
+      true,
+      `/rpc/v1/accounts/${account.toString()}`
+    );
+
+    if (resData.data === null || resData.status === 202) {
       return false;
     }
     return true;
@@ -266,9 +276,9 @@ export class SupraClient {
     }
 
     return resData.data.status == "Unexecuted"
-      ? "Pending"
+      ? TransactionStatus.Pending
       : resData.data.status == "Fail"
-      ? "Failed"
+      ? TransactionStatus.Failed
       : resData.data.status;
   }
 
@@ -769,22 +779,26 @@ export class SupraClient {
 
   /**
    * Generate `ed25519_signature` for supra transaction using `RawTransaction`
-   * @param senderAccount Sender KeyPair
-   * @param rawTxn Raw transaction data
+   * @param senderAccount the account to sign on the transaction
+   * @param rawTxn a RawTransaction, MultiAgentRawTransaction or FeePayerRawTransaction
    * @returns ed25519 signature in `HexString`
    */
   static signSupraTransaction(
     senderAccount: SupraAccount,
-    rawTxn: TxnBuilderTypes.RawTransaction
+    rawTxn: AnyRawTransaction
   ): HexString {
     let preHash = Uint8Array.from(
-      Buffer.from(sha3_256("SUPRA::RawTransaction"), "hex")
+      Buffer.from(
+        sha3_256(
+          rawTxn instanceof TxnBuilderTypes.RawTransaction
+            ? RAW_TRANSACTION_SALT
+            : RAW_TRANSACTION_WITH_DATA_SALT
+        ),
+        "hex"
+      )
     );
 
-    let serializer = new BCS.Serializer();
-    rawTxn.serialize(serializer);
-    let rawTxSerializedData = new Uint8Array(serializer.getBytes());
-
+    let rawTxSerializedData = new Uint8Array(BCS.bcsToBytes(rawTxn));
     let signatureMessage = new Uint8Array(
       preHash.length + rawTxSerializedData.length
     );
@@ -793,10 +807,34 @@ export class SupraClient {
     return senderAccount.signBuffer(signatureMessage);
   }
 
-  private getRawTxDataInJson(
+  /**
+   * Signs a multi transaction type (multi agent / fee payer) and returns the
+   * signer authenticator to be used to submit the transaction.
+   * @param signer the account to sign on the transaction
+   * @param rawTxn a MultiAgentRawTransaction or FeePayerRawTransaction
+   * @returns signer authenticator
+   */
+  static signSupraMultiTransaction(
+    signer: SupraAccount,
+    rawTxn:
+      | TxnBuilderTypes.MultiAgentRawTransaction
+      | TxnBuilderTypes.FeePayerRawTransaction
+  ): TxnBuilderTypes.AccountAuthenticatorEd25519 {
+    const signerSignature = new TxnBuilderTypes.Ed25519Signature(
+      SupraClient.signSupraTransaction(signer, rawTxn).toUint8Array()
+    );
+    const signerAuthenticator = new TxnBuilderTypes.AccountAuthenticatorEd25519(
+      new TxnBuilderTypes.Ed25519PublicKey(signer.signingKey.publicKey),
+      signerSignature
+    );
+
+    return signerAuthenticator;
+  }
+
+  private getRawTxnJSON(
     senderAccountAddress: HexString,
     rawTxn: TxnBuilderTypes.RawTransaction
-  ): any {
+  ): RawTxnJSON {
     let txPayload = (
       rawTxn.payload as TxnBuilderTypes.TransactionPayloadEntryFunction
     ).value;
@@ -835,7 +873,7 @@ export class SupraClient {
   ): SendTxPayload {
     return {
       Move: {
-        raw_txn: this.getRawTxDataInJson(senderAccount.address(), rawTxn),
+        raw_txn: this.getRawTxnJSON(senderAccount.address(), rawTxn),
         authenticator: {
           Ed25519: {
             public_key: senderAccount.pubKey().toString(),
@@ -861,7 +899,7 @@ export class SupraClient {
     serializedRawTransaction: Uint8Array,
     enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs
   ): Promise<TransactionResponse> {
-    let sendTxPayload = await this.getSendTxPayload(
+    let sendTxPayload = this.getSendTxPayload(
       senderAccount,
       TxnBuilderTypes.RawTransaction.deserialize(
         new BCS.Deserializer(serializedRawTransaction)
@@ -872,6 +910,119 @@ export class SupraClient {
       sendTxPayload,
       enableTransactionWaitAndSimulationArgs
     );
+  }
+
+  /**
+   * Sends sponsor transaction
+   * @param senderAccountAddress Account address of tx sender
+   * @param feePayerAddress Account address of tx fee payer
+   * @param secondarySignersAccountAddress List of account address of tx secondary signers
+   * @param rawTxn The raw transaction to be submitted
+   * @param senderAuthenticator The sender account authenticator
+   * @param feePayerAuthenticator The feepayer account authenticator
+   * @param secondarySignersAuthenticator An optional array of the secondary signers account authenticator
+   * @param enableTransactionWaitAndSimulationArgs enable transaction wait and simulation arguments
+   * @returns `TransactionResponse`
+   */
+  async sendSponsorTransaction(
+    senderAccountAddress: string,
+    feePayerAddress: string,
+    secondarySignersAccountAddress: Array<string>,
+    rawTxn: TxnBuilderTypes.RawTransaction,
+    senderAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519,
+    feePayerAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519,
+    secondarySignersAuthenticator: Array<TxnBuilderTypes.AccountAuthenticatorEd25519> = [],
+    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs
+  ): Promise<TransactionResponse> {
+    let secondarySignersAuthenticatorJSON: Array<Ed25519AuthenticatorJSON> = [];
+    secondarySignersAuthenticator.forEach((authenticator) => {
+      secondarySignersAuthenticatorJSON.push(
+        this.getED25519AuthenticatorJSON(authenticator)
+      );
+    });
+
+    let sendTxPayload: SendTxPayload = {
+      Move: {
+        raw_txn: this.getRawTxnJSON(
+          new HexString(senderAccountAddress),
+          rawTxn
+        ),
+        authenticator: {
+          FeePayer: {
+            sender: this.getED25519AuthenticatorJSON(senderAuthenticator),
+            secondary_signer_addresses: secondarySignersAccountAddress,
+            secondary_signers: secondarySignersAuthenticatorJSON,
+            fee_payer_address: feePayerAddress,
+            fee_payer_signer: this.getED25519AuthenticatorJSON(
+              feePayerAuthenticator
+            ),
+          },
+        },
+      },
+    };
+
+    return await this.sendTx(
+      sendTxPayload,
+      enableTransactionWaitAndSimulationArgs
+    );
+  }
+
+  /**
+   * Sends multi-agent transaction
+   * @param senderAccountAddress Account address of tx sender
+   * @param secondarySignersAccountAddress List of account address of tx secondary signers
+   * @param rawTxn The raw transaction to be submitted
+   * @param senderAuthenticator The sender account authenticator
+   * @param secondarySignersAuthenticator List of the secondary signers account authenticator
+   * @param enableTransactionWaitAndSimulationArgs enable transaction wait and simulation arguments
+   * @returns `TransactionResponse`
+   */
+  async sendMultiAgentTransaction(
+    senderAccountAddress: string,
+    secondarySignersAccountAddress: Array<string>,
+    rawTxn: TxnBuilderTypes.RawTransaction,
+    senderAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519,
+    secondarySignersAuthenticator: Array<TxnBuilderTypes.AccountAuthenticatorEd25519>,
+    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs
+  ): Promise<TransactionResponse> {
+    let secondarySignersAuthenticatorJSON: Array<Ed25519AuthenticatorJSON> = [];
+    secondarySignersAuthenticator.forEach((authenticator) => {
+      secondarySignersAuthenticatorJSON.push(
+        this.getED25519AuthenticatorJSON(authenticator)
+      );
+    });
+
+    let sendTxPayload: SendTxPayload = {
+      Move: {
+        raw_txn: this.getRawTxnJSON(
+          new HexString(senderAccountAddress),
+          rawTxn
+        ),
+        authenticator: {
+          MultiAgent: {
+            sender: this.getED25519AuthenticatorJSON(senderAuthenticator),
+            secondary_signer_addresses: secondarySignersAccountAddress,
+            secondary_signers: secondarySignersAuthenticatorJSON,
+          },
+        },
+      },
+    };
+
+    return await this.sendTx(
+      sendTxPayload,
+      enableTransactionWaitAndSimulationArgs
+    );
+  }
+
+  private getED25519AuthenticatorJSON(
+    authenticator: TxnBuilderTypes.AccountAuthenticatorEd25519
+  ): Ed25519AuthenticatorJSON {
+    return {
+      Ed25519: {
+        public_key: Buffer.from(authenticator.public_key.value).toString("hex"),
+        signature: Buffer.from(authenticator.signature.value).toString("hex"),
+      },
+    };
   }
 
   /**
@@ -1017,9 +1168,7 @@ export class SupraClient {
   static deriveTransactionHash(
     signedTransaction: TxnBuilderTypes.SignedTransaction
   ): string {
-    let serializer = new BCS.Serializer();
-    signedTransaction.serialize(serializer);
-    return keccak256(serializer.getBytes());
+    return keccak256(BCS.bcsToBytes(signedTransaction));
   }
 
   /**
@@ -1162,12 +1311,19 @@ export class SupraClient {
    * @returns Transaction simulation result
    */
   async simulateTx(sendTxPayload: SendTxPayload): Promise<any> {
+    let txAuthenticatorWithValidSignatures = sendTxPayload.Move.authenticator;
+    let txAuthenticatorClone = JSON.parse(
+      JSON.stringify(txAuthenticatorWithValidSignatures)
+    );
+    sendTxPayload.Move.authenticator = txAuthenticatorClone;
+    this.unsetAuthenticatorSignatures(sendTxPayload.Move.authenticator);
     let resData = await this.sendRequest(
       false,
       "/rpc/v1/transactions/simulate",
       sendTxPayload
     );
 
+    sendTxPayload.Move.authenticator = txAuthenticatorWithValidSignatures;
     if (resData.data.output.Move.vm_status !== "Executed successfully") {
       throw new Error(
         "Transaction Can Be Failed, Reason: " +
@@ -1178,32 +1334,50 @@ export class SupraClient {
     return resData.data;
   }
 
+  private unsetAuthenticatorSignatures(txAuthenticator: AnyAuthenticatorJSON) {
+    let nullSignature = "0x" + "0".repeat(128);
+    if ("Ed25519" in txAuthenticator) {
+      txAuthenticator.Ed25519.signature = nullSignature;
+    } else if ("FeePayer" in txAuthenticator) {
+      txAuthenticator.FeePayer.sender.Ed25519.signature = nullSignature;
+      txAuthenticator.FeePayer.fee_payer_signer.Ed25519.signature =
+        nullSignature;
+      txAuthenticator.FeePayer.secondary_signers.forEach(
+        (ed25519Authenticator) => {
+          ed25519Authenticator.Ed25519.signature = nullSignature;
+        }
+      );
+    } else {
+      txAuthenticator.MultiAgent.sender.Ed25519.signature = nullSignature;
+      txAuthenticator.MultiAgent.secondary_signers.forEach(
+        (ed25519Authenticator) => {
+          ed25519Authenticator.Ed25519.signature = nullSignature;
+        }
+      );
+    }
+  }
+
   /**
    * Simulate a transaction using the provided Serialized raw transaction data
    * @param senderAccountAddress Tx sender account address
-   * @param senderAccountPubKey Tx sender account public key
+   * @param txAuthenticator Transaction authenticator
    * @param serializedRawTransaction Serialized raw transaction data
    * @returns Transaction simulation result
    */
   async simulateTxUsingSerializedRawTransaction(
     senderAccountAddress: HexString,
-    senderAccountPubKey: HexString,
+    txAuthenticator: AnyAuthenticatorJSON,
     serializedRawTransaction: Uint8Array
   ): Promise<any> {
     let sendTxPayload = {
       Move: {
-        raw_txn: this.getRawTxDataInJson(
+        raw_txn: this.getRawTxnJSON(
           senderAccountAddress,
           TxnBuilderTypes.RawTransaction.deserialize(
             new BCS.Deserializer(serializedRawTransaction)
           )
         ),
-        authenticator: {
-          Ed25519: {
-            public_key: senderAccountPubKey.toString(),
-            signature: "0".repeat(128),
-          },
-        },
+        authenticator: txAuthenticator,
       },
     };
 
