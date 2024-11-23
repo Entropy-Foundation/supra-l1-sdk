@@ -26,7 +26,8 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsup --platform node --format cjs,esm --dts --out-dir dist/node && tsup --platform browser --format cjs,esm --dts  --minify --out-dir dist/browser",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "docs":"npx typedoc"
   },
   "author": "",
   "keywords": [
