@@ -25,9 +25,15 @@
     "./dist/"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsup --platform node --format cjs,esm --dts --out-dir dist/node && tsup --platform browser --format cjs,esm --dts  --minify --out-dir dist/browser"
+    "build": "rm -rf dist && tsup --platform node --format cjs,esm --dts --out-dir dist/node && tsup --platform browser --format cjs,esm --dts  --minify --out-dir dist/browser",
+    "prepare": "npm run build"
   },
   "author": "",
+  "keywords": [
+    "supra-sdk",
+    "supra-l1-sdk",
+    "supra-ts-sdk"
+  ],
   "license": "ISC",
   "dependencies": {
     "@ethersproject/keccak256": "^5.7.0",
