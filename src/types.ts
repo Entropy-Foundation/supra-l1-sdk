@@ -1,4 +1,4 @@
-import { TxnBuilderTypes } from "supra";
+import { TxnBuilderTypes } from "aptos";
 export interface AccountInfo {
   sequence_number: bigint;
   authentication_key: string;

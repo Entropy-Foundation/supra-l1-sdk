@@ -1,4 +1,4 @@
-import { TxnBuilderTypes } from "supra";
+import { TxnBuilderTypes } from "aptos";
 import { FunctionTypeArgs } from "./types";
 
 export const parseFunctionTypeArgs = (
