@@ -26,7 +26,8 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsup --platform node --format cjs,esm --dts --out-dir dist/node && tsup --platform browser --format cjs,esm --dts  --minify --out-dir dist/browser",
-    "prepare": "./.scripts/install_supra_aptos_sdk.sh aptosvm-v1.16_supra-v1.4.2 && npm run build",
+    "prepare": "npm run build",
+    "postinstall": "./.scripts/install_supra_aptos_sdk.sh aptosvm-v1.16_supra-v1.4.2",
     "docs": "npx typedoc",
     "test": "ts-node ./src/example.ts"
   },

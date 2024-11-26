@@ -7,7 +7,7 @@
 
 set -e
 
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 L1_SDK_ROOT="$SCRIPT_DIR/.."
 INSTALL_ROOT="$L1_SDK_ROOT/.supra_aptos_sdk"
 REPO_ROOT="$INSTALL_ROOT/aptos-core"
@@ -28,10 +28,9 @@ MIN_GIT_MAJOR_VERSION=2
 MIN_GIT_MINOR_VERSION=27
 
 # Verify the Git version. `sparse-checkout` was introduced in 2.27.
-if [ "$GIT_MAJOR_VERSION" -lt "$MIN_GIT_MAJOR_VERSION" ] \
-    || [ "$GIT_MAJOR_VERSION" -eq "$MIN_GIT_MAJOR_VERSION" ] \
-    &&  [ "$GIT_MINOR_VERSION" -lt "$MIN_GIT_MINOR_VERSION" ]
-then
+if [ "$GIT_MAJOR_VERSION" -lt "$MIN_GIT_MAJOR_VERSION" ] ||
+    [ "$GIT_MAJOR_VERSION" -eq "$MIN_GIT_MAJOR_VERSION" ] &&
+    [ "$GIT_MINOR_VERSION" -lt "$MIN_GIT_MINOR_VERSION" ]; then
     echo "Error: Git version must be at least $MIN_GIT_MAJOR_VERSION.$MIN_GIT_MINOR_VERSION" >&1
     exit 2
 fi
@@ -53,8 +52,8 @@ function install() {
         --depth 1 \
         --sparse \
         --branch "$VERSION" \
-        https://github.com/Entropy-Foundation/aptos-core.git \
-        || (echo "Failed to clone Supra Aptos Core" && exit 3)
+        https://github.com/Entropy-Foundation/aptos-core.git ||
+        (echo "Failed to clone Supra Aptos Core" && exit 3)
     cd aptos-core
     git sparse-checkout add ecosystem/typescript/sdk
     git checkout
@@ -64,9 +63,12 @@ function install() {
     npm install || (echo "Failed to initialize the Supra Aptos TypeScript SDK" && exit 4)
     npm run build || (echo "Failed to build the Supra Aptos TypeScript SDK" && exit 5)
     cd "$L1_SDK_ROOT"
+
+    # And install it as a dependency of this project.
+    npm install "$REPO_ROOT"/ecosystem/typescript/sdk
 }
 
-function parse_git_branch() {    
+function parse_git_branch() {
     git branch | grep '*' | cut -d' ' -f2
 }
 
