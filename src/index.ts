@@ -39,6 +39,7 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_ENABLE_SIMULATION,
   DEFAULT_MAX_GAS_UNITS,
+  DEFAULT_GAS_PRICE,
   DEFAULT_RECORDS_ITEMS_COUNT,
   DEFAULT_TX_EXPIRATION_DURATION,
   DEFAULT_WAIT_FOR_TX_COMPLETION,
@@ -133,6 +134,9 @@ export class SupraClient {
 
   /**
    * Get current `mean_gas_price`
+   * Note: Currently, `mean_gas_price` refers to the mean of last 100 tx `gas_price`.
+   * It suggested to avoid using `mean_gas_price` as tx `gas_price`,
+   * Because currently, our network does not prioritizes transactions based on there gas price.
    * @returns Current `mean_gas_price`
    */
   async getGasPrice(): Promise<bigint> {
@@ -1078,8 +1082,7 @@ export class SupraClient {
         )
       ),
       optionalTransactionPayloadArgs?.maxGas ?? DEFAULT_MAX_GAS_UNITS,
-      optionalTransactionPayloadArgs?.gasUnitPrice ??
-        (await this.getGasPrice()),
+      optionalTransactionPayloadArgs?.gasUnitPrice ?? DEFAULT_GAS_PRICE,
       optionalTransactionPayloadArgs?.txExpiryTime ??
         BigInt(
           Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) +
