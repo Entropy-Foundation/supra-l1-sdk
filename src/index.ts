@@ -39,6 +39,7 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_ENABLE_SIMULATION,
   DEFAULT_MAX_GAS_UNITS,
+  DEFAULT_GAS_PRICE,
   DEFAULT_RECORDS_ITEMS_COUNT,
   DEFAULT_TX_EXPIRATION_DURATION,
   DEFAULT_WAIT_FOR_TX_COMPLETION,
@@ -1078,8 +1079,7 @@ export class SupraClient {
         )
       ),
       optionalTransactionPayloadArgs?.maxGas ?? DEFAULT_MAX_GAS_UNITS,
-      optionalTransactionPayloadArgs?.gasUnitPrice ??
-        (await this.getGasPrice()),
+      optionalTransactionPayloadArgs?.gasUnitPrice ?? DEFAULT_GAS_PRICE,
       optionalTransactionPayloadArgs?.txExpiryTime ??
         BigInt(
           Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) +
