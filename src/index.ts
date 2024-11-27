@@ -134,9 +134,6 @@ export class SupraClient {
 
   /**
    * Get current `mean_gas_price`
-   * Note: Currently, `mean_gas_price` refers to the mean of last 100 tx `gas_price`.
-   * It suggested to avoid using `mean_gas_price` as tx `gas_price`,
-   * Because currently, our network does not prioritizes transactions based on there gas price.
    * @returns Current `mean_gas_price`
    */
   async getGasPrice(): Promise<bigint> {
