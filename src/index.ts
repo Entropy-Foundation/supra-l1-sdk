@@ -736,6 +736,51 @@ export class SupraClient {
     );
   }
 
+  /**
+   * Invoke view method of the smart contract
+   * @param functionFullName function full name refers to the module name + function name,
+   * For instance `0x1::pbo_delegation_pool::get_stake`
+   * @param typeArguments View function type arguments
+   * @param functionArguments View function arguments
+   * @returns Table item's data
+   */
+  async invokeViewMethod(
+    functionFullName: string,
+    typeArguments: Array<string>,
+    functionArguments: Array<string>
+  ): Promise<any> {
+    return (
+      await this.sendRequest(false, "/rpc/v1/view", {
+        function: functionFullName,
+        type_arguments: typeArguments,
+        arguments: functionArguments,
+      })
+    ).data.result;
+  }
+
+  /**
+   * Access item of table using associated key
+   * @param tableHandle Table handle to access table item
+   * @param keyType Type of the key
+   * @param valueType Type of the value
+   * @param key The actual key
+   * @returns Table item's data
+   */
+  async getTableItemByKey(
+    tableHandle: string,
+    keyType: string,
+    valueType: string,
+    key: string
+  ): Promise<any> {
+    return (
+      await this.sendRequest(false, `/rpc/v1/tables/${tableHandle}/item`, {
+        key_type: keyType,
+        value_type: valueType,
+        key: key,
+      })
+    ).data;
+  }
+
   private async waitForTransactionCompletion(
     txHash: string
   ): Promise<TransactionStatus> {
