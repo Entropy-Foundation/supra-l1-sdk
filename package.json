@@ -19,7 +19,7 @@
     "prepare": "npm run build",
     "build": "npm run build:clean && npm run _build:node && npm run _build:browser",
     "build:clean": "rm -rf dist",
-    "_build:browser": "tsup --platform browser --format iife --global-name supraSDK --minify",
+    "_build:browser": "tsup --platform browser --format iife --minify",
     "_build:node": "tsup --platform node --format cjs,esm --dts",
     "docs": "npx typedoc",
     "test": "ts-node ./src/example.ts"
