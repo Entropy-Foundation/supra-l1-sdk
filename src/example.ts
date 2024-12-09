@@ -171,7 +171,6 @@ import {
   // To simulate transaction using serialized raw transaction data
   console.log(
     await supraClient.simulateTxUsingSerializedRawTransaction(
-      senderAccount.address(),
       {
         Ed25519: {
           public_key: senderAccount.pubKey().toString(),
@@ -289,7 +288,6 @@ import {
   // Sending sponsor transaction
   console.log(
     await supraClient.sendSponsorTransaction(
-      senderAccount.address().toString(),
       feePayerAccount.address().toString(),
       [],
       sponsorTxSupraCoinTransferRawTransaction,
@@ -359,7 +357,6 @@ import {
   // Sending Multi-Agent transaction
   console.log(
     await supraClient.sendMultiAgentTransaction(
-      senderAccount.address().toString(),
       [secondarySigner1.address().toString()],
       multiAgentRawTransaction,
       multiAgentSenderAuthenticator,
@@ -370,4 +367,38 @@ import {
       }
     )
   );
+
+  let ledgerWalletSenderAccountPubkey = new TxnBuilderTypes.Ed25519PublicKey(
+    Buffer.from(
+      "c127c6b1955dd5cb815cd44372aac92811430fa805e473935cd3a147c90b4cee",
+      "hex"
+    )
+  );
+  let signature = new HexString(
+    "82000c4f40aa4cbd35b26b4b56ea073e9a33cfd32040eab0834577bf7451808eaa79a304f5cf99a1e5ea9660f190fef69de8f200e432c612a7e895e5528c770e"
+  );
+  let serializedRawTransaction = Buffer.from(
+    "4451aa86090708900650da5fdb8d7530f1d90dee338448c0223e728378f182c1030000000000000002000000000000000000000000000000000000000000000000000000000000000104636f696e087472616e73666572010700000000000000000000000000000000000000000000000000000000000000010a73757072615f636f696e095375707261436f696e000220b8922417130785087f9c7926e76542531b703693fdc74c9386b65cf4427f4e8008e80300000000000020a10700000000006400000000000000919f56670000000006",
+    "hex"
+  );
+
+  try {
+    // As we had created this tx payload during testing,
+    // hence its expected to be failed with 'TRANSACTION_EXPIRED'
+    await supraClient.sendTxUsingSerializedRawTransactionAndSignature(
+      HexString.fromUint8Array(ledgerWalletSenderAccountPubkey.toBytes()),
+      signature,
+      serializedRawTransaction,
+      {
+        enableTransactionSimulation: true,
+        enableWaitForTransaction: true,
+      }
+    );
+  } catch (err) {
+    if (!(err as Error).message.includes("TRANSACTION_EXPIRED")) {
+      throw new Error(
+        "Something went wrong tx must fail with 'TRANSACTION_EXPIRED'"
+      );
+    }
+  }
 })();
