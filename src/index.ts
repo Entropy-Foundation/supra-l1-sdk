@@ -50,8 +50,7 @@ import {
   RAW_TRANSACTION_SALT,
   RAW_TRANSACTION_WITH_DATA_SALT,
 } from "./constants";
-import { sha3_256 } from "js-sha3";
-import { keccak256 } from "@ethersproject/keccak256";
+import sha3 from "js-sha3";
 
 export * from "./types";
 export * from "./constants";
@@ -832,7 +831,7 @@ export class SupraClient {
   ): Uint8Array {
     let preHash = Uint8Array.from(
       Buffer.from(
-        sha3_256(
+        sha3.sha3_256(
           rawTxn instanceof TxnBuilderTypes.RawTransaction
             ? RAW_TRANSACTION_SALT
             : RAW_TRANSACTION_WITH_DATA_SALT
@@ -1248,7 +1247,7 @@ export class SupraClient {
   static deriveTransactionHash(
     signedTransaction: TxnBuilderTypes.SignedTransaction
   ): string {
-    return keccak256(BCS.bcsToBytes(signedTransaction));
+    return sha3.keccak256(BCS.bcsToBytes(signedTransaction));
   }
 
   /**
