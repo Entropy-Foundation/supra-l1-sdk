@@ -1,6 +1,6 @@
 {
   "name": "supra-l1-sdk",
-  "version": "3.1.0",
+  "version": "4.0.0",
   "description": "Typescript SDK for Supra",
   "exports": {
     "browser": {
@@ -25,7 +25,7 @@
     "./dist/"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsup --platform node --format cjs,esm --dts --out-dir dist/node && tsup --platform browser --format cjs,esm --dts  --minify --out-dir dist/browser",
+    "build": "rm -rf dist && tsup --platform node --out-dir dist/node && tsup --platform browser --out-dir dist/browser",
     "prepare": "npm run build",
     "docs": "npx typedoc",
     "test": "ts-node ./src/example.ts"
@@ -38,7 +38,6 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "@ethersproject/keccak256": "^5.7.0",
     "aptos": "^1.21.0",
     "js-sha3": "^0.9.3"
   },
