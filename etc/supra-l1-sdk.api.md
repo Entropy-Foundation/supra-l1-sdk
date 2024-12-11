@@ -5,7 +5,7 @@
 ```ts
 
 import { AnyRawTransaction } from 'aptos';
-import type { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import { BCS } from 'aptos';
 import { HexString } from 'aptos';
 import { AptosAccount as SupraAccount } from 'aptos';
@@ -115,6 +115,17 @@ export { HexString }
 // @public (undocumented)
 export type ILogTransport = (log: ILogObject) => void;
 
+// @public (undocumented)
+export class Logger {
+    constructor(level: LogLevel, transport?: ILogTransport);
+    debug(message: string, data?: Record<string, unknown>): void;
+    error(message: string, data?: Record<string, unknown>): void;
+    info(message: string, data?: Record<string, unknown>): void;
+    setLevel(level: LogLevel): void;
+    setTransport(transport: ILogTransport): void;
+    warn(message: string, data?: Record<string, unknown>): void;
+}
+
 // Warning: (ae-forgotten-export) The symbol "LOG_LEVELS" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -198,13 +209,6 @@ export interface SendTxPayload {
 }
 
 // @public (undocumented)
-export class ServiceError extends Error {
-    constructor(message: string, originalError?: Error);
-    // (undocumented)
-    readonly originalError?: Error;
-}
-
-// @public (undocumented)
 export interface SponsorTransactionAuthenticatorJSON {
     // (undocumented)
     FeePayer: {
@@ -273,8 +277,6 @@ export class SupraClient implements ISupraClient {
     static init(options?: SupraClientOptions): Promise<ISupraClient>;
     // (undocumented)
     invokeViewMethod(functionFullName: string, typeArguments: Array<string>, functionArguments: Array<string>): Promise<any>;
-    // Warning: (ae-forgotten-export) The symbol "Logger" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     logger: Logger;
     // (undocumented)

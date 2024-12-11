@@ -31,6 +31,9 @@ export type LogLevel = keyof typeof LOG_LEVELS
 /**
  * Logger class for handling logging with different levels and transports.
  */
+/**
+ * @public
+ */
 export class Logger {
   private _transport?: ILogTransport
   private _level: number = LOG_LEVELS.WARN

@@ -1,21 +1,23 @@
 {
   "compilerOptions": {
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": false,
-    "target": "ES2020",
-    "lib": ["ESNext", "DOM"],
-    "strict": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "outDir": "./dist/esm",
-    "rootDir": "./src",
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
     "esModuleInterop": true,
-    "types": ["node", "vitest"],
+    "experimentalDecorators": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "outDir": "./dist",
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2020",
+    "pretty": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "vitest.config.ts", "src/example.ts"]
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  }
 }

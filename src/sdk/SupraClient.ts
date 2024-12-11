@@ -11,7 +11,6 @@ import { RequestService } from '../services/requestService'
 import { AccountService } from '../services/accountService'
 import { TransactionService } from '../services/transactionService'
 import { ISupraClient } from '../interface/ISupraClient'
-import { ServiceError } from '../error'
 
 import {
   DEFAULT_CHAIN_ID,
@@ -169,10 +168,7 @@ export class SupraClient implements ISupraClient {
         client.logger.error('Failed to fetch Chain ID during initialization', {
           error
         })
-        throw new ServiceError(
-          'Failed to initialize SupraClient: Unable to fetch Chain ID',
-          error as Error
-        )
+        throw error
       }
     }
 
@@ -270,7 +266,7 @@ export class SupraClient implements ISupraClient {
       )
       return Number(response.data)
     } catch (error) {
-      throw new ServiceError('Failed to fetch Chain ID', error as Error)
+      throw error
     }
   }
 
@@ -313,7 +309,7 @@ export class SupraClient implements ISupraClient {
       return BigInt(response.data.mean_gas_price)
     } catch (error) {
       this.logger.error('Failed to fetch gas price', { error })
-      throw new ServiceError('Failed to fetch gas price', error as Error)
+      throw error
     }
   }
 

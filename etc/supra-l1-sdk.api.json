@@ -179,10 +179,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface AccountCoinTransactionsDetail "
+              "text": "interface AccountCoinTransactionsDetail "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "AccountCoinTransactionsDetail",
           "preserveMemberOrder": false,
@@ -265,10 +265,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface AccountInfo "
+              "text": "interface AccountInfo "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "AccountInfo",
           "preserveMemberOrder": false,
@@ -337,10 +337,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface AccountResources "
+              "text": "interface AccountResources "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "AccountResources",
           "preserveMemberOrder": false,
@@ -423,7 +423,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type AnyAuthenticatorJSON = "
+              "text": "type AnyAuthenticatorJSON = "
             },
             {
               "kind": "Reference",
@@ -453,7 +453,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "AnyAuthenticatorJSON",
           "typeTokenRange": {
@@ -468,10 +468,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface CoinChange "
+              "text": "interface CoinChange "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "CoinChange",
           "preserveMemberOrder": false,
@@ -540,10 +540,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface CoinInfo "
+              "text": "interface CoinInfo "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "CoinInfo",
           "preserveMemberOrder": false,
@@ -639,10 +639,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface Ed25519AuthenticatorJSON "
+              "text": "interface Ed25519AuthenticatorJSON "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "Ed25519AuthenticatorJSON",
           "preserveMemberOrder": false,
@@ -684,10 +684,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface EnableTransactionWaitAndSimulationArgs "
+              "text": "interface EnableTransactionWaitAndSimulationArgs "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "EnableTransactionWaitAndSimulationArgs",
           "preserveMemberOrder": false,
@@ -756,10 +756,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface EntryFunctionPayloadJSON "
+              "text": "interface EntryFunctionPayloadJSON "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "EntryFunctionPayloadJSON",
           "preserveMemberOrder": false,
@@ -837,10 +837,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface FaucetRequestResponse "
+              "text": "interface FaucetRequestResponse "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "FaucetRequestResponse",
           "preserveMemberOrder": false,
@@ -910,10 +910,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface FunctionTypeArgs "
+              "text": "interface FunctionTypeArgs "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "FunctionTypeArgs",
           "preserveMemberOrder": false,
@@ -964,7 +964,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type ILogTransport = "
+              "text": "type ILogTransport = "
             },
             {
               "kind": "Content",
@@ -984,7 +984,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "src/logger.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "ILogTransport",
           "typeTokenRange": {
@@ -993,13 +993,456 @@
           }
         },
         {
+          "kind": "Class",
+          "canonicalReference": "supra-l1-sdk!Logger:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "declare class Logger "
+            }
+          ],
+          "fileUrlPath": "dist/node/index.d.ts",
+          "releaseTag": "Public",
+          "isAbstract": false,
+          "name": "Logger",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "supra-l1-sdk!Logger:constructor(1)",
+              "docComment": "/**\n * Constructs a Logger instance.\n *\n * @param level - Logging level.\n *\n * @param transport - Log transport function.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(level: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "LogLevel",
+                  "canonicalReference": "supra-l1-sdk!LogLevel:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", transport?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ILogTransport",
+                  "canonicalReference": "supra-l1-sdk!ILogTransport:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "level",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "transport",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ]
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "supra-l1-sdk!Logger#debug:member(1)",
+              "docComment": "/**\n * Logs a debug message.\n *\n * @param message - Log message.\n *\n * @param data - Additional log data.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "debug(message: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", data?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, unknown>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "message",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "data",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "debug"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "supra-l1-sdk!Logger#error:member(1)",
+              "docComment": "/**\n * Logs an error message.\n *\n * @param message - Log message.\n *\n * @param data - Additional log data.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "error(message: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", data?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, unknown>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "message",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "data",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "error"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "supra-l1-sdk!Logger#info:member(1)",
+              "docComment": "/**\n * Logs an info message.\n *\n * @param message - Log message.\n *\n * @param data - Additional log data.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "info(message: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", data?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, unknown>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "message",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "data",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "info"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "supra-l1-sdk!Logger#setLevel:member(1)",
+              "docComment": "/**\n * Sets the logging level.\n *\n * @param level - Logging level.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setLevel(level: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "LogLevel",
+                  "canonicalReference": "supra-l1-sdk!LogLevel:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "level",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "setLevel"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "supra-l1-sdk!Logger#setTransport:member(1)",
+              "docComment": "/**\n * Sets the log transport function.\n *\n * @param transport - Log transport function.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setTransport(transport: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ILogTransport",
+                  "canonicalReference": "supra-l1-sdk!ILogTransport:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "transport",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "setTransport"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "supra-l1-sdk!Logger#warn:member(1)",
+              "docComment": "/**\n * Logs a warning message.\n *\n * @param message - Log message.\n *\n * @param data - Additional log data.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "warn(message: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", data?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, unknown>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "message",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "data",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "warn"
+            }
+          ],
+          "implementsTokenRanges": []
+        },
+        {
           "kind": "TypeAlias",
           "canonicalReference": "supra-l1-sdk!LogLevel:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type LogLevel = "
+              "text": "type LogLevel = "
             },
             {
               "kind": "Content",
@@ -1015,7 +1458,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "src/logger.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "LogLevel",
           "typeTokenRange": {
@@ -1030,10 +1473,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface MultiAgentTransactionAuthenticatorJSON "
+              "text": "interface MultiAgentTransactionAuthenticatorJSON "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "MultiAgentTransactionAuthenticatorJSON",
           "preserveMemberOrder": false,
@@ -1111,10 +1554,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface OptionalTransactionArgs "
+              "text": "interface OptionalTransactionArgs "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "OptionalTransactionArgs",
           "preserveMemberOrder": false,
@@ -1185,10 +1628,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface OptionalTransactionPayloadArgs "
+              "text": "interface OptionalTransactionPayloadArgs "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "OptionalTransactionPayloadArgs",
           "preserveMemberOrder": false,
@@ -1284,10 +1727,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface PaginationArgs "
+              "text": "interface PaginationArgs "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "PaginationArgs",
           "preserveMemberOrder": false,
@@ -1356,10 +1799,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface RawTxnJSON "
+              "text": "interface RawTxnJSON "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "RawTxnJSON",
           "preserveMemberOrder": false,
@@ -1564,10 +2007,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface ResourceInfo "
+              "text": "interface ResourceInfo "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "ResourceInfo",
           "preserveMemberOrder": false,
@@ -1704,10 +2147,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface SendTxPayload "
+              "text": "interface SendTxPayload "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "SendTxPayload",
           "preserveMemberOrder": false,
@@ -1761,128 +2204,16 @@
           "extendsTokenRanges": []
         },
         {
-          "kind": "Class",
-          "canonicalReference": "supra-l1-sdk!ServiceError:class",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare class ServiceError extends "
-            },
-            {
-              "kind": "Reference",
-              "text": "Error",
-              "canonicalReference": "!Error:interface"
-            },
-            {
-              "kind": "Content",
-              "text": " "
-            }
-          ],
-          "fileUrlPath": "src/error.ts",
-          "releaseTag": "Public",
-          "isAbstract": false,
-          "name": "ServiceError",
-          "preserveMemberOrder": false,
-          "members": [
-            {
-              "kind": "Constructor",
-              "canonicalReference": "supra-l1-sdk!ServiceError:constructor(1)",
-              "docComment": "/**\n * Creates an instance of ServiceError.\n *\n * @param message - A descriptive error message.\n *\n * @param originalError - The original error that caused this error.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "constructor(message: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", originalError?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Error",
-                  "canonicalReference": "!Error:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ");"
-                }
-              ],
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "message",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "originalError",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": true
-                }
-              ]
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "supra-l1-sdk!ServiceError#originalError:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "readonly originalError?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Error",
-                  "canonicalReference": "!Error:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "originalError",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            }
-          ],
-          "extendsTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          },
-          "implementsTokenRanges": []
-        },
-        {
           "kind": "Interface",
           "canonicalReference": "supra-l1-sdk!SponsorTransactionAuthenticatorJSON:interface",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface SponsorTransactionAuthenticatorJSON "
+              "text": "interface SponsorTransactionAuthenticatorJSON "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "SponsorTransactionAuthenticatorJSON",
           "preserveMemberOrder": false,
@@ -1969,7 +2300,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare class SupraClient implements "
+              "text": "declare class SupraClient implements "
             },
             {
               "kind": "Reference",
@@ -1981,7 +2312,7 @@
               "text": " "
             }
           ],
-          "fileUrlPath": "src/sdk/SupraClient.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "isAbstract": false,
           "name": "SupraClient",
@@ -2519,7 +2850,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SupraAccount",
+                  "text": "AptosAccount",
                   "canonicalReference": "aptos!AptosAccount:class"
                 },
                 {
@@ -3937,7 +4268,7 @@
                 {
                   "kind": "Reference",
                   "text": "Logger",
-                  "canonicalReference": "supra-l1-sdk!~Logger:class"
+                  "canonicalReference": "supra-l1-sdk!Logger:class"
                 },
                 {
                   "kind": "Content",
@@ -3967,7 +4298,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SupraAccount",
+                  "text": "AptosAccount",
                   "canonicalReference": "aptos!AptosAccount:class"
                 },
                 {
@@ -4445,7 +4776,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SupraAccount",
+                  "text": "AptosAccount",
                   "canonicalReference": "aptos!AptosAccount:class"
                 },
                 {
@@ -4656,7 +4987,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SupraAccount",
+                  "text": "AptosAccount",
                   "canonicalReference": "aptos!AptosAccount:class"
                 },
                 {
@@ -4732,7 +5063,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SupraAccount",
+                  "text": "AptosAccount",
                   "canonicalReference": "aptos!AptosAccount:class"
                 },
                 {
@@ -4901,7 +5232,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SupraAccount",
+                  "text": "AptosAccount",
                   "canonicalReference": "aptos!AptosAccount:class"
                 },
                 {
@@ -5030,7 +5361,7 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "SupraAccount",
+                  "text": "AptosAccount",
                   "canonicalReference": "aptos!AptosAccount:class"
                 },
                 {
@@ -5147,10 +5478,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface TransactionDetail "
+              "text": "interface TransactionDetail "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "TransactionDetail",
           "preserveMemberOrder": false,
@@ -5572,10 +5903,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface TransactionInsights "
+              "text": "interface TransactionInsights "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "TransactionInsights",
           "preserveMemberOrder": false,
@@ -5686,10 +6017,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface TransactionResponse "
+              "text": "interface TransactionResponse "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "TransactionResponse",
           "preserveMemberOrder": false,
@@ -5759,10 +6090,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare enum TransactionStatus "
+              "text": "declare enum TransactionStatus "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "TransactionStatus",
           "preserveMemberOrder": false,
@@ -5839,10 +6170,10 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare enum TxTypeForTransactionInsights "
+              "text": "declare enum TxTypeForTransactionInsights "
             }
           ],
-          "fileUrlPath": "src/types/types.ts",
+          "fileUrlPath": "dist/node/index.d.ts",
           "releaseTag": "Public",
           "name": "TxTypeForTransactionInsights",
           "preserveMemberOrder": false,

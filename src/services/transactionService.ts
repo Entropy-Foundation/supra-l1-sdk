@@ -24,7 +24,6 @@ import {
   AnyAuthenticatorJSON
 } from '../types/types'
 
-import { ServiceError } from '../error'
 import type { Logger } from '../logger'
 import {
   parseFunctionTypeArgs,
@@ -125,10 +124,7 @@ export class TransactionService {
         result
       }
     } catch (error) {
-      if (error instanceof ServiceError) {
-        throw error
-      }
-      throw new ServiceError('Failed to send transaction', error as Error)
+      throw error
     }
   }
 
@@ -136,7 +132,7 @@ export class TransactionService {
    * Waits for a transaction to complete by polling its status.
    * @param txHash - Transaction hash.
    * @returns TransactionStatus.
-   * @throws ServiceError if the transaction fails or exceeds maximum retries.
+   * @throws Error if the transaction fails or exceeds maximum retries.
    */
   public async waitForTransactionCompletion(
     txHash: string
@@ -167,11 +163,10 @@ export class TransactionService {
     }
 
     this.logger.error(
-      `Transaction ${txHash} did not complete within the maximum retry limit.`
+      `Transaction ${txHash} did not complete within the maximum retry limit: ${MAX_RETRY_FOR_TRANSACTION_COMPLETION}`
     )
-    throw new ServiceError(
-      `Transaction ${txHash} did not complete within the maximum retry limit.`,
-      new Error('MAX_RETRIES_EXCEEDED')
+    throw new Error(
+      `Transaction ${txHash} did not complete within the maximum retry limit: ${MAX_RETRY_FOR_TRANSACTION_COMPLETION}`
     )
   }
 
@@ -354,7 +349,7 @@ export class TransactionService {
       } as TransactionDetail
     } catch (error) {
       this.logger.error('Failed to get transaction detail', { error })
-      throw new ServiceError('Failed to get transaction detail', error as Error)
+      throw error
     }
   }
 
@@ -379,10 +374,7 @@ export class TransactionService {
       )
 
       if (response.data.record == null) {
-        throw new ServiceError(
-          'Account does not exist or invalid account provided.',
-          new Error('No transaction data')
-        )
+        throw new Error('Account does not exist or invalid account provided.')
       }
 
       let coinTransactionsDetail: TransactionDetail[] = []
@@ -423,10 +415,7 @@ export class TransactionService {
       }
     } catch (error) {
       this.logger.error('Failed to fetch coin transactions detail', { error })
-      throw new ServiceError(
-        'Failed to fetch coin transactions detail',
-        error as Error
-      )
+      throw error
     }
   }
 
@@ -513,10 +502,7 @@ export class TransactionService {
           error
         }
       )
-      throw new ServiceError(
-        'Failed to fetch complete account transactions detail',
-        error as Error
-      )
+      throw error
     }
   }
 
@@ -545,7 +531,7 @@ export class TransactionService {
       return response.data.result
     } catch (error) {
       this.logger.error('Failed to invoke view method', { error })
-      throw new ServiceError('Failed to invoke view method', error as Error)
+      throw error
     }
   }
 
@@ -576,7 +562,7 @@ export class TransactionService {
       return response.data
     } catch (error) {
       this.logger.error('Failed to get table item by key', { error })
-      throw new ServiceError('Failed to get table item by key', error as Error)
+      throw error
     }
   }
 
@@ -615,8 +601,9 @@ export class TransactionService {
 
       const rawTxn = await this.createRawTxObject(
         senderAccount.address(),
-        (await this.accountService.getAccountInfo(senderAccount.address()))
-          .sequence_number,
+        (
+          await this.accountService.getAccountInfo(senderAccount.address())
+        ).sequence_number,
         SUPRA_FRAMEWORK_ADDRESS,
         'supra_account',
         'transfer',
@@ -633,7 +620,7 @@ export class TransactionService {
       )
     } catch (error) {
       this.logger.error('Failed to transfer SupraCoin', { error })
-      throw new ServiceError('Failed to transfer SupraCoin', error as Error)
+      throw error
     }
   }
 
@@ -659,39 +646,31 @@ export class TransactionService {
     functionArgs: Uint8Array[],
     optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
   ): Promise<TxnBuilderTypes.RawTransaction> {
-    try {
-      return new TxnBuilderTypes.RawTransaction(
-        new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
-        senderSequenceNumber,
-        new TxnBuilderTypes.TransactionPayloadEntryFunction(
-          new TxnBuilderTypes.EntryFunction(
-            new TxnBuilderTypes.ModuleId(
-              new TxnBuilderTypes.AccountAddress(
-                new HexString(normalizeAddress(moduleAddr)).toUint8Array()
-              ),
-              new TxnBuilderTypes.Identifier(moduleName)
+    return new TxnBuilderTypes.RawTransaction(
+      new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
+      senderSequenceNumber,
+      new TxnBuilderTypes.TransactionPayloadEntryFunction(
+        new TxnBuilderTypes.EntryFunction(
+          new TxnBuilderTypes.ModuleId(
+            new TxnBuilderTypes.AccountAddress(
+              new HexString(normalizeAddress(moduleAddr)).toUint8Array()
             ),
-            new TxnBuilderTypes.Identifier(functionName),
-            functionTypeArgs,
-            functionArgs
-          )
-        ),
-        optionalTransactionPayloadArgs?.maxGas ?? DEFAULT_MAX_GAS_UNITS,
-        optionalTransactionPayloadArgs?.gasUnitPrice ?? DEFAULT_GAS_PRICE,
-        optionalTransactionPayloadArgs?.txExpiryTime ??
-          BigInt(
-            Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) +
-              DEFAULT_TX_EXPIRATION_DURATION
+            new TxnBuilderTypes.Identifier(moduleName)
           ),
-        this.chainId
-      )
-    } catch (error) {
-      this.logger.error('Failed to create raw transaction object', { error })
-      throw new ServiceError(
-        'Failed to create raw transaction object',
-        error as Error
-      )
-    }
+          new TxnBuilderTypes.Identifier(functionName),
+          functionTypeArgs,
+          functionArgs
+        )
+      ),
+      optionalTransactionPayloadArgs?.maxGas ?? DEFAULT_MAX_GAS_UNITS,
+      optionalTransactionPayloadArgs?.gasUnitPrice ?? DEFAULT_GAS_PRICE,
+      optionalTransactionPayloadArgs?.txExpiryTime ??
+        BigInt(
+          Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) +
+            DEFAULT_TX_EXPIRATION_DURATION
+        ),
+      this.chainId
+    )
   }
 
   /**
@@ -953,10 +932,7 @@ export class TransactionService {
       const response = await this.requestService.sendRequest<any>(requestPath)
 
       if (response.data.record == null) {
-        throw new ServiceError(
-          'Account does not exist or invalid account provided.',
-          new Error('No transaction data')
-        )
+        throw new Error('Account does not exist or invalid account provided.')
       }
 
       return response.data.record.map((data: any) => ({
@@ -990,10 +966,7 @@ export class TransactionService {
       this.logger.error('Failed to fetch account transactions detail', {
         error
       })
-      throw new ServiceError(
-        'Failed to fetch account transactions detail',
-        error as Error
-      )
+      throw error
     }
   }
 
@@ -1018,8 +991,9 @@ export class TransactionService {
 
       const rawTxn = await this.createRawTxObject(
         senderAccount.address(),
-        (await this.accountService.getAccountInfo(senderAccount.address()))
-          .sequence_number,
+        (
+          await this.accountService.getAccountInfo(senderAccount.address())
+        ).sequence_number,
         SUPRA_FRAMEWORK_ADDRESS,
         'supra_account',
         'transfer_coins',
@@ -1036,7 +1010,7 @@ export class TransactionService {
       )
     } catch (error) {
       this.logger.error('Failed to transfer custom coin', { error })
-      throw new ServiceError('Failed to transfer custom coin', error as Error)
+      throw error
     }
   }
 
@@ -1063,8 +1037,9 @@ export class TransactionService {
 
       const rawTxn = await this.createRawTxObject(
         senderAccount.address(),
-        (await this.accountService.getAccountInfo(senderAccount.address()))
-          .sequence_number,
+        (
+          await this.accountService.getAccountInfo(senderAccount.address())
+        ).sequence_number,
         SUPRA_FRAMEWORK_ADDRESS,
         'code',
         'publish_package_txn',
@@ -1081,7 +1056,7 @@ export class TransactionService {
       )
     } catch (error) {
       this.logger.error('Failed to publish package', { error })
-      throw new ServiceError('Failed to publish package', error as Error)
+      throw error
     }
   }
 
@@ -1107,27 +1082,17 @@ export class TransactionService {
     functionArgs: Uint8Array[],
     optionalArgs?: OptionalTransactionPayloadArgs
   ): Promise<Uint8Array> {
-    try {
-      const rawTxn = await this.createRawTxObject(
-        senderAddr,
-        senderSequenceNumber,
-        moduleAddr,
-        moduleName,
-        functionName,
-        functionTypeArgs,
-        functionArgs,
-        optionalArgs
-      )
-      return BCS.bcsToBytes(rawTxn)
-    } catch (error) {
-      this.logger.error('Failed to create serialized raw transaction object', {
-        error
-      })
-      throw new ServiceError(
-        'Failed to create serialized raw transaction object',
-        error as Error
-      )
-    }
+    const rawTxn = await this.createRawTxObject(
+      senderAddr,
+      senderSequenceNumber,
+      moduleAddr,
+      moduleName,
+      functionName,
+      functionTypeArgs,
+      functionArgs,
+      optionalArgs
+    )
+    return BCS.bcsToBytes(rawTxn)
   }
 
   /**
@@ -1142,19 +1107,11 @@ export class TransactionService {
     serializedRawTransaction: Uint8Array,
     enableArgs?: EnableTransactionWaitAndSimulationArgs
   ): Promise<TransactionResponse> {
-    try {
-      const rawTxn = TxnBuilderTypes.RawTransaction.deserialize(
-        new BCS.Deserializer(serializedRawTransaction)
-      )
-      const sendTxPayload = this.getSendTxPayload(senderAccount, rawTxn)
-      return await this.sendTx(sendTxPayload, enableArgs)
-    } catch (error) {
-      this.logger.error('Failed to send serialized raw transaction', { error })
-      throw new ServiceError(
-        'Failed to send serialized raw transaction',
-        error as Error
-      )
-    }
+    const rawTxn = TxnBuilderTypes.RawTransaction.deserialize(
+      new BCS.Deserializer(serializedRawTransaction)
+    )
+    const sendTxPayload = this.getSendTxPayload(senderAccount, rawTxn)
+    return await this.sendTx(sendTxPayload, enableArgs)
   }
 
   /**
@@ -1177,37 +1134,29 @@ export class TransactionService {
     secondarySignersAuthenticator: Array<TxnBuilderTypes.AccountAuthenticatorEd25519> = [],
     enableArgs?: EnableTransactionWaitAndSimulationArgs
   ): Promise<TransactionResponse> {
-    try {
-      const secondarySignersAuthenticatorJSON: Array<Ed25519AuthenticatorJSON> =
-        secondarySignersAuthenticator.map((authenticator) =>
-          this.getED25519AuthenticatorJSON(authenticator)
-        )
+    const secondarySignersAuthenticatorJSON: Array<Ed25519AuthenticatorJSON> =
+      secondarySignersAuthenticator.map((authenticator) =>
+        this.getED25519AuthenticatorJSON(authenticator)
+      )
 
-      const sendTxPayload: SendTxPayload = {
-        Move: {
-          raw_txn: this.getRawTxnJSON(rawTxn),
-          authenticator: {
-            FeePayer: {
-              sender: this.getED25519AuthenticatorJSON(senderAuthenticator),
-              secondary_signer_addresses: secondarySignersAccountAddress,
-              secondary_signers: secondarySignersAuthenticatorJSON,
-              fee_payer_address: feePayerAddress,
-              fee_payer_signer: this.getED25519AuthenticatorJSON(
-                feePayerAuthenticator
-              )
-            }
+    const sendTxPayload: SendTxPayload = {
+      Move: {
+        raw_txn: this.getRawTxnJSON(rawTxn),
+        authenticator: {
+          FeePayer: {
+            sender: this.getED25519AuthenticatorJSON(senderAuthenticator),
+            secondary_signer_addresses: secondarySignersAccountAddress,
+            secondary_signers: secondarySignersAuthenticatorJSON,
+            fee_payer_address: feePayerAddress,
+            fee_payer_signer: this.getED25519AuthenticatorJSON(
+              feePayerAuthenticator
+            )
           }
         }
       }
-
-      return await this.sendTx(sendTxPayload, enableArgs)
-    } catch (error) {
-      this.logger.error('Failed to send sponsor transaction', { error })
-      throw new ServiceError(
-        'Failed to send sponsor transaction',
-        error as Error
-      )
     }
+
+    return await this.sendTx(sendTxPayload, enableArgs)
   }
 
   /**
@@ -1226,33 +1175,25 @@ export class TransactionService {
     secondarySignersAuthenticator: Array<TxnBuilderTypes.AccountAuthenticatorEd25519>,
     enableArgs?: EnableTransactionWaitAndSimulationArgs
   ): Promise<TransactionResponse> {
-    try {
-      const secondarySignersAuthenticatorJSON: Array<Ed25519AuthenticatorJSON> =
-        secondarySignersAuthenticator.map((authenticator) =>
-          this.getED25519AuthenticatorJSON(authenticator)
-        )
+    const secondarySignersAuthenticatorJSON: Array<Ed25519AuthenticatorJSON> =
+      secondarySignersAuthenticator.map((authenticator) =>
+        this.getED25519AuthenticatorJSON(authenticator)
+      )
 
-      const sendTxPayload: SendTxPayload = {
-        Move: {
-          raw_txn: this.getRawTxnJSON(rawTxn),
-          authenticator: {
-            MultiAgent: {
-              sender: this.getED25519AuthenticatorJSON(senderAuthenticator),
-              secondary_signer_addresses: secondarySignersAccountAddress,
-              secondary_signers: secondarySignersAuthenticatorJSON
-            }
+    const sendTxPayload: SendTxPayload = {
+      Move: {
+        raw_txn: this.getRawTxnJSON(rawTxn),
+        authenticator: {
+          MultiAgent: {
+            sender: this.getED25519AuthenticatorJSON(senderAuthenticator),
+            secondary_signer_addresses: secondarySignersAccountAddress,
+            secondary_signers: secondarySignersAuthenticatorJSON
           }
         }
       }
-
-      return await this.sendTx(sendTxPayload, enableArgs)
-    } catch (error) {
-      this.logger.error('Failed to send multi-agent transaction', { error })
-      throw new ServiceError(
-        'Failed to send multi-agent transaction',
-        error as Error
-      )
     }
+
+    return await this.sendTx(sendTxPayload, enableArgs)
   }
 
   /**
@@ -1272,8 +1213,7 @@ export class TransactionService {
         decimals: resource.decimals
       }
     } catch (error) {
-      this.logger.error('Failed to fetch coin info', { error })
-      throw new ServiceError('Failed to fetch coin info', error as Error)
+      throw error
     }
   }
 

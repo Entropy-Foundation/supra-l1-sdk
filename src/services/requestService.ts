@@ -1,6 +1,5 @@
 import axios from 'axios'
 import type { AxiosInstance, AxiosResponse, AxiosError } from 'axios'
-import { ServiceError } from '../error'
 import type { Logger } from '../logger'
 
 /**
@@ -87,9 +86,8 @@ export class RequestService {
 
       // Handle specific HTTP status codes if needed
       if (response.status === 404) {
-        throw new ServiceError(
-          'Invalid URL, Path Not Found',
-          new Error('404 Not Found')
+        throw new Error(
+          'Failed to initialize SupraClient: Invalid URL, Path Not Found'
         )
       }
 
@@ -122,12 +120,12 @@ export class RequestService {
       }
 
       this.logger.error(errorMessage, { error: axiosError })
-      throw new ServiceError(errorMessage, axiosError)
+      throw new Error(errorMessage)
     } else {
       // Non-Axios error
       const errorMessage = `${method} request to ${subURL} failed with an unknown error.`
       this.logger.error(errorMessage, { error })
-      throw new ServiceError(errorMessage, error)
+      throw new Error(errorMessage)
     }
   }
 }

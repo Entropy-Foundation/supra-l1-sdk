@@ -2,7 +2,6 @@ import { HexString } from 'aptos'
 import type { RequestService } from './requestService'
 import type { Logger } from '../logger'
 import { AccountInfo, AccountResources, PaginationArgs } from '../types/types'
-import { ServiceError } from '../error'
 import { DEFAULT_RECORDS_ITEMS_COUNT } from '../constants/constants'
 
 /**
@@ -30,24 +29,23 @@ export class AccountService {
   public async accountExists(account: HexString): Promise<boolean> {
     try {
       this.logger.debug(`Checking existence of account: ${account.toString()}`)
-      const response = await this.requestService.sendRequest<any>( //  TO-DO:   We need to define return types for these responses
+      const response = await this.requestService.sendRequest<any>(
         `/rpc/v1/accounts/${account.toString()}`
       )
 
       return response.data !== null
-    } catch (error) {
-      if (error instanceof ServiceError && error.message.includes('404')) {
+    } catch (error: unknown) {
+      // Check if error has a message and includes '404'
+      if (error instanceof Error && error.message.includes('404')) {
         this.logger.info(`Account does not exist: ${account.toString()}`)
         return false
       }
+
       this.logger.error(
         `Failed to check account existence: ${account.toString()}`,
         { error }
       )
-      throw new ServiceError(
-        'Failed to check account existence',
-        error as Error
-      )
+      throw error
     }
   }
 
@@ -57,29 +55,29 @@ export class AccountService {
    * @returns AccountInfo object.
    */
   public async getAccountInfo(account: HexString): Promise<AccountInfo> {
+    this.logger.debug(`Fetching account info for: ${account.toString()}`)
+
     try {
-      this.logger.debug(`Fetching account info for: ${account.toString()}`)
-      const response = await this.requestService.sendRequest<any>( //  TO-DO:   We need to define return types for these responses
+      const response = await this.requestService.sendRequest<any>(
         `/rpc/v1/accounts/${account.toString()}`
       )
-      if (!response.data) {
-        throw new ServiceError(
-          'Account does not exist',
-          new Error('No account data found')
-        )
-      }
+
       return {
         sequence_number: BigInt(response.data.sequence_number),
         authentication_key: response.data.authentication_key
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to fetch account info for: ${account.toString()}`,
-        {
-          error
-        }
+        { error }
       )
-      throw new ServiceError('Failed to fetch account info', error as Error)
+
+      if (error?.response?.status === 404) {
+        throw new Error('Account does not exist')
+      }
+
+      // For all other errors, throw a generic error.
+      throw new Error('Failed to fetch account info')
     }
   }
 
@@ -109,10 +107,7 @@ export class AccountService {
           error
         }
       )
-      throw new ServiceError(
-        'Failed to fetch account resources',
-        error as Error
-      )
+      throw error
     }
   }
 
@@ -128,7 +123,7 @@ export class AccountService {
       )
     } catch (error) {
       this.logger.error('Failed to fetch coin info', { error })
-      throw new ServiceError('Failed to fetch coin info', error as Error)
+      throw error
     }
   }
 
@@ -153,10 +148,7 @@ export class AccountService {
       )
     } catch (error) {
       this.logger.error('Failed to fetch custom coin balance', { error })
-      throw new ServiceError(
-        'Failed to fetch custom coin balance',
-        error as Error
-      )
+      throw error
     }
   }
 
@@ -176,15 +168,11 @@ export class AccountService {
         `/rpc/v1/accounts/${account.toString()}/resources/${resourceType}`
       )
       if (!response.data.result || response.data.result.length === 0) {
-        throw new ServiceError(
-          'Resource not found',
-          new Error('No resource data')
-        )
+        throw new Error('Failed to fetch resource data')
       }
       return response.data.result[0]
     } catch (error) {
-      this.logger.error('Failed to fetch resource data', { error })
-      throw new ServiceError('Failed to fetch resource data', error as Error)
+      throw error
     }
   }
 }
