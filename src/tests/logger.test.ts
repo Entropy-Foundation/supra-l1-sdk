@@ -1,5 +1,3 @@
-// tests/Logger.test.ts
-
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest'
 import { Logger, LogLevel, ILogTransport, ILogObject } from '../logger'
 
