@@ -103,8 +103,6 @@ let supraClient = await SupraClient.init({
 
 The **Logger** supports various log levels (`DEBUG`, `INFO`, `WARN`, `ERROR`) and allows you to define custom transport functions to handle log messages as needed.
 
-For more details on configuring and using the Logger, refer to the [Logger Documentation](https://sdk-docs.supra.com/logger).
-
 ## Features
 
 The Supra TypeScript SDK provides a robust set of features to interact with the Supra blockchain:
