@@ -1,36 +1,27 @@
 {
   "name": "supra-l1-sdk",
-  "version": "3.1.0",
-  "description": "Typescript SDK for Supra",
-  "exports": {
-    "browser": {
-      "import": "./dist/browser/index.mjs",
-      "require": "./dist/browser/index.js",
-      "types": "./dist/browser/index.d.ts"
-    },
-    "node": {
-      "import": "./dist/node/index.mjs",
-      "require": "./dist/node/index.js",
-      "types": "./dist/node/index.d.ts"
-    }
-  },
-  "browser": {
-    "./dist/node/index.mjs": "./dist/browser/index.mjs",
-    "./dist/node/index.js": "./dist/browser/index.js"
-  },
-  "main": "./dist/node/index.js",
-  "module": "./dist/node/index.mjs",
-  "types": "./dist/node/index.d.ts",
+  "version": "4.0.0",
+  "description": "A TypeScript SDK for Supra",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
   "files": [
     "./dist/"
   ],
+  "type": "module",
   "scripts": {
-    "build": "rm -rf dist && tsup --platform node --format cjs,esm --dts --out-dir dist/node && tsup --platform browser --format cjs,esm --dts  --minify --out-dir dist/browser",
+    "build:sdk:esm": "tsc -p tsconfig.json",
+    "build:sdk:cjs": "tsc -p tsconfig.cjs.json",
+    "build:sdk:browser": "rollup -c rollup.config.cjs",
+    "build:sdk": "npm run build:sdk:esm && npm run build:sdk:cjs && npm run build:sdk:browser && pnpm api-extractor",
+    "build": "npm run build:sdk",
     "prepare": "npm run build",
-    "docs": "npx typedoc",
-    "test": "ts-node ./src/example.ts"
+    "docs": "pnpm typedoc src/index.ts",
+    "test:example": "tsx ./src/example.ts",
+    "test:sdk": "vitest run --config vitest.config.ts",
+    "test": "npm run test:sdk",
+    "api-extractor": "api-extractor run"
   },
-  "author": "",
   "keywords": [
     "supra-sdk",
     "supra-l1-sdk",
@@ -38,15 +29,69 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "@ethersproject/keccak256": "^5.7.0",
     "aptos": "^1.21.0",
+    "axios": "^1.5.0",
     "js-sha3": "^0.9.3"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@types/jest": "^29.0.0",
+    "@types/node": "^22.10.1",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
+    "@typescript-eslint/eslint-plugin": "^8.16.0",
+    "@typescript-eslint/parser": "^8.16.0",
+    "@vitest/coverage-v8": "^2.1.6",
+    "assert": "^2.0.0",
+    "buffer": "^6.0.3",
     "clean-webpack-plugin": "^4.0.0",
-    "tsup": "^8.0.1",
+    "concurrently": "^8.0.1",
+    "crypto-browserify": "^3.12.0",
+    "eslint": "^9.15.0",
+    "eslint-plugin-vitest": "^0.5.4",
+    "msw": "2.2.14",
+    "rollup": "^3.0.0",
+    "rollup-plugin-terser": "^7.0.0",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "stream-browserify": "^3.0.0",
+    "tsx": "^4.19.2",
     "typedoc": "^0.25.13",
-    "typescript": "^5.3.3",
-    "webpack": "^5.89.0"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.6",
+    "vm-browserify": "^1.1.2"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "project": "./tsconfig.json",
+      "sourceType": "module"
+    },
+    "plugins": [
+      "@typescript-eslint",
+      "vitest"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:vitest/recommended"
+    ],
+    "rules": {
+      "semi": [
+        2,
+        "always"
+      ],
+      "quotes": [
+        2,
+        "single"
+      ],
+      "@typescript-eslint/no-unused-vars": 2
+    }
   }
 }

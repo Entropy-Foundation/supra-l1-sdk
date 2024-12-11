@@ -1,15 +1,21 @@
 {
     "name": "Supra-L1-SDK",
     "includeVersion": true,
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "excludeExternals": true,
     "out": "./docs",
     "entryPoints": [
-        "src/index.ts"
+        "src/sdk/index.ts"
     ],
     "cname": "sdk-docs.supra.com",
     "visibilityFilters": {
         "protected": false,
         "private": false,
         "inherited": true,
-        "external": true,
-    }
+        "external": true
+    },
+    "exclude": ["**/*.test.ts", "**/example.ts"],
+    "plugin": ["typedoc-plugin-markdown"],
+    "readme": "none"
 }
