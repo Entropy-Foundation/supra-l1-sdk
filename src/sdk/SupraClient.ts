@@ -41,7 +41,10 @@ import sha3 from 'js-sha3'
 /**
  * Configuration options for SupraClient.
  */
-interface SupraClientOptions {
+/**
+ * @public
+ */
+export interface SupraClientOptions {
   /**
    * RPC URL of the Supra node. If not provided, a default URL is used.
    */
@@ -55,15 +58,27 @@ interface SupraClientOptions {
   /**
    * Custom RequestService instance. If not provided, a default instance is created.
    */
+  /**
+   * @internal
+   * Custom RequestService instance. If not provided, a default instance is created.
+   */
   requestService?: RequestService
 
   /**
    * Custom AccountService instance. If not provided, a default instance is created.
    */
+  /**
+   * @internal
+   * Custom RequestService instance. If not provided, a default instance is created.
+   */
   accountService?: AccountService
 
   /**
    * Custom TransactionService instance. If not provided, a default instance is created.
+   */
+  /**
+   * @internal
+   * Custom RequestService instance. If not provided, a default instance is created.
    */
   transactionService?: TransactionService
 
@@ -91,9 +106,9 @@ interface SupraClientOptions {
  * @public
  */
 export class SupraClient implements ISupraClient {
-  public requestService: RequestService
-  public accountService: AccountService
-  public transactionService: TransactionService
+  private requestService: RequestService
+  private accountService: AccountService
+  private transactionService: TransactionService
   public logger: Logger
   public chainId: TxnBuilderTypes.ChainId
 

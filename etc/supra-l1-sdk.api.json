@@ -958,6 +958,137 @@
           "extendsTokenRanges": []
         },
         {
+          "kind": "Interface",
+          "canonicalReference": "supra-l1-sdk!ILogObject:interface",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface ILogObject "
+            }
+          ],
+          "fileUrlPath": "dist/node/index.d.ts",
+          "releaseTag": "Public",
+          "name": "ILogObject",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "supra-l1-sdk!ILogObject#data:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "data?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, unknown>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "data",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "supra-l1-sdk!ILogObject#level:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "level: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "level",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "supra-l1-sdk!ILogObject#message:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "message: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "message",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "supra-l1-sdk!ILogObject#timestamp:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "timestamp: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "timestamp",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
           "kind": "TypeAlias",
           "canonicalReference": "supra-l1-sdk!ILogTransport:type",
           "docComment": "/**\n * @public\n */\n",
@@ -973,7 +1104,7 @@
             {
               "kind": "Reference",
               "text": "ILogObject",
-              "canonicalReference": "supra-l1-sdk!~ILogObject:interface"
+              "canonicalReference": "supra-l1-sdk!ILogObject:interface"
             },
             {
               "kind": "Content",
@@ -990,6 +1121,2473 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 4
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "supra-l1-sdk!ISupraClient:interface",
+          "docComment": "/**\n * Interface defining the public methods of SupraClient.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface ISupraClient "
+            }
+          ],
+          "fileUrlPath": "dist/node/index.d.ts",
+          "releaseTag": "Public",
+          "name": "ISupraClient",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#accountExists:member(1)",
+              "docComment": "/**\n * Checks whether a given account exists on-chain.\n *\n * @param account - Hex-encoded 32 byte Supra account address.\n *\n * @returns Boolean indicating account existence.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "accountExists(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<boolean>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "accountExists"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#createRawTxObject:member(1)",
+              "docComment": "/**\n * Creates a raw transaction object.\n *\n * @param senderAddr - Sender's HexString address.\n *\n * @param senderSequenceNumber - Sender's sequence number.\n *\n * @param moduleAddr - Module address.\n *\n * @param moduleName - Module name.\n *\n * @param functionName - Function name.\n *\n * @param functionTypeArgs - Function type arguments.\n *\n * @param functionArgs - Function arguments.\n *\n * @param optionalTransactionPayloadArgs - Optional transaction payload arguments.\n *\n * @returns RawTransaction object.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "createRawTxObject(senderAddr: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", senderSequenceNumber: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "bigint"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", moduleAddr: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", moduleName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", functionName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", functionTypeArgs: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TxnBuilderTypes.TypeTag",
+                  "canonicalReference": "aptos!index_TypeTag:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", functionArgs: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Uint8Array",
+                  "canonicalReference": "!Uint8Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", optionalTransactionPayloadArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "OptionalTransactionPayloadArgs",
+                  "canonicalReference": "supra-l1-sdk!OptionalTransactionPayloadArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TxnBuilderTypes.RawTransaction",
+                  "canonicalReference": "aptos!index_RawTransaction:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 19,
+                "endIndex": 23
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "senderAddr",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "senderSequenceNumber",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "moduleAddr",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "moduleName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 7,
+                    "endIndex": 8
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "functionName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 9,
+                    "endIndex": 10
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "functionTypeArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 11,
+                    "endIndex": 13
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "functionArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 14,
+                    "endIndex": 16
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "optionalTransactionPayloadArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 17,
+                    "endIndex": 18
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "createRawTxObject"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#createSerializedRawTxObject:member(1)",
+              "docComment": "/**\n * Creates a serialized raw transaction object.\n *\n * @param senderAddr - Sender's HexString address.\n *\n * @param senderSequenceNumber - Sender's sequence number.\n *\n * @param moduleAddr - Module address.\n *\n * @param moduleName - Module name.\n *\n * @param functionName - Function name.\n *\n * @param functionTypeArgs - Function type arguments.\n *\n * @param functionArgs - Function arguments.\n *\n * @param optionalTransactionPayloadArgs - Optional transaction payload arguments.\n *\n * @returns Serialized raw transaction as Uint8Array.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "createSerializedRawTxObject(senderAddr: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", senderSequenceNumber: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "bigint"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", moduleAddr: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", moduleName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", functionName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", functionTypeArgs: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TxnBuilderTypes.TypeTag",
+                  "canonicalReference": "aptos!index_TypeTag:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", functionArgs: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Uint8Array",
+                  "canonicalReference": "!Uint8Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", optionalTransactionPayloadArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "OptionalTransactionPayloadArgs",
+                  "canonicalReference": "supra-l1-sdk!OptionalTransactionPayloadArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Uint8Array",
+                  "canonicalReference": "!Uint8Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 19,
+                "endIndex": 23
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "senderAddr",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "senderSequenceNumber",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "moduleAddr",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "moduleName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 7,
+                    "endIndex": 8
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "functionName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 9,
+                    "endIndex": 10
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "functionTypeArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 11,
+                    "endIndex": 13
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "functionArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 14,
+                    "endIndex": 16
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "optionalTransactionPayloadArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 17,
+                    "endIndex": 18
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "createSerializedRawTxObject"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#fundAccountWithFaucet:member(1)",
+              "docComment": "/**\n * Funds an account with test Supra tokens via faucet.\n *\n * @param account - Hex-encoded 32 byte Supra account address.\n *\n * @returns FaucetRequestResponse.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "fundAccountWithFaucet(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "FaucetRequestResponse",
+                  "canonicalReference": "supra-l1-sdk!FaucetRequestResponse:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "fundAccountWithFaucet"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getAccountCoinBalance:member(1)",
+              "docComment": "/**\n * Retrieves custom coin balance of a given account.\n *\n * @param account - SupraAccount address.\n *\n * @param coinType - Type of the custom coin.\n *\n * @returns Coin balance as bigint.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAccountCoinBalance(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", coinType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<bigint>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "coinType",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getAccountCoinBalance"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getAccountCompleteTransactionsDetail:member(1)",
+              "docComment": "/**\n * Retrieves complete transactions sent by the account and coin transfer related transactions.\n *\n * @param account - Supra account address.\n *\n * @param count - Number of transactions to retrieve.\n *\n * @returns List of TransactionDetail.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAccountCompleteTransactionsDetail(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", count?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TransactionDetail",
+                  "canonicalReference": "supra-l1-sdk!TransactionDetail:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "count",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "getAccountCompleteTransactionsDetail"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getAccountInfo:member(1)",
+              "docComment": "/**\n * Retrieves account information.\n *\n * @param account - Hex-encoded 32 byte Supra account address.\n *\n * @returns AccountInfo object.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAccountInfo(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccountInfo",
+                  "canonicalReference": "supra-l1-sdk!AccountInfo:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getAccountInfo"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getAccountResources:member(1)",
+              "docComment": "/**\n * Retrieves all resources held by a given account.\n *\n * @param account - Hex-encoded 32 byte Supra account address.\n *\n * @param paginationArgs - Pagination arguments.\n *\n * @returns AccountResources object.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAccountResources(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", paginationArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PaginationArgs",
+                  "canonicalReference": "supra-l1-sdk!PaginationArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccountResources",
+                  "canonicalReference": "supra-l1-sdk!AccountResources:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "paginationArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "getAccountResources"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getAccountSupraCoinBalance:member(1)",
+              "docComment": "/**\n * Retrieves SupraCoin balance of a given account.\n *\n * @param account - SupraAccount address.\n *\n * @returns SupraCoin balance as bigint.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAccountSupraCoinBalance(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<bigint>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getAccountSupraCoinBalance"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getAccountTransactionsDetail:member(1)",
+              "docComment": "/**\n * Retrieves transactions sent by the account.\n *\n * @param account - Supra account address.\n *\n * @param paginationArgs - Arguments for pagination.\n *\n * @returns List of TransactionDetail.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAccountTransactionsDetail(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", paginationArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PaginationArgs",
+                  "canonicalReference": "supra-l1-sdk!PaginationArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TransactionDetail",
+                  "canonicalReference": "supra-l1-sdk!TransactionDetail:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "paginationArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "getAccountTransactionsDetail"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getChainId:member(1)",
+              "docComment": "/**\n * Retrieves the chain ID from the RPC node.\n *\n * @returns Chain ID as a number.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getChainId(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "getChainId"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getCoinInfo:member(1)",
+              "docComment": "/**\n * Get Supra balance of given account\n *\n * @param coinType - Type of a coin resource\n *\n * @returns CoinInfo\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCoinInfo(coinType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "CoinInfo",
+                  "canonicalReference": "supra-l1-sdk!CoinInfo:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "coinType",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getCoinInfo"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getCoinTransactionsDetail:member(1)",
+              "docComment": "/**\n * Retrieves coin transfer related transactions associated with the account.\n *\n * @param account - Supra account address.\n *\n * @param paginationArgs - Arguments for pagination.\n *\n * @returns AccountCoinTransactionsDetail.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCoinTransactionsDetail(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", paginationArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PaginationArgs",
+                  "canonicalReference": "supra-l1-sdk!PaginationArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccountCoinTransactionsDetail",
+                  "canonicalReference": "supra-l1-sdk!AccountCoinTransactionsDetail:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "paginationArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "getCoinTransactionsDetail"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getGasPrice:member(1)",
+              "docComment": "/**\n * Retrieves the current mean gas price.\n *\n * @returns Current mean gas price as bigint.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getGasPrice(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<bigint>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "getGasPrice"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getResourceData:member(1)",
+              "docComment": "/**\n * Retrieves specific resource data from an account.\n *\n * @param account - Hex-encoded 32 byte Supra account address.\n *\n * @param resourceType - Type of the resource.\n *\n * @returns Resource data.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getResourceData(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", resourceType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<any>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "resourceType",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getResourceData"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getTableItemByKey:member(1)",
+              "docComment": "/**\n * Accesses an item from a table using an associated key.\n *\n * @param tableHandle - Table handle.\n *\n * @param keyType - Type of the key.\n *\n * @param valueType - Type of the value.\n *\n * @param key - The actual key.\n *\n * @returns Table item's data.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getTableItemByKey(tableHandle: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", keyType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", valueType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", key: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<any>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 9,
+                "endIndex": 11
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "tableHandle",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "keyType",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "valueType",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "key",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 7,
+                    "endIndex": 8
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getTableItemByKey"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getTransactionDetail:member(1)",
+              "docComment": "/**\n * Retrieves transaction details.\n *\n * @param account - Account address.\n *\n * @param txHash - Transaction hash.\n *\n * @returns TransactionDetail or null.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getTransactionDetail(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", txHash: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TransactionDetail",
+                  "canonicalReference": "supra-l1-sdk!TransactionDetail:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "txHash",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getTransactionDetail"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#getTransactionStatus:member(1)",
+              "docComment": "/**\n * Retrieves the status of a transaction.\n *\n * @param txHash - Transaction hash.\n *\n * @returns TransactionStatus or null.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getTransactionStatus(txHash: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TransactionStatus",
+                  "canonicalReference": "supra-l1-sdk!TransactionStatus:enum"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "txHash",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "getTransactionStatus"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#invokeViewMethod:member(1)",
+              "docComment": "/**\n * Invokes a view method of a smart contract.\n *\n * @param functionFullName - Full name of the function (e.g., `0x1::module::function`).\n *\n * @param typeArguments - Array of type arguments.\n *\n * @param functionArguments - Array of function arguments.\n *\n * @returns Result of the view method.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "invokeViewMethod(functionFullName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", typeArguments: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Array",
+                  "canonicalReference": "!Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", functionArguments: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Array",
+                  "canonicalReference": "!Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<any>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 9,
+                "endIndex": 11
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "functionFullName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "typeArguments",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "functionArguments",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 6,
+                    "endIndex": 8
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "invokeViewMethod"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#publishPackage:member(1)",
+              "docComment": "/**\n * Publishes a package or module on the Supra network.\n *\n * @param senderAccount - Module publisher's SupraAccount.\n *\n * @param packageMetadata - Package metadata as Uint8Array.\n *\n * @param modulesCode - Array of module codes as Uint8Array.\n *\n * @param optionalArgs - Optional transaction arguments.\n *\n * @returns TransactionResponse.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "publishPackage(senderAccount: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AptosAccount",
+                  "canonicalReference": "aptos!AptosAccount:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", packageMetadata: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Uint8Array",
+                  "canonicalReference": "!Uint8Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", modulesCode: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Uint8Array",
+                  "canonicalReference": "!Uint8Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", optionalArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "OptionalTransactionArgs",
+                  "canonicalReference": "supra-l1-sdk!OptionalTransactionArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TransactionResponse",
+                  "canonicalReference": "supra-l1-sdk!TransactionResponse:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 10,
+                "endIndex": 14
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "senderAccount",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "packageMetadata",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "modulesCode",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "optionalArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 8,
+                    "endIndex": 9
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "publishPackage"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#sendMultiAgentTransaction:member(1)",
+              "docComment": "/**\n * Sends a multi-agent transaction.\n *\n * @param secondarySignersAccountAddress - List of secondary signers' account addresses.\n *\n * @param rawTxn - RawTransaction object.\n *\n * @param senderAuthenticator - Sender's authenticator.\n *\n * @param secondarySignersAuthenticator - List of secondary signers' authenticators.\n *\n * @param enableTransactionWaitAndSimulationArgs - Optional arguments for transaction simulation and wait.\n *\n * @returns TransactionResponse.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "sendMultiAgentTransaction(secondarySignersAccountAddress: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Array",
+                  "canonicalReference": "!Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", rawTxn: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TxnBuilderTypes.RawTransaction",
+                  "canonicalReference": "aptos!index_RawTransaction:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", senderAuthenticator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TxnBuilderTypes.AccountAuthenticatorEd25519",
+                  "canonicalReference": "aptos!index_AccountAuthenticatorEd25519:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", secondarySignersAuthenticator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Array",
+                  "canonicalReference": "!Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TxnBuilderTypes.AccountAuthenticatorEd25519",
+                  "canonicalReference": "aptos!index_AccountAuthenticatorEd25519:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", enableTransactionWaitAndSimulationArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnableTransactionWaitAndSimulationArgs",
+                  "canonicalReference": "supra-l1-sdk!EnableTransactionWaitAndSimulationArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TransactionResponse",
+                  "canonicalReference": "supra-l1-sdk!TransactionResponse:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 15,
+                "endIndex": 19
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "secondarySignersAccountAddress",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "rawTxn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 4,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "senderAuthenticator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 6,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "secondarySignersAuthenticator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 8,
+                    "endIndex": 12
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "enableTransactionWaitAndSimulationArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 13,
+                    "endIndex": 14
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "sendMultiAgentTransaction"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#sendSponsorTransaction:member(1)",
+              "docComment": "/**\n * Sends a sponsor transaction.\n *\n * @param feePayerAddress - Fee payer's account address.\n *\n * @param secondarySignersAccountAddress - List of secondary signers' account addresses.\n *\n * @param rawTxn - RawTransaction object.\n *\n * @param senderAuthenticator - Sender's authenticator.\n *\n * @param feePayerAuthenticator - Fee payer's authenticator.\n *\n * @param secondarySignersAuthenticator - List of secondary signers' authenticators.\n *\n * @param enableTransactionWaitAndSimulationArgs - Optional arguments for transaction simulation and wait.\n *\n * @returns TransactionResponse.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "sendSponsorTransaction(feePayerAddress: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", // Corrected parameter name from 'feePayerAddressk' to 'feePayerAddress'\n    secondarySignersAccountAddress: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Array",
+                  "canonicalReference": "!Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", rawTxn: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TxnBuilderTypes.RawTransaction",
+                  "canonicalReference": "aptos!index_RawTransaction:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", senderAuthenticator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TxnBuilderTypes.AccountAuthenticatorEd25519",
+                  "canonicalReference": "aptos!index_AccountAuthenticatorEd25519:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", feePayerAuthenticator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TxnBuilderTypes.AccountAuthenticatorEd25519",
+                  "canonicalReference": "aptos!index_AccountAuthenticatorEd25519:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", secondarySignersAuthenticator?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Array",
+                  "canonicalReference": "!Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TxnBuilderTypes.AccountAuthenticatorEd25519",
+                  "canonicalReference": "aptos!index_AccountAuthenticatorEd25519:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", enableTransactionWaitAndSimulationArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnableTransactionWaitAndSimulationArgs",
+                  "canonicalReference": "supra-l1-sdk!EnableTransactionWaitAndSimulationArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TransactionResponse",
+                  "canonicalReference": "supra-l1-sdk!TransactionResponse:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 19,
+                "endIndex": 23
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "feePayerAddress",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "secondarySignersAccountAddress",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "rawTxn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 6,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "senderAuthenticator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 8,
+                    "endIndex": 9
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "feePayerAuthenticator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 10,
+                    "endIndex": 11
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "secondarySignersAuthenticator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 12,
+                    "endIndex": 16
+                  },
+                  "isOptional": true
+                },
+                {
+                  "parameterName": "enableTransactionWaitAndSimulationArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 17,
+                    "endIndex": 18
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "sendSponsorTransaction"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#sendTxUsingSerializedRawTransaction:member(1)",
+              "docComment": "/**\n * Sends a serialized raw transaction.\n *\n * @param senderAccount - Sender's SupraAccount.\n *\n * @param serializedRawTransaction - Serialized raw transaction data.\n *\n * @param enableTransactionWaitAndSimulationArgs - Optional arguments for transaction simulation and wait.\n *\n * @returns TransactionResponse.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "sendTxUsingSerializedRawTransaction(senderAccount: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AptosAccount",
+                  "canonicalReference": "aptos!AptosAccount:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", serializedRawTransaction: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Uint8Array",
+                  "canonicalReference": "!Uint8Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", enableTransactionWaitAndSimulationArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnableTransactionWaitAndSimulationArgs",
+                  "canonicalReference": "supra-l1-sdk!EnableTransactionWaitAndSimulationArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TransactionResponse",
+                  "canonicalReference": "supra-l1-sdk!TransactionResponse:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 11
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "senderAccount",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "serializedRawTransaction",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "enableTransactionWaitAndSimulationArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "sendTxUsingSerializedRawTransaction"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#sendTxUsingSerializedRawTransactionAndSignature:member(1)",
+              "docComment": "/**\n * Sends a serialized raw transaction with a signature.\n *\n * @param senderPubkey - Sender's public key as HexString.\n *\n * @param signature - Signature as HexString.\n *\n * @param serializedRawTransaction - Serialized raw transaction data.\n *\n * @param enableTransactionWaitAndSimulationArgs - Optional arguments for transaction simulation and wait.\n *\n * @returns TransactionResponse.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "sendTxUsingSerializedRawTransactionAndSignature(senderPubkey: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", signature: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", serializedRawTransaction: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Uint8Array",
+                  "canonicalReference": "!Uint8Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", enableTransactionWaitAndSimulationArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnableTransactionWaitAndSimulationArgs",
+                  "canonicalReference": "supra-l1-sdk!EnableTransactionWaitAndSimulationArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TransactionResponse",
+                  "canonicalReference": "supra-l1-sdk!TransactionResponse:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 9,
+                "endIndex": 13
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "senderPubkey",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "signature",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "serializedRawTransaction",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "enableTransactionWaitAndSimulationArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 7,
+                    "endIndex": 8
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "sendTxUsingSerializedRawTransactionAndSignature"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#simulateTxUsingSerializedRawTransaction:member(1)",
+              "docComment": "/**\n * Simulate a transaction using the provided Serialized raw transaction data\n *\n * @param txAuthenticator - Transaction authenticator\n *\n * @param serializedRawTransaction - Serialized raw transaction data\n *\n * @returns Transaction simulation result\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "simulateTxUsingSerializedRawTransaction(txAuthenticator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AnyAuthenticatorJSON",
+                  "canonicalReference": "supra-l1-sdk!AnyAuthenticatorJSON:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", serializedRawTransaction: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Uint8Array",
+                  "canonicalReference": "!Uint8Array:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<any>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "txAuthenticator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "serializedRawTransaction",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "simulateTxUsingSerializedRawTransaction"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#transferCoin:member(1)",
+              "docComment": "/**\n * Transfer custom type of coin\n *\n * @param senderAccount - Sender KeyPair\n *\n * @param receiverAccountAddr - Receiver Supra Account address\n *\n * @param amount - Amount to transfer\n *\n * @param coinType - Type of custom coin\n *\n * @param optionalTransactionArgs - Optional arguments for transaction\n *\n * @returns `TransactionResponse`\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "transferCoin(senderAccount: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AptosAccount",
+                  "canonicalReference": "aptos!AptosAccount:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", receiverAccountAddr: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", amount: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "bigint"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", coinType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", optionalTransactionArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "OptionalTransactionArgs",
+                  "canonicalReference": "supra-l1-sdk!OptionalTransactionArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TransactionResponse",
+                  "canonicalReference": "supra-l1-sdk!TransactionResponse:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 11,
+                "endIndex": 15
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "senderAccount",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "receiverAccountAddr",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "amount",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "coinType",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 7,
+                    "endIndex": 8
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "optionalTransactionArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 9,
+                    "endIndex": 10
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "transferCoin"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "supra-l1-sdk!ISupraClient#transferSupraCoin:member(1)",
+              "docComment": "/**\n * Transfer supra coin\n *\n * @param senderAccount - Sender KeyPair\n *\n * @param receiverAccountAddr - Receiver Supra Account address\n *\n * @param amount - Amount to transfer\n *\n * @param optionalTransactionArgs - Optional arguments for transaction\n *\n * @returns `TransactionResponse`\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "transferSupraCoin(senderAccount: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AptosAccount",
+                  "canonicalReference": "aptos!AptosAccount:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", receiverAccountAddr: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "HexString",
+                  "canonicalReference": "aptos!HexString:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", amount: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "bigint"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", optionalTransactionArgs?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "OptionalTransactionArgs",
+                  "canonicalReference": "supra-l1-sdk!OptionalTransactionArgs:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TransactionResponse",
+                  "canonicalReference": "supra-l1-sdk!TransactionResponse:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 9,
+                "endIndex": 13
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "senderAccount",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "receiverAccountAddr",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "amount",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "optionalTransactionArgs",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 7,
+                    "endIndex": 8
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "transferSupraCoin"
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "supra-l1-sdk!LOG_LEVELS:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "LOG_LEVELS: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    readonly DEBUG: 0;\n    readonly INFO: 1;\n    readonly WARN: 2;\n    readonly ERROR: 3;\n}"
+            }
+          ],
+          "fileUrlPath": "dist/node/index.d.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "LOG_LEVELS",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
           }
         },
         {
@@ -1451,7 +4049,7 @@
             {
               "kind": "Reference",
               "text": "LOG_LEVELS",
-              "canonicalReference": "supra-l1-sdk!~LOG_LEVELS:var"
+              "canonicalReference": "supra-l1-sdk!LOG_LEVELS:var"
             },
             {
               "kind": "Content",
@@ -2305,7 +4903,7 @@
             {
               "kind": "Reference",
               "text": "ISupraClient",
-              "canonicalReference": "supra-l1-sdk!~ISupraClient:interface"
+              "canonicalReference": "supra-l1-sdk!ISupraClient:interface"
             },
             {
               "kind": "Content",
@@ -2330,7 +4928,7 @@
                 {
                   "kind": "Reference",
                   "text": "SupraClientOptions",
-                  "canonicalReference": "supra-l1-sdk!~SupraClientOptions:interface"
+                  "canonicalReference": "supra-l1-sdk!SupraClientOptions:interface"
                 },
                 {
                   "kind": "Content",
@@ -2404,37 +5002,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "accountExists"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "supra-l1-sdk!SupraClient#accountService:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "accountService: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "AccountService",
-                  "canonicalReference": "supra-l1-sdk!~AccountService:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "accountService",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Property",
@@ -4110,7 +6677,7 @@
                 {
                   "kind": "Reference",
                   "text": "SupraClientOptions",
-                  "canonicalReference": "supra-l1-sdk!~SupraClientOptions:interface"
+                  "canonicalReference": "supra-l1-sdk!SupraClientOptions:interface"
                 },
                 {
                   "kind": "Content",
@@ -4128,7 +6695,7 @@
                 {
                   "kind": "Reference",
                   "text": "ISupraClient",
-                  "canonicalReference": "supra-l1-sdk!~ISupraClient:interface"
+                  "canonicalReference": "supra-l1-sdk!ISupraClient:interface"
                 },
                 {
                   "kind": "Content",
@@ -4404,37 +6971,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "publishPackage"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "supra-l1-sdk!SupraClient#requestService:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "requestService: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "RequestService",
-                  "canonicalReference": "supra-l1-sdk!~RequestService:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "requestService",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Method",
@@ -5191,37 +7727,6 @@
               "name": "simulateTxUsingSerializedRawTransaction"
             },
             {
-              "kind": "Property",
-              "canonicalReference": "supra-l1-sdk!SupraClient#transactionService:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "transactionService: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TransactionService",
-                  "canonicalReference": "supra-l1-sdk!~TransactionService:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "transactionService",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
               "kind": "Method",
               "canonicalReference": "supra-l1-sdk!SupraClient#transferCoin:member(1)",
               "docComment": "",
@@ -5470,6 +7975,161 @@
               "endIndex": 2
             }
           ]
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "supra-l1-sdk!SupraClientOptions:interface",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface SupraClientOptions "
+            }
+          ],
+          "fileUrlPath": "dist/node/index.d.ts",
+          "releaseTag": "Public",
+          "name": "SupraClientOptions",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "supra-l1-sdk!SupraClientOptions#chainId:member",
+              "docComment": "/**\n * Chain ID of the network. If not provided, it will be fetched from the RPC node.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "chainId?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "chainId",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "supra-l1-sdk!SupraClientOptions#logger:member",
+              "docComment": "/**\n * Logger instance. If not provided, a default logger is created.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "logger?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Logger",
+                  "canonicalReference": "supra-l1-sdk!Logger:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "logger",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "supra-l1-sdk!SupraClientOptions#logLevel:member",
+              "docComment": "/**\n * Logging level. Defaults to 'WARN' if not provided. Ignored if a custom logger is provided.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "logLevel?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "LogLevel",
+                  "canonicalReference": "supra-l1-sdk!LogLevel:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "logLevel",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "supra-l1-sdk!SupraClientOptions#logTransport:member",
+              "docComment": "/**\n * Log transport function. Ignored if a custom logger is provided.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "logTransport?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(log: any) => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "logTransport",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "supra-l1-sdk!SupraClientOptions#url:member",
+              "docComment": "/**\n * RPC URL of the Supra node. If not provided, a default URL is used.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "url?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "url",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
         },
         {
           "kind": "Interface",

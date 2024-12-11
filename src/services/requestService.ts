@@ -5,6 +5,10 @@ import type { Logger } from '../logger'
 /**
  * Service responsible for making HTTP requests to the Supra RPC node.
  */
+/**
+ * @internal
+ */
+
 export class RequestService {
   private axiosInstance: AxiosInstance
   private logger: Logger

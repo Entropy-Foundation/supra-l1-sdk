@@ -110,10 +110,60 @@ export interface FunctionTypeArgs {
 
 export { HexString }
 
-// Warning: (ae-forgotten-export) The symbol "ILogObject" needs to be exported by the entry point index.d.ts
-//
+// @public (undocumented)
+export interface ILogObject {
+    // (undocumented)
+    data?: Record<string, unknown>;
+    // (undocumented)
+    level: number;
+    // (undocumented)
+    message: string;
+    // (undocumented)
+    timestamp: number;
+}
+
 // @public (undocumented)
 export type ILogTransport = (log: ILogObject) => void;
+
+// @public
+export interface ISupraClient {
+    accountExists(account: HexString): Promise<boolean>;
+    createRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs): Promise<TxnBuilderTypes.RawTransaction>;
+    createSerializedRawTxObject(senderAddr: HexString, senderSequenceNumber: bigint, moduleAddr: string, moduleName: string, functionName: string, functionTypeArgs: TxnBuilderTypes.TypeTag[], functionArgs: Uint8Array[], optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs): Promise<Uint8Array>;
+    fundAccountWithFaucet(account: HexString): Promise<FaucetRequestResponse>;
+    getAccountCoinBalance(account: HexString, coinType: string): Promise<bigint>;
+    getAccountCompleteTransactionsDetail(account: HexString, count?: number): Promise<TransactionDetail[]>;
+    getAccountInfo(account: HexString): Promise<AccountInfo>;
+    getAccountResources(account: HexString, paginationArgs?: PaginationArgs): Promise<AccountResources>;
+    getAccountSupraCoinBalance(account: HexString): Promise<bigint>;
+    getAccountTransactionsDetail(account: HexString, paginationArgs?: PaginationArgs): Promise<TransactionDetail[]>;
+    getChainId(): Promise<number>;
+    getCoinInfo(coinType: string): Promise<CoinInfo>;
+    getCoinTransactionsDetail(account: HexString, paginationArgs?: PaginationArgs): Promise<AccountCoinTransactionsDetail>;
+    getGasPrice(): Promise<bigint>;
+    getResourceData(account: HexString, resourceType: string): Promise<any>;
+    getTableItemByKey(tableHandle: string, keyType: string, valueType: string, key: string): Promise<any>;
+    getTransactionDetail(account: HexString, txHash: string): Promise<TransactionDetail | null>;
+    getTransactionStatus(txHash: string): Promise<TransactionStatus | null>;
+    invokeViewMethod(functionFullName: string, typeArguments: Array<string>, functionArguments: Array<string>): Promise<any>;
+    publishPackage(senderAccount: SupraAccount, packageMetadata: Uint8Array, modulesCode: Uint8Array[], optionalArgs?: OptionalTransactionArgs): Promise<TransactionResponse>;
+    sendMultiAgentTransaction(secondarySignersAccountAddress: Array<string>, rawTxn: TxnBuilderTypes.RawTransaction, senderAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519, secondarySignersAuthenticator: Array<TxnBuilderTypes.AccountAuthenticatorEd25519>, enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs): Promise<TransactionResponse>;
+    sendSponsorTransaction(feePayerAddress: string, // Corrected parameter name from 'feePayerAddressk' to 'feePayerAddress'
+    secondarySignersAccountAddress: Array<string>, rawTxn: TxnBuilderTypes.RawTransaction, senderAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519, feePayerAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519, secondarySignersAuthenticator?: Array<TxnBuilderTypes.AccountAuthenticatorEd25519>, enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs): Promise<TransactionResponse>;
+    sendTxUsingSerializedRawTransaction(senderAccount: SupraAccount, serializedRawTransaction: Uint8Array, enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs): Promise<TransactionResponse>;
+    sendTxUsingSerializedRawTransactionAndSignature(senderPubkey: HexString, signature: HexString, serializedRawTransaction: Uint8Array, enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs): Promise<TransactionResponse>;
+    simulateTxUsingSerializedRawTransaction(txAuthenticator: AnyAuthenticatorJSON, serializedRawTransaction: Uint8Array): Promise<any>;
+    transferCoin(senderAccount: SupraAccount, receiverAccountAddr: HexString, amount: bigint, coinType: string, optionalTransactionArgs?: OptionalTransactionArgs): Promise<TransactionResponse>;
+    transferSupraCoin(senderAccount: SupraAccount, receiverAccountAddr: HexString, amount: bigint, optionalTransactionArgs?: OptionalTransactionArgs): Promise<TransactionResponse>;
+}
+
+// @public (undocumented)
+export const LOG_LEVELS: {
+    readonly DEBUG: 0;
+    readonly INFO: 1;
+    readonly WARN: 2;
+    readonly ERROR: 3;
+};
 
 // @public (undocumented)
 export class Logger {
@@ -126,8 +176,6 @@ export class Logger {
     warn(message: string, data?: Record<string, unknown>): void;
 }
 
-// Warning: (ae-forgotten-export) The symbol "LOG_LEVELS" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type LogLevel = keyof typeof LOG_LEVELS;
 
@@ -222,18 +270,11 @@ export interface SponsorTransactionAuthenticatorJSON {
 
 export { SupraAccount }
 
-// Warning: (ae-forgotten-export) The symbol "ISupraClient" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export class SupraClient implements ISupraClient {
-    // Warning: (ae-forgotten-export) The symbol "SupraClientOptions" needs to be exported by the entry point index.d.ts
     constructor(options?: SupraClientOptions);
     // (undocumented)
     accountExists(account: HexString): Promise<boolean>;
-    // Warning: (ae-forgotten-export) The symbol "AccountService" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    accountService: AccountService;
     // (undocumented)
     chainId: TxnBuilderTypes.ChainId;
     // (undocumented)
@@ -281,10 +322,6 @@ export class SupraClient implements ISupraClient {
     logger: Logger;
     // (undocumented)
     publishPackage(senderAccount: SupraAccount, packageMetadata: Uint8Array, modulesCode: Uint8Array[], optionalArgs?: OptionalTransactionArgs): Promise<TransactionResponse>;
-    // Warning: (ae-forgotten-export) The symbol "RequestService" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    requestService: RequestService;
     // (undocumented)
     sendMultiAgentTransaction(secondarySignersAccountAddress: Array<string>, rawTxn: TxnBuilderTypes.RawTransaction, senderAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519, secondarySignersAuthenticator: Array<TxnBuilderTypes.AccountAuthenticatorEd25519>, enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs): Promise<TransactionResponse>;
     // (undocumented)
@@ -297,14 +334,31 @@ export class SupraClient implements ISupraClient {
     static signSupraTransaction(senderAccount: SupraAccount, rawTxn: AnyRawTransaction): HexString;
     // (undocumented)
     simulateTxUsingSerializedRawTransaction(txAuthenticator: AnyAuthenticatorJSON, serializedRawTransaction: Uint8Array): Promise<any>;
-    // Warning: (ae-forgotten-export) The symbol "TransactionService" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    transactionService: TransactionService;
     // (undocumented)
     transferCoin(senderAccount: SupraAccount, receiverAccountAddr: HexString, amount: bigint, coinType: string, optionalTransactionArgs?: OptionalTransactionArgs): Promise<TransactionResponse>;
     // (undocumented)
     transferSupraCoin(senderAccount: SupraAccount, receiverAccountAddr: HexString, amount: bigint, optionalTransactionArgs?: OptionalTransactionArgs): Promise<TransactionResponse>;
+}
+
+// @public (undocumented)
+export interface SupraClientOptions {
+    // Warning: (ae-forgotten-export) The symbol "AccountService" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
+    accountService?: AccountService;
+    chainId?: number;
+    logger?: Logger;
+    logLevel?: LogLevel;
+    logTransport?: (log: any) => void;
+    // Warning: (ae-forgotten-export) The symbol "RequestService" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
+    requestService?: RequestService;
+    // Warning: (ae-forgotten-export) The symbol "TransactionService" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
+    transactionService?: TransactionService;
+    url?: string;
 }
 
 // @public (undocumented)

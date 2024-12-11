@@ -1,3 +1,6 @@
+/**
+ * @public
+ */
 export interface ILogObject {
   level: number
   message: string
@@ -13,7 +16,10 @@ export interface ILogObject {
  */
 export type ILogTransport = (log: ILogObject) => void
 
-const LOG_LEVELS = {
+/**
+ * @public
+ */
+export const LOG_LEVELS = {
   DEBUG: 0,
   INFO: 1,
   WARN: 2,

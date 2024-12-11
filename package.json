@@ -27,7 +27,7 @@
   "scripts": {
     "build": "rm -rf dist && tsup --platform node --out-dir dist/node && tsup --platform browser --out-dir dist/browser",
     "prepare": "npm run build && pnpm api-extractor",
-    "docs": "pnpm typedoc src/index.ts",
+    "docs:generate": "typedoc --entryPoints src/index.ts",
     "test:example": "tsx ./src/example.ts",
     "test:sdk": "vitest run --config vitest.config.ts",
     "test": "npm run test:sdk",
@@ -51,12 +51,12 @@
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@vitest/coverage-v8": "^2.1.6",
-    "tsx": "^4.19.2",
-    "typedoc": "^0.25.13",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.6",
     "clean-webpack-plugin": "^4.0.0",
     "tsup": "^8.0.1",
+    "tsx": "^4.19.2",
+    "typedoc": "^0.25.13",
+    "typescript": "^5.3.3",
+    "vitest": "^2.1.6",
     "webpack": "^5.89.0"
   },
   "peerDependencies": {

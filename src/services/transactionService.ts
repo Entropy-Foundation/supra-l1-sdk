@@ -52,6 +52,10 @@ import type { RequestService } from './requestService'
 /**
  * Service responsible for transaction-related operations.
  */
+/**
+ * @internal
+ */
+
 export class TransactionService {
   private requestService: RequestService
   private logger: Logger
