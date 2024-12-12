@@ -2,7 +2,7 @@
 
 Welcome to the **Supra TypeScript SDK**! This SDK offers a streamlined and efficient way to interact with the Supra blockchain, enabling developers to perform a wide range of operations seamlessly. Designed with a clean interface and comprehensive functionalities, the Supra SDK enhances developer productivity and simplifies the integration process.
 
-**Note:** This project is an **overhaul and cleanup by the team NLJinchuriki**, ensuring improved structure, clarity, and ease of use for developers.
+**Note:** This project is an **overhaul and cleanup by the team NLJinchuriki**, ensuring improved structure, clarity, maintainability and ease of use for developers.
 
 ## Table of Contents
 
