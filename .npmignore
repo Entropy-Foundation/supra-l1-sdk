@@ -1,0 +1,9 @@
+*.tsbuildinfo
+*.test.ts
+**/*.test.ts
+*.log
+node_modules
+dist
+test/
+node_modules
+temp

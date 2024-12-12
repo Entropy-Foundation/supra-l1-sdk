@@ -1,36 +1,38 @@
 {
   "name": "supra-l1-sdk",
-  "version": "3.1.0",
-  "description": "Typescript SDK for Supra",
+  "version": "4.0.0",
+  "description": "A TypeScript SDK for Supra",
   "exports": {
     "browser": {
+      "types": "./dist/browser/index.d.ts",
       "import": "./dist/browser/index.mjs",
-      "require": "./dist/browser/index.js",
-      "types": "./dist/browser/index.d.ts"
+      "require": "./dist/browser/index.js"
     },
     "node": {
+      "types": "./dist/node/index.d.ts",
       "import": "./dist/node/index.mjs",
-      "require": "./dist/node/index.js",
-      "types": "./dist/node/index.d.ts"
+      "require": "./dist/node/index.js"
     }
   },
   "browser": {
     "./dist/node/index.mjs": "./dist/browser/index.mjs",
     "./dist/node/index.js": "./dist/browser/index.js"
   },
+  "types": "./dist/node/index.d.ts",
   "main": "./dist/node/index.js",
   "module": "./dist/node/index.mjs",
-  "types": "./dist/node/index.d.ts",
   "files": [
     "./dist/"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsup --platform node --format cjs,esm --dts --out-dir dist/node && tsup --platform browser --format cjs,esm --dts  --minify --out-dir dist/browser",
-    "prepare": "npm run build",
-    "docs": "npx typedoc",
-    "test": "ts-node ./src/example.ts"
+    "build": "rm -rf dist && tsup --platform node --out-dir dist/node && tsup --platform browser --out-dir dist/browser",
+    "prepare": "npm run build && pnpm api-extractor",
+    "docs:generate": "typedoc --entryPoints src/index.ts",
+    "test:example": "tsx ./src/example.ts",
+    "test:sdk": "vitest run --config vitest.config.ts",
+    "test": "npm run test:sdk",
+    "api-extractor": "api-extractor run"
   },
-  "author": "",
   "keywords": [
     "supra-sdk",
     "supra-l1-sdk",
@@ -38,15 +40,56 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "@ethersproject/keccak256": "^5.7.0",
     "aptos": "^1.21.0",
-    "js-sha3": "^0.9.3"
+    "axios": "^1.5.0",
+    "js-sha3": "^0.9.3",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@types/node": "^22.10.1",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
+    "@vitest/coverage-v8": "^2.1.6",
     "clean-webpack-plugin": "^4.0.0",
     "tsup": "^8.0.1",
+    "tsx": "^4.19.2",
     "typedoc": "^0.25.13",
     "typescript": "^5.3.3",
+    "vitest": "^2.1.6",
     "webpack": "^5.89.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "project": "./tsconfig.json",
+      "sourceType": "module"
+    },
+    "plugins": [
+      "@typescript-eslint",
+      "vitest"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:vitest/recommended"
+    ],
+    "rules": {
+      "semi": [
+        2,
+        "always"
+      ],
+      "quotes": [
+        2,
+        "single"
+      ],
+      "@typescript-eslint/no-unused-vars": 2
+    }
   }
 }

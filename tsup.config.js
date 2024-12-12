@@ -4,7 +4,15 @@ export default defineConfig({
   entry: ["src/index.ts"],
   format: ["cjs", "esm"],
   dts: true,
-  splitting: false,
+  minify: true,
   sourcemap: true,
-  target: "es2018",
+  target: "es2020",
+  splitting: false,
+  external: ["fsevents","esbuild"],
+  esbuildOptions(options) {
+    options.loader = {
+      ...options.loader,
+      ".node": "file",
+    };
+  },
 });

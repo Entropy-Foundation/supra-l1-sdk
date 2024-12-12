@@ -1,15 +1,27 @@
 {
     "name": "Supra-L1-SDK",
     "includeVersion": true,
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "excludeExternals": true,
+    "excludeInternal": true,
+    "tsconfig": "./tsconfig.docs.json",
     "out": "./docs",
     "entryPoints": [
-        "src/index.ts"
+      "src/sdk/index.ts"
     ],
     "cname": "sdk-docs.supra.com",
     "visibilityFilters": {
-        "protected": false,
-        "private": false,
-        "inherited": true,
-        "external": true,
-    }
-}
+      "protected": false,
+      "private": false,
+      "inherited": true,
+      "external": true,
+    },
+    "exclude": [
+      "**/*.test.ts",
+      "**/example.ts",
+      "**/dist/**",
+      "**/vitest.config.ts"
+    ],
+    "readme": "none"
+  }
