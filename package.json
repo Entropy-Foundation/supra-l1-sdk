@@ -1,6 +1,6 @@
 {
   "name": "supra-l1-sdk",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Typescript SDK for Supra",
   "exports": {
     "browser": {
@@ -39,7 +39,7 @@
   "license": "ISC",
   "dependencies": {
     "js-sha3": "^0.9.3",
-    "legacy-aptos-sdk": "file:../../../aptos-sdk-legacy/legacy-aptos-sdk-1.21.0.tgz"
+    "legacy-aptos-sdk": "github:Entropy-Foundation/aptos-sdk-legacy#AutomationRegistration-Tx-Payload"
   },
   "devDependencies": {
     "clean-webpack-plugin": "^4.0.0",

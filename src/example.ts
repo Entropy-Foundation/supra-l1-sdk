@@ -4,6 +4,7 @@ import {
   SupraClient,
   BCS,
   TxnBuilderTypes,
+  MILLISECONDS_PER_SECOND,
 } from "./index";
 
 // To run this example, install `ts-node` (e.g. `npm install -g ts-node`), enter the directory
@@ -64,6 +65,7 @@ import {
     );
   }
 
+  // To Send Automation Transaction
   let supraCoinTransferAutomationSerializedRawTransaction =
     supraClient.createSerializedAutomationRegistrationTxPayloadRawTxObject(
       senderAccount.address(),
@@ -77,7 +79,7 @@ import {
       BigInt(500000),
       BigInt(100),
       BigInt(100000000),
-      BigInt(99999999999),
+      BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 5000),
       []
     );
 

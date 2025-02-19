@@ -1307,49 +1307,27 @@ export class SupraClient {
     optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
   ): Uint8Array {
     let payload = new TxnBuilderTypes.TransactionPayloadAutomationRegistration(
-      new TxnBuilderTypes.AutomationRegistrationParamsV1Data(
-        new TxnBuilderTypes.EntryFunction(
-          new TxnBuilderTypes.ModuleId(
-            new TxnBuilderTypes.AccountAddress(
-              new HexString(normalizeAddress(moduleAddr)).toUint8Array()
+      new TxnBuilderTypes.AutomationRegistrationParamsV1(
+        new TxnBuilderTypes.AutomationRegistrationParamsV1Data(
+          new TxnBuilderTypes.EntryFunction(
+            new TxnBuilderTypes.ModuleId(
+              new TxnBuilderTypes.AccountAddress(
+                new HexString(normalizeAddress(moduleAddr)).toUint8Array()
+              ),
+              new TxnBuilderTypes.Identifier(moduleName)
             ),
-            new TxnBuilderTypes.Identifier(moduleName)
+            new TxnBuilderTypes.Identifier(functionName),
+            functionTypeArgs,
+            functionArgs
           ),
-          new TxnBuilderTypes.Identifier(functionName),
-          functionTypeArgs,
-          functionArgs
-        ),
-        automation_max_gas_amount,
-        automation_gas_price_cap,
-        automation_fee_cap_for_epoch,
-        automation_expiration_timestamp_secs,
-        automation_aux_data
-      )
-    );
-    console.log(
-      (
-        (
-          this.createRawTxObjectInner(
-            senderAddr,
-            senderSequenceNumber,
-            payload,
-            optionalTransactionPayloadArgs
-          ).payload as TxnBuilderTypes.TransactionPayloadAutomationRegistration
-        ).value as TxnBuilderTypes.AutomationRegistrationParamsV1Data
-      ).automated_function
-    );
-
-    console.log(
-      BCS.bcsToBytes(
-        this.createRawTxObjectInner(
-          senderAddr,
-          senderSequenceNumber,
-          payload,
-          optionalTransactionPayloadArgs
+          automation_max_gas_amount,
+          automation_gas_price_cap,
+          automation_fee_cap_for_epoch,
+          automation_expiration_timestamp_secs,
+          automation_aux_data
         )
       )
     );
-
     return BCS.bcsToBytes(
       this.createRawTxObjectInner(
         senderAddr,
