@@ -411,6 +411,15 @@ export class SupraClient {
         userAddress,
         txData.output.Move.events
       );
+    } else if (
+      txData.status === TransactionStatus.Success &&
+      txData.payload.Move.type === "automation_registration_payload"
+    ) {
+      txInsights.coinChange = this.getCoinChangeAmount(
+        userAddress,
+        txData.output.Move.events
+      );
+      txInsights.type = TxTypeForTransactionInsights.AutomationRegistration;
     } else {
       throw new Error(
         "something went wrong, found unsupported type of transaction"
