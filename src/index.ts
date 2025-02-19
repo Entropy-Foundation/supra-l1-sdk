@@ -1284,7 +1284,7 @@ export class SupraClient {
   }
 
   /**
-   * Create serialized raw transaction object for `AutomationRegistration` type tx
+   * Create serialized raw transaction object for `automation_registration_payload` type tx
    * @param senderAddr Sender account address
    * @param senderSequenceNumber Sender account sequence number
    * @param moduleAddr Target module address
