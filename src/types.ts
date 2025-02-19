@@ -1,4 +1,4 @@
-import { TxnBuilderTypes } from "aptos";
+import { TxnBuilderTypes } from "legacy-aptos-sdk";
 export interface AccountInfo {
   sequence_number: bigint;
   authentication_key: string;

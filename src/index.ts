@@ -4,7 +4,7 @@ import {
   HexString,
   AptosAccount as SupraAccount,
   AnyRawTransaction,
-} from "aptos";
+} from "legacy-aptos-sdk";
 import axios, { AxiosResponse } from "axios";
 import {
   normalizeAddress,
