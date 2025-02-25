@@ -4,6 +4,7 @@ import {
   SupraClient,
   BCS,
   TxnBuilderTypes,
+  MILLISECONDS_PER_SECOND,
 } from "./index";
 
 // To run this example, install `ts-node` (e.g. `npm install -g ts-node`), enter the directory
@@ -21,7 +22,7 @@ import {
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await SupraClient.init(
     // "http://localhost:27001/"
-    "https://rpc-testnet.supra.com/"
+    "https://rpc-autonet.supra.com/"
   );
 
   let senderAccount = new SupraAccount(
@@ -401,4 +402,33 @@ import {
       );
     }
   }
+
+  // To Send Automation Transaction
+  let supraCoinTransferAutomationSerializedRawTransaction =
+    supraClient.createSerializedAutomationRegistrationTxPayloadRawTxObject(
+      senderAccount.address(),
+      (await supraClient.getAccountInfo(senderAccount.address()))
+        .sequence_number,
+      "0000000000000000000000000000000000000000000000000000000000000001",
+      "supra_account",
+      "transfer",
+      [],
+      [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(10000)],
+      BigInt(500000),
+      BigInt(100),
+      BigInt(100000000),
+      BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 5000),
+      []
+    );
+
+  console.log(
+    await supraClient.sendTxUsingSerializedRawTransaction(
+      senderAccount,
+      supraCoinTransferAutomationSerializedRawTransaction,
+      {
+        enableTransactionSimulation: true,
+        enableWaitForTransaction: true,
+      }
+    )
+  );
 })();

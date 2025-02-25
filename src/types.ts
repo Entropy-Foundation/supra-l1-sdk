@@ -1,4 +1,4 @@
-import { TxnBuilderTypes } from "aptos";
+import { TxnBuilderTypes } from "legacy-aptos-sdk";
 export interface AccountInfo {
   sequence_number: bigint;
   authentication_key: string;
@@ -37,6 +37,7 @@ export enum TxTypeForTransactionInsights {
   CoinTransfer = "CoinTransfer",
   EntryFunctionCall = "EntryFunctionCall",
   ScriptCall = "ScriptCall",
+  AutomationRegistration = "AutomationRegistration",
 }
 
 export interface CoinChange {
@@ -73,26 +74,47 @@ export interface AccountCoinTransactionsDetail {
   cursor: number;
 }
 
-export interface EntryFunctionPayloadJSON {
-  EntryFunction: {
-    module: {
-      address: string;
-      name: string;
-    };
-    function: string;
-    ty_args: Array<FunctionTypeArgs>;
-    args: Array<Array<number>>;
-  };
-}
-
 export interface RawTxnJSON {
   sender: string;
   sequence_number: number;
-  payload: EntryFunctionPayloadJSON;
+  payload: TransactionPayloadJSON;
   max_gas_amount: number;
   gas_unit_price: number;
   expiration_timestamp_secs: number;
   chain_id: number;
+}
+
+export type TransactionPayloadJSON =
+  | EntryFunctionPayloadJSON
+  | AutomationRegistrationPayloadJSON;
+
+export interface EntryFunctionPayloadJSON {
+  EntryFunction: EntryFunctionJSON;
+}
+
+export interface EntryFunctionJSON {
+  module: {
+    address: string;
+    name: string;
+  };
+  function: string;
+  ty_args: Array<FunctionTypeArgs>;
+  args: Array<Array<number>>;
+}
+
+export interface AutomationRegistrationPayloadJSON {
+  AutomationRegistration: AutomationRegistrationParamV1JSON;
+}
+
+export interface AutomationRegistrationParamV1JSON {
+  V1: {
+    automated_function: EntryFunctionJSON;
+    max_gas_amount: number;
+    gas_price_cap: number;
+    automation_fee_cap_for_epoch: number;
+    expiration_timestamp_secs: number;
+    aux_data: Array<Array<number>>;
+  };
 }
 
 export interface Ed25519AuthenticatorJSON {

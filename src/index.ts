@@ -4,7 +4,7 @@ import {
   HexString,
   AptosAccount as SupraAccount,
   AnyRawTransaction,
-} from "aptos";
+} from "legacy-aptos-sdk";
 import axios, { AxiosResponse } from "axios";
 import {
   normalizeAddress,
@@ -32,6 +32,7 @@ import {
   RawTxnJSON,
   AnyAuthenticatorJSON,
   Ed25519AuthenticatorJSON,
+  TransactionPayloadJSON,
 } from "./types";
 import {
   DEFAULT_CHAIN_ID,
@@ -410,6 +411,15 @@ export class SupraClient {
         userAddress,
         txData.output.Move.events
       );
+    } else if (
+      txData.status === TransactionStatus.Success &&
+      txData.payload.Move.type === "automation_registration_payload"
+    ) {
+      txInsights.coinChange = this.getCoinChangeAmount(
+        userAddress,
+        txData.output.Move.events
+      );
+      txInsights.type = TxTypeForTransactionInsights.AutomationRegistration;
     } else {
       throw new Error(
         "something went wrong, found unsupported type of transaction"
@@ -888,25 +898,77 @@ export class SupraClient {
     return signerAuthenticator;
   }
 
-  private getRawTxnJSON(rawTxn: TxnBuilderTypes.RawTransaction): RawTxnJSON {
-    let txPayload = (
-      rawTxn.payload as TxnBuilderTypes.TransactionPayloadEntryFunction
-    ).value;
+  private getTransactionPayloadJSON(
+    txPayload: TxnBuilderTypes.TransactionPayload
+  ): TransactionPayloadJSON {
+    if (txPayload instanceof TxnBuilderTypes.TransactionPayloadEntryFunction) {
+      return {
+        EntryFunction: {
+          module: {
+            address: txPayload.value.module_name.address
+              .toHexString()
+              .toString(),
+            name: txPayload.value.module_name.name.value,
+          },
+          function: txPayload.value.function_name.value,
+          ty_args: parseFunctionTypeArgs(txPayload.value.ty_args),
+          args: fromUint8ArrayToJSArray(txPayload.value.args),
+        },
+      };
+    } else if (
+      txPayload instanceof
+      TxnBuilderTypes.TransactionPayloadAutomationRegistration
+    ) {
+      if (
+        txPayload.value instanceof
+        TxnBuilderTypes.AutomationRegistrationParamsV1
+      ) {
+        return {
+          AutomationRegistration: {
+            V1: {
+              automated_function: {
+                module: {
+                  address:
+                    txPayload.value.value.automated_function.module_name.address
+                      .toHexString()
+                      .toString(),
+                  name: txPayload.value.value.automated_function.module_name
+                    .name.value,
+                },
+                function:
+                  txPayload.value.value.automated_function.function_name.value,
+                ty_args: parseFunctionTypeArgs(
+                  txPayload.value.value.automated_function.ty_args
+                ),
+                args: fromUint8ArrayToJSArray(
+                  txPayload.value.value.automated_function.args
+                ),
+              },
+              max_gas_amount: Number(txPayload.value.value.max_gas_amount),
+              gas_price_cap: Number(txPayload.value.value.gas_price_cap),
+              automation_fee_cap_for_epoch: Number(
+                txPayload.value.value.automation_fee_cap_for_epoch
+              ),
+              expiration_timestamp_secs: Number(
+                txPayload.value.value.expiration_timestamp_secs
+              ),
+              aux_data: fromUint8ArrayToJSArray(txPayload.value.value.aux_data),
+            },
+          },
+        };
+      } else {
+        throw new Error("Unknown variant of `AutomationRegistrationParams`");
+      }
+    } else {
+      throw new Error("Unknown variant of `TransactionPayload`");
+    }
+  }
 
+  private getRawTxnJSON(rawTxn: TxnBuilderTypes.RawTransaction): RawTxnJSON {
     return {
       sender: rawTxn.sender.toHexString().toString(),
       sequence_number: Number(rawTxn.sequence_number),
-      payload: {
-        EntryFunction: {
-          module: {
-            address: txPayload.module_name.address.toHexString().toString(),
-            name: txPayload.module_name.name.value,
-          },
-          function: txPayload.function_name.value,
-          ty_args: parseFunctionTypeArgs(txPayload.ty_args),
-          args: fromUint8ArrayToJSArray(txPayload.args),
-        },
-      },
+      payload: this.getTransactionPayloadJSON(rawTxn.payload),
       max_gas_amount: Number(rawTxn.max_gas_amount),
       gas_unit_price: Number(rawTxn.gas_unit_price),
       expiration_timestamp_secs: Number(rawTxn.expiration_timestamp_secs),
@@ -1105,6 +1167,27 @@ export class SupraClient {
     };
   }
 
+  private createRawTxObjectInner(
+    senderAddr: HexString,
+    senderSequenceNumber: bigint,
+    payload: TxnBuilderTypes.TransactionPayload,
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+  ): TxnBuilderTypes.RawTransaction {
+    return new TxnBuilderTypes.RawTransaction(
+      new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
+      senderSequenceNumber,
+      payload,
+      optionalTransactionPayloadArgs?.maxGas ?? DEFAULT_MAX_GAS_UNITS,
+      optionalTransactionPayloadArgs?.gasUnitPrice ?? DEFAULT_GAS_PRICE,
+      optionalTransactionPayloadArgs?.txExpiryTime ??
+        BigInt(
+          Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) +
+            DEFAULT_TX_EXPIRATION_DURATION
+        ),
+      this.chainId
+    );
+  }
+
   /**
    * Create raw transaction object for `entry_function_payload` type tx
    * @param senderAddr Sender account address
@@ -1115,7 +1198,7 @@ export class SupraClient {
    * @param functionTypeArgs Target function type args
    * @param functionArgs Target function args
    * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
-   * @returns Serialized raw transaction object
+   * @returns Raw transaction object
    * @example
    * ```typescript
    * let supraCoinTransferRawTransaction = await supraClient.createRawTxObject(
@@ -1141,30 +1224,24 @@ export class SupraClient {
     functionArgs: Uint8Array[],
     optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
   ): Promise<TxnBuilderTypes.RawTransaction> {
-    return new TxnBuilderTypes.RawTransaction(
-      new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
-      senderSequenceNumber,
-      new TxnBuilderTypes.TransactionPayloadEntryFunction(
-        new TxnBuilderTypes.EntryFunction(
-          new TxnBuilderTypes.ModuleId(
-            new TxnBuilderTypes.AccountAddress(
-              new HexString(normalizeAddress(moduleAddr)).toUint8Array()
-            ),
-            new TxnBuilderTypes.Identifier(moduleName)
+    let payload = new TxnBuilderTypes.TransactionPayloadEntryFunction(
+      new TxnBuilderTypes.EntryFunction(
+        new TxnBuilderTypes.ModuleId(
+          new TxnBuilderTypes.AccountAddress(
+            new HexString(normalizeAddress(moduleAddr)).toUint8Array()
           ),
-          new TxnBuilderTypes.Identifier(functionName),
-          functionTypeArgs,
-          functionArgs
-        )
-      ),
-      optionalTransactionPayloadArgs?.maxGas ?? DEFAULT_MAX_GAS_UNITS,
-      optionalTransactionPayloadArgs?.gasUnitPrice ?? DEFAULT_GAS_PRICE,
-      optionalTransactionPayloadArgs?.txExpiryTime ??
-        BigInt(
-          Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) +
-            DEFAULT_TX_EXPIRATION_DURATION
+          new TxnBuilderTypes.Identifier(moduleName)
         ),
-      this.chainId
+        new TxnBuilderTypes.Identifier(functionName),
+        functionTypeArgs,
+        functionArgs
+      )
+    );
+    return this.createRawTxObjectInner(
+      senderAddr,
+      senderSequenceNumber,
+      payload,
+      optionalTransactionPayloadArgs
     );
   }
 
@@ -1201,6 +1278,70 @@ export class SupraClient {
         functionName,
         functionTypeArgs,
         functionArgs,
+        optionalTransactionPayloadArgs
+      )
+    );
+  }
+
+  /**
+   * Create serialized raw transaction object for `automation_registration_payload` type tx
+   * @param senderAddr Sender account address
+   * @param senderSequenceNumber Sender account sequence number
+   * @param moduleAddr Target module address
+   * @param moduleName Target module name
+   * @param functionName Target function name
+   * @param functionTypeArgs Target function type args
+   * @param functionArgs Target function args
+   * @param automation_max_gas_amount Max gas amount for automated transaction
+   * @param automation_gas_price_cap Gas Uint price upper limit that user is willing to pay
+   * @param automation_fee_cap_for_epoch Maximum automation fee that user is willing to pay for epoch.
+   * @param automation_expiration_timestamp_secs Expiration time of the automated transaction in seconds since UTC Epoch start.
+   * @param automation_aux_data Reserved for future extensions of registration parameters.
+   * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
+   * @returns Serialized raw transaction object
+   */
+  createSerializedAutomationRegistrationTxPayloadRawTxObject(
+    senderAddr: HexString,
+    senderSequenceNumber: bigint,
+    moduleAddr: string,
+    moduleName: string,
+    functionName: string,
+    functionTypeArgs: TxnBuilderTypes.TypeTag[],
+    functionArgs: Uint8Array[],
+    automation_max_gas_amount: bigint,
+    automation_gas_price_cap: bigint,
+    automation_fee_cap_for_epoch: bigint,
+    automation_expiration_timestamp_secs: bigint,
+    automation_aux_data: Uint8Array[],
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+  ): Uint8Array {
+    let payload = new TxnBuilderTypes.TransactionPayloadAutomationRegistration(
+      new TxnBuilderTypes.AutomationRegistrationParamsV1(
+        new TxnBuilderTypes.AutomationRegistrationParamsV1Data(
+          new TxnBuilderTypes.EntryFunction(
+            new TxnBuilderTypes.ModuleId(
+              new TxnBuilderTypes.AccountAddress(
+                new HexString(normalizeAddress(moduleAddr)).toUint8Array()
+              ),
+              new TxnBuilderTypes.Identifier(moduleName)
+            ),
+            new TxnBuilderTypes.Identifier(functionName),
+            functionTypeArgs,
+            functionArgs
+          ),
+          automation_max_gas_amount,
+          automation_gas_price_cap,
+          automation_fee_cap_for_epoch,
+          automation_expiration_timestamp_secs,
+          automation_aux_data
+        )
+      )
+    );
+    return BCS.bcsToBytes(
+      this.createRawTxObjectInner(
+        senderAddr,
+        senderSequenceNumber,
+        payload,
         optionalTransactionPayloadArgs
       )
     );
