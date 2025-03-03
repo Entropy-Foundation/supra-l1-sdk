@@ -12,7 +12,7 @@ export const parseFunctionTypeArgs = (
         address: structTagData.address.toHexString().toString(),
         module: structTagData.module_name.value,
         name: structTagData.name.value,
-        type_args: [],
+        type_args: parseFunctionTypeArgs(structTagData.type_args),
       },
     });
   });
