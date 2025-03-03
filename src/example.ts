@@ -26,9 +26,11 @@ import {
   );
 
   let senderAccount = new SupraAccount(
-    Buffer.from(
-      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d89",
-      "hex"
+    Uint8Array.from(
+      Buffer.from(
+        "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d89",
+        "hex"
+      )
     )
   );
   console.log("Sender Address: ", senderAccount.address());
@@ -240,9 +242,11 @@ import {
 
   // Transaction sponsor keyPair
   let feePayerAccount = new SupraAccount(
-    Buffer.from(
-      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d88",
-      "hex"
+    Uint8Array.from(
+      Buffer.from(
+        "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d88",
+        "hex"
+      )
     )
   );
   console.log("FeePayer Address: ", feePayerAccount.address());
@@ -306,9 +310,11 @@ import {
 
   // Secondary signer1 keyPair
   let secondarySigner1 = new SupraAccount(
-    Buffer.from(
-      "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d87",
-      "hex"
+    Uint8Array.from(
+      Buffer.from(
+        "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d87",
+        "hex"
+      )
     )
   );
   console.log("Secondary Signer1 Address: ", secondarySigner1.address());
@@ -370,17 +376,21 @@ import {
   );
 
   let ledgerWalletSenderAccountPubkey = new TxnBuilderTypes.Ed25519PublicKey(
-    Buffer.from(
-      "c127c6b1955dd5cb815cd44372aac92811430fa805e473935cd3a147c90b4cee",
-      "hex"
+    Uint8Array.from(
+      Buffer.from(
+        "c127c6b1955dd5cb815cd44372aac92811430fa805e473935cd3a147c90b4cee",
+        "hex"
+      )
     )
   );
   let signature = new HexString(
     "82000c4f40aa4cbd35b26b4b56ea073e9a33cfd32040eab0834577bf7451808eaa79a304f5cf99a1e5ea9660f190fef69de8f200e432c612a7e895e5528c770e"
   );
-  let serializedRawTransaction = Buffer.from(
-    "4451aa86090708900650da5fdb8d7530f1d90dee338448c0223e728378f182c1030000000000000002000000000000000000000000000000000000000000000000000000000000000104636f696e087472616e73666572010700000000000000000000000000000000000000000000000000000000000000010a73757072615f636f696e095375707261436f696e000220b8922417130785087f9c7926e76542531b703693fdc74c9386b65cf4427f4e8008e80300000000000020a10700000000006400000000000000919f56670000000006",
-    "hex"
+  let serializedRawTransaction = Uint8Array.from(
+    Buffer.from(
+      "4451aa86090708900650da5fdb8d7530f1d90dee338448c0223e728378f182c1030000000000000002000000000000000000000000000000000000000000000000000000000000000104636f696e087472616e73666572010700000000000000000000000000000000000000000000000000000000000000010a73757072615f636f696e095375707261436f696e000220b8922417130785087f9c7926e76542531b703693fdc74c9386b65cf4427f4e8008e80300000000000020a10700000000006400000000000000919f56670000000006",
+      "hex"
+    )
   );
 
   try {
