@@ -30,12 +30,16 @@ export const fromUint8ArrayToJSArray = (
 };
 
 export const normalizeAddress = (addressToNormalize: string): string => {
-  if (addressToNormalize.length != 66) {
+  if (addressToNormalize.length < 66) {
     if (addressToNormalize.slice(0, 2) === "0x") {
       addressToNormalize = addressToNormalize.slice(2).padStart(64, "0");
     } else {
       addressToNormalize = addressToNormalize.padStart(64, "0");
     }
+  } else if (addressToNormalize.length > 66) {
+    throw new Error(
+      "invalid address, With '0x', address length should not be more than 66"
+    );
   }
   return addressToNormalize;
 };
