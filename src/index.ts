@@ -702,7 +702,7 @@ export class SupraClient {
    */
   async getCoinInfo(coinType: string): Promise<CoinInfo> {
     let coinInfoResource = await this.getResourceData(
-      new HexString(coinType.substring(2, 66)),
+      new HexString(coinType.split("::")[0]),
       `${SUPRA_FRAMEWORK_ADDRESS}::coin::CoinInfo<${coinType}>`
     );
     return {

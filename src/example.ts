@@ -426,7 +426,7 @@ import {
       [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(10000)],
       BigInt(500000),
       BigInt(100),
-      BigInt(100000000),
+      BigInt(1000000000),
       BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 5000),
       []
     );
