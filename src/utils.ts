@@ -30,18 +30,22 @@ export const fromUint8ArrayToJSArray = (
 };
 
 export const normalizeAddress = (addressToNormalize: string): string => {
-  if (addressToNormalize.length < 66) {
-    if (addressToNormalize.slice(0, 2) === "0x") {
-      addressToNormalize = addressToNormalize.slice(2).padStart(64, "0");
+  let normalized = addressToNormalize.toLowerCase();
+
+  if (normalized.length < 66) {
+    if (normalized.startsWith('0x')) {
+      normalized = normalized.slice(2).padStart(64, '0');
     } else {
-      addressToNormalize = addressToNormalize.padStart(64, "0");
+      normalized = normalized.padStart(64, '0');
     }
-  } else if (addressToNormalize.length > 66) {
-    throw new Error(
-      "invalid address, With '0x', address length should not be more than 66"
-    );
+    return '0x' + normalized;
   }
-  return addressToNormalize;
+
+  if (normalized.length === 66 && normalized.startsWith('0x')) {
+    return normalized;
+  }
+
+  throw new Error("Invalid address. With '0x', address length should be exactly 66 characters.");
 };
 
 export const sleep = (timeMs: number): Promise<null> => {
