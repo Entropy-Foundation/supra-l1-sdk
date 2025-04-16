@@ -1,4 +1,4 @@
-import { TxnBuilderTypes } from "legacy-aptos-sdk";
+import { TxnBuilderTypes } from "supra-l1-sdk-core";
 export interface AccountInfo {
   sequence_number: bigint;
   authentication_key: string;

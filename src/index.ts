@@ -2,9 +2,9 @@ import {
   TxnBuilderTypes,
   BCS,
   HexString,
-  AptosAccount as SupraAccount,
+  SupraAccount,
   AnyRawTransaction,
-} from "legacy-aptos-sdk";
+} from "supra-l1-sdk-core";
 import axios, { AxiosResponse } from "axios";
 import {
   normalizeAddress,
