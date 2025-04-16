@@ -423,11 +423,11 @@ import {
       "supra_account",
       "transfer",
       [],
-      [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(10000)],
-      BigInt(500000),
+      [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)],
+      BigInt(5000),
       BigInt(100),
-      BigInt(1000000000),
-      BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 5000),
+      BigInt(100000000),
+      BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 500),
       []
     );
 

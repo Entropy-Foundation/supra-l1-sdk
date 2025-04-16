@@ -1,4 +1,4 @@
-import { TxnBuilderTypes } from "legacy-aptos-sdk";
+import { TxnBuilderTypes } from "supra-l1-sdk-core";
 import { FunctionTypeArgs } from "./types";
 
 export const parseFunctionTypeArgs = (
