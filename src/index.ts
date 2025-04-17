@@ -364,7 +364,7 @@ export class SupraClient {
           coinType: "",
         },
       ],
-      type: TxTypeForTransactionInsights.ScriptCall,
+      type: TxTypeForTransactionInsights.EntryFunctionCall,
     };
 
     // NOTE: Need to optimize this conditionals
@@ -401,29 +401,26 @@ export class SupraClient {
             txData.output.Move.events
           );
         }
-        txInsights.type = TxTypeForTransactionInsights.EntryFunctionCall;
       }
-    } else if (
-      txData.status === TransactionStatus.Success &&
-      txData.payload.Move.type === "script_payload"
-    ) {
-      txInsights.coinChange = this.getCoinChangeAmount(
-        userAddress,
-        txData.output.Move.events
-      );
-    } else if (
-      txData.status === TransactionStatus.Success &&
-      txData.payload.Move.type === "automation_registration_payload"
-    ) {
-      txInsights.coinChange = this.getCoinChangeAmount(
-        userAddress,
-        txData.output.Move.events
-      );
-      txInsights.type = TxTypeForTransactionInsights.AutomationRegistration;
     } else {
-      throw new Error(
-        "something went wrong, found unsupported type of transaction"
-      );
+      if (txData.payload.Move.type === "script_payload") {
+        txInsights.type = TxTypeForTransactionInsights.ScriptCall;
+      } else if (
+        txData.payload.Move.type === "automation_registration_payload"
+      ) {
+        txInsights.type = TxTypeForTransactionInsights.AutomationRegistration;
+      } else {
+        throw new Error(
+          "something went wrong, found unsupported type of transaction"
+        );
+      }
+
+      if (txData.status === TransactionStatus.Success) {
+        txInsights.coinChange = this.getCoinChangeAmount(
+          userAddress,
+          txData.output.Move.events
+        );
+      }
     }
     return txInsights;
   }
