@@ -88,35 +88,42 @@ export class SupraClient {
   }
 
   private async sendRequest(
-    isGetMethod: boolean,
-    subURL: string,
-    data?: any
+        isGetMethod: boolean,
+        subURL: string,
+        data?: any
   ): Promise<AxiosResponse<any, any>> {
-    let resData;
-    if (isGetMethod == true) {
-      resData = await axios({
-        method: "get",
+    if (!isGetMethod && data === undefined) {
+        throw new Error("POST request requires a 'data' payload.");
+    }
+
+    const config = {
+        method: isGetMethod ? "get" : "post",
         baseURL: this.supraNodeURL,
         url: subURL,
-      });
-    } else {
-      if (data == undefined) {
-        throw new Error("For Post Request 'data' Should Not Be 'undefined'");
-      }
-      resData = await axios({
-        method: "post",
-        baseURL: this.supraNodeURL,
-        url: subURL,
-        data: data,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+        ...(isGetMethod
+            ? {}
+            : {
+                data,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }),
+    };
+
+    try {
+        const resData = await axios(config);
+
+        if (resData.status === 404) {
+            throw new Error("Invalid URL — path not found (404).");
+        }
+
+        return resData;
+    } catch (error) {
+        // Optional: Enhance error handling/logging
+        throw new Error(
+            `Request to ${subURL} failed: ${error instanceof Error ? error.message : String(error)}`
+        );
     }
-    if (resData.status == 404) {
-      throw new Error("Invalid URL, Path Not Found");
-    }
-    return resData;
   }
 
   /**
@@ -147,30 +154,28 @@ export class SupraClient {
    * @param account Hex-encoded 32 byte Supra account address
    * @returns `FaucetRequestResponse`
    */
-  async fundAccountWithFaucet(
-    account: HexString
-  ): Promise<FaucetRequestResponse> {
-    let resData = await this.sendRequest(
-      true,
-      `/rpc/v1/wallet/faucet/${account.toString()}`
-    );
+  async fundAccountWithFaucet(account: HexString): Promise<FaucetRequestResponse> {
+      const resData = await this.sendRequest(
+          true,
+          `/rpc/v1/wallet/faucet/${account.toString()}`
+      );
 
-    if (typeof resData.data === "object") {
-      if (resData.data.hasOwnProperty("Accepted")) {
-        return {
-          status: await this.waitForTransactionCompletion(
-            resData.data.Accepted
-          ),
-          transactionHash: resData.data.Accepted,
-        };
-      } else {
-        throw new Error(
-          "something went wrong, getting unexpected response from rpc_node"
-        );
+      const response = resData.data;
+
+      if (typeof response !== "object" || response === null) {
+          throw new Error("Unexpected response format. Please try faucet later.");
       }
-    } else {
-      throw new Error("try faucet later");
-    }
+
+      if (!("Accepted" in response)) {
+          throw new Error("Faucet request failed — 'Accepted' field not found in response.");
+      }
+
+      const transactionHash = response.Accepted;
+
+      return {
+          status: await this.waitForTransactionCompletion(transactionHash),
+          transactionHash,
+      };
   }
 
   /**
@@ -196,17 +201,20 @@ export class SupraClient {
    * @returns `AccountInfo`
    */
   async getAccountInfo(account: HexString): Promise<AccountInfo> {
-    let resData = await this.sendRequest(
-      true,
-      `/rpc/v1/accounts/${account.toString()}`
+    const resData = await this.sendRequest(
+        true,
+        `/rpc/v1/accounts/${account.toString()}`
     );
 
-    if (resData.data == null) {
-      throw new Error("Account Not Exists, Or Invalid Account Is Passed");
+    const accountData = resData.data;
+
+    if (!accountData || typeof accountData !== "object") {
+      throw new Error("Account does not exist or an invalid account was provided.");
     }
+
     return {
-      sequence_number: BigInt(resData.data.sequence_number),
-      authentication_key: resData.data.authentication_key,
+      sequence_number: BigInt(accountData.sequence_number),
+      authentication_key: accountData.authentication_key,
     };
   }
 
@@ -244,19 +252,19 @@ export class SupraClient {
    * )
    * ```
    */
-  async getResourceData(
-    account: HexString,
-    resourceType: string
-  ): Promise<any> {
-    let resData = await this.sendRequest(
-      true,
-      `/rpc/v1/accounts/${account.toString()}/resources/${resourceType}`
+  async getResourceData(account: HexString, resourceType: string): Promise<any> {
+    const resData = await this.sendRequest(
+        true,
+        `/rpc/v1/accounts/${account.toString()}/resources/${resourceType}`
     );
 
-    if (resData.data.result[0] == null) {
-      throw new Error("Resource not found");
+    const result = resData.data?.result;
+
+    if (!Array.isArray(result) || result.length === 0 || result[0] == null) {
+      throw new Error(`Resource of type '${resourceType}' not found for account ${account.toString()}.`);
     }
-    return resData.data.result[0];
+
+    return result[0];
   }
 
   /**
@@ -410,9 +418,7 @@ export class SupraClient {
       ) {
         txInsights.type = TxTypeForTransactionInsights.AutomationRegistration;
       } else {
-        throw new Error(
-          "something went wrong, found unsupported type of transaction"
-        );
+        throw new Error("Unsupported transaction payload type.");
       }
 
       if (txData.status === TransactionStatus.Success) {
@@ -522,7 +528,7 @@ export class SupraClient {
 
     let resData = await this.sendRequest(true, requestPath);
     if (resData.data.record == null) {
-      throw new Error("Account Not Exists, Or Invalid Account Is Passed");
+      throw new Error("Account does not exist or an invalid account was provided.");
     }
 
     let accountTransactionsDetail: TransactionDetail[] = [];
@@ -577,7 +583,7 @@ export class SupraClient {
 
     let resData = await this.sendRequest(true, requestPath);
     if (resData.data.record == null) {
-      throw new Error("Account Not Exists, Or Invalid Account Is Passed");
+      throw new Error("Account does not exist or an invalid account was provided.");
     }
 
     let coinTransactionsDetail: TransactionDetail[] = [];
@@ -872,7 +878,7 @@ export class SupraClient {
   }
 
   /**
-   * Signs a multi transaction type (multi agent / fee payer) and returns the
+   * Signs a multi transaction type (multi-agent / fee payer) and returns the
    * signer authenticator to be used to submit the transaction.
    * @param signer the account to sign on the transaction
    * @param rawTxn a MultiAgentRawTransaction or FeePayerRawTransaction
@@ -887,12 +893,10 @@ export class SupraClient {
     const signerSignature = new TxnBuilderTypes.Ed25519Signature(
       SupraClient.signSupraTransaction(signer, rawTxn).toUint8Array()
     );
-    const signerAuthenticator = new TxnBuilderTypes.AccountAuthenticatorEd25519(
+    return new TxnBuilderTypes.AccountAuthenticatorEd25519(
       new TxnBuilderTypes.Ed25519PublicKey(signer.signingKey.publicKey),
       signerSignature
     );
-
-    return signerAuthenticator;
   }
 
   private getTransactionPayloadJSON(
@@ -1542,10 +1546,7 @@ export class SupraClient {
 
     sendTxPayload.Move.authenticator = txAuthenticatorWithValidSignatures;
     if (resData.data.output.Move.vm_status !== "Executed successfully") {
-      throw new Error(
-        "Transaction Can Be Failed, Reason: " +
-          resData.data.output.Move.vm_status
-      );
+      throw new Error(`Transaction simulation failed. Reason: ${resData?.data?.output?.Move?.vm_status}`);
     }
     console.log("Transaction Simulation Done");
     return resData.data;
