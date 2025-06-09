@@ -88,41 +88,44 @@ export class SupraClient {
   }
 
   private async sendRequest(
-        isGetMethod: boolean,
-        subURL: string,
-        data?: any
+    isGetMethod: boolean,
+    subURL: string,
+    data?: any
   ): Promise<AxiosResponse<any, any>> {
     if (!isGetMethod && data === undefined) {
-        throw new Error("POST request requires a 'data' payload.");
+      throw new Error("POST request requires a 'data' payload.");
     }
 
     const config = {
-        method: isGetMethod ? "get" : "post",
-        baseURL: this.supraNodeURL,
-        url: subURL,
-        ...(isGetMethod
-            ? {}
-            : {
-                data,
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            }),
+      method: isGetMethod ? "get" : "post",
+      baseURL: this.supraNodeURL,
+      url: subURL,
+      ...(isGetMethod
+        ? {}
+        : {
+            data,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }),
     };
 
     try {
-        const resData = await axios(config);
-
-        if (resData.status === 404) {
-            throw new Error("Invalid URL — path not found (404).");
-        }
-
-        return resData;
+      const resData = await axios(config);
+      if (resData.status === 404) {
+        throw new Error("Invalid URL — path not found (404).");
+      }
+      if (resData.status === 500) {
+        throw new Error("Server error — please try again later.");
+      }
+      return resData;
     } catch (error) {
-        // Optional: Enhance error handling/logging
-        throw new Error(
-            `Request to ${subURL} failed: ${error instanceof Error ? error.message : String(error)}`
-        );
+      // Optional: Enhance error handling/logging
+      throw new Error(
+        `Request to ${subURL} failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     }
   }
 
@@ -154,28 +157,29 @@ export class SupraClient {
    * @param account Hex-encoded 32 byte Supra account address
    * @returns `FaucetRequestResponse`
    */
-  async fundAccountWithFaucet(account: HexString): Promise<FaucetRequestResponse> {
-      const resData = await this.sendRequest(
-          true,
-          `/rpc/v1/wallet/faucet/${account.toString()}`
+  async fundAccountWithFaucet(
+    account: HexString
+  ): Promise<FaucetRequestResponse> {
+    const resData = await this.sendRequest(
+      true,
+      `/rpc/v1/wallet/faucet/${account.toString()}`
+    );
+
+    const response = resData.data;
+    if (typeof response !== "object" || response === null) {
+      throw new Error("Unexpected response format. Please try faucet later.");
+    }
+    if (!("Accepted" in response)) {
+      throw new Error(
+        "Faucet request failed — 'Accepted' field not found in response."
       );
+    }
 
-      const response = resData.data;
-
-      if (typeof response !== "object" || response === null) {
-          throw new Error("Unexpected response format. Please try faucet later.");
-      }
-
-      if (!("Accepted" in response)) {
-          throw new Error("Faucet request failed — 'Accepted' field not found in response.");
-      }
-
-      const transactionHash = response.Accepted;
-
-      return {
-          status: await this.waitForTransactionCompletion(transactionHash),
-          transactionHash,
-      };
+    const transactionHash = response.Accepted;
+    return {
+      status: await this.waitForTransactionCompletion(transactionHash),
+      transactionHash,
+    };
   }
 
   /**
@@ -202,16 +206,16 @@ export class SupraClient {
    */
   async getAccountInfo(account: HexString): Promise<AccountInfo> {
     const resData = await this.sendRequest(
-        true,
-        `/rpc/v1/accounts/${account.toString()}`
+      true,
+      `/rpc/v1/accounts/${account.toString()}`
     );
 
     const accountData = resData.data;
-
     if (!accountData || typeof accountData !== "object") {
-      throw new Error("Account does not exist or an invalid account was provided.");
+      throw new Error(
+        "Account does not exist or an invalid account was provided."
+      );
     }
-
     return {
       sequence_number: BigInt(accountData.sequence_number),
       authentication_key: accountData.authentication_key,
@@ -252,18 +256,21 @@ export class SupraClient {
    * )
    * ```
    */
-  async getResourceData(account: HexString, resourceType: string): Promise<any> {
+  async getResourceData(
+    account: HexString,
+    resourceType: string
+  ): Promise<any> {
     const resData = await this.sendRequest(
-        true,
-        `/rpc/v1/accounts/${account.toString()}/resources/${resourceType}`
+      true,
+      `/rpc/v1/accounts/${account.toString()}/resources/${resourceType}`
     );
 
     const result = resData.data?.result;
-
     if (!Array.isArray(result) || result.length === 0 || result[0] == null) {
-      throw new Error(`Resource of type '${resourceType}' not found for account ${account.toString()}.`);
+      throw new Error(
+        `Resource of type '${resourceType}' not found for account ${account.toString()}.`
+      );
     }
-
     return result[0];
   }
 
@@ -528,7 +535,9 @@ export class SupraClient {
 
     let resData = await this.sendRequest(true, requestPath);
     if (resData.data.record == null) {
-      throw new Error("Account does not exist or an invalid account was provided.");
+      throw new Error(
+        "Account does not exist or an invalid account was provided."
+      );
     }
 
     let accountTransactionsDetail: TransactionDetail[] = [];
@@ -583,7 +592,9 @@ export class SupraClient {
 
     let resData = await this.sendRequest(true, requestPath);
     if (resData.data.record == null) {
-      throw new Error("Account does not exist or an invalid account was provided.");
+      throw new Error(
+        "Account does not exist or an invalid account was provided."
+      );
     }
 
     let coinTransactionsDetail: TransactionDetail[] = [];
@@ -1546,7 +1557,9 @@ export class SupraClient {
 
     sendTxPayload.Move.authenticator = txAuthenticatorWithValidSignatures;
     if (resData.data.output.Move.vm_status !== "Executed successfully") {
-      throw new Error(`Transaction simulation failed. Reason: ${resData?.data?.output?.Move?.vm_status}`);
+      throw new Error(
+        `Transaction simulation failed. Reason: ${resData?.data?.output?.Move?.vm_status}`
+      );
     }
     console.log("Transaction Simulation Done");
     return resData.data;
