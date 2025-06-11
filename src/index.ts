@@ -109,24 +109,14 @@ export class SupraClient {
             },
           }),
     };
-
-    try {
-      const resData = await axios(config);
-      if (resData.status === 404) {
-        throw new Error("Invalid URL — path not found (404).");
-      }
-      if (resData.status === 500) {
-        throw new Error("Server error — please try again later.");
-      }
-      return resData;
-    } catch (error) {
-      // Optional: Enhance error handling/logging
-      throw new Error(
-        `Request to ${subURL} failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
+    const resData = await axios(config);
+    if (resData.status === 404) {
+      throw new Error("Invalid URL — path not found (404).");
     }
+    if (resData.status === 500) {
+      throw new Error("Server error — please try again later.");
+    }
+    return resData;    
   }
 
   /**
