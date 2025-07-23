@@ -441,4 +441,35 @@ import {
       }
     )
   );
+
+  // To Execute Multisig transaction
+  // Will add full e2e example later
+  if (false) {
+    let multisigAccountAddress = new HexString(
+      "0x1b6817cc4b96f4e0850e57d9c3868262ddcdad95bf49fd384366203d2e46afb3"
+    );
+    let supraCoinTransferMultisigRawTransaction =
+      supraClient.createSerializedMultisigPayloadRawTxObject(
+        senderAccount.address(),
+        (await supraClient.getAccountInfo(senderAccount.address()))
+          .sequence_number,
+        multisigAccountAddress,
+        "0000000000000000000000000000000000000000000000000000000000000001",
+        "supra_account",
+        "transfer",
+        [],
+        [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)]
+      );
+
+    console.log(
+      await supraClient.sendTxUsingSerializedRawTransaction(
+        senderAccount,
+        supraCoinTransferMultisigRawTransaction,
+        {
+          enableTransactionSimulation: true,
+          enableWaitForTransaction: true,
+        }
+      )
+    );
+  }
 })();

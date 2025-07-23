@@ -116,7 +116,7 @@ export class SupraClient {
     if (resData.status === 500) {
       throw new Error("Server error — please try again later.");
     }
-    return resData;    
+    return resData;
   }
 
   /**
@@ -961,6 +961,33 @@ export class SupraClient {
       } else {
         throw new Error("Unknown variant of `AutomationRegistrationParams`");
       }
+    } else if (
+      txPayload instanceof TxnBuilderTypes.TransactionPayloadMultisig
+    ) {
+      let multisig_address = txPayload.value.multisig_address
+        .toHexString()
+        .toString();
+      let payload = txPayload.value.transaction_payload?.transaction_payload;
+      const transaction_payload = payload
+        ? {
+            EntryFunction: {
+              module: {
+                address: payload.module_name.address.toHexString().toString(),
+                name: payload.module_name.name.value,
+              },
+              function: payload.function_name.value,
+              ty_args: parseFunctionTypeArgs(payload.ty_args),
+              args: fromUint8ArrayToJSArray(payload.args),
+            },
+          }
+        : undefined;
+
+      return {
+        Multisig: {
+          multisig_address,
+          transaction_payload,
+        },
+      };
     } else {
       throw new Error("Unknown variant of `TransactionPayload`");
     }
@@ -1336,6 +1363,58 @@ export class SupraClient {
           automation_fee_cap_for_epoch,
           automation_expiration_timestamp_secs,
           automation_aux_data
+        )
+      )
+    );
+    return BCS.bcsToBytes(
+      this.createRawTxObjectInner(
+        senderAddr,
+        senderSequenceNumber,
+        payload,
+        optionalTransactionPayloadArgs
+      )
+    );
+  }
+
+  /**
+   * Create serialized raw transaction object for `multisig_payload` type tx
+   * @param senderAddr Sender account address
+   * @param senderSequenceNumber Sender account sequence number
+   * @param multisigAddress Multisig account address
+   * @param moduleAddr Target module address
+   * @param moduleName Target module name
+   * @param functionName Target function name
+   * @param functionTypeArgs Target function type args
+   * @param functionArgs Target function args
+   * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
+   * @returns Serialized raw transaction object
+   */
+  createSerializedMultisigPayloadRawTxObject(
+    senderAddr: HexString,
+    senderSequenceNumber: bigint,
+    multisigAddress: HexString,
+    moduleAddr: string,
+    moduleName: string,
+    functionName: string,
+    functionTypeArgs: TxnBuilderTypes.TypeTag[],
+    functionArgs: Uint8Array[],
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+  ): Uint8Array {
+    let payload = new TxnBuilderTypes.TransactionPayloadMultisig(
+      new TxnBuilderTypes.MultiSig(
+        TxnBuilderTypes.AccountAddress.fromHex(multisigAddress),
+        new TxnBuilderTypes.MultiSigTransactionPayload(
+          new TxnBuilderTypes.EntryFunction(
+            new TxnBuilderTypes.ModuleId(
+              new TxnBuilderTypes.AccountAddress(
+                new HexString(normalizeAddress(moduleAddr)).toUint8Array()
+              ),
+              new TxnBuilderTypes.Identifier(moduleName)
+            ),
+            new TxnBuilderTypes.Identifier(functionName),
+            functionTypeArgs,
+            functionArgs
+          )
         )
       )
     );
