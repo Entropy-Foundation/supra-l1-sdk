@@ -22,7 +22,7 @@ import {
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await SupraClient.init(
     // "http://localhost:27001/"
-    "https://rpc-autonet.supra.com/"
+    "https://rpc-testnet.supra.com/"
   );
 
   let senderAccount = new SupraAccount(
@@ -424,10 +424,10 @@ import {
       "transfer",
       [],
       [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)],
-      BigInt(5000),
+      BigInt(500),
       BigInt(100),
       BigInt(100000000),
-      BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 500),
+      BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 7200),
       []
     );
 
@@ -443,33 +443,56 @@ import {
   );
 
   // To Execute Multisig transaction
-  // Will add full e2e example later
-  if (false) {
-    let multisigAccountAddress = new HexString(
-      "0x1b6817cc4b96f4e0850e57d9c3868262ddcdad95bf49fd384366203d2e46afb3"
+  // Creating multisig transaction
+  let multisigAccountAddress = new HexString(
+    "0x20dd7a2e0d70ec85f128d0758a9d6f1f6187b990790194f995fb04be9d2c1bc"
+  );
+  let supraCoinTransferCreateTxRawTransaction =
+    await supraClient.createSerializedRawTxObjectToCreateMultisigTx(
+      senderAccount.address(),
+      (
+        await supraClient.getAccountInfo(senderAccount.address())
+      ).sequence_number,
+      multisigAccountAddress,
+      "0000000000000000000000000000000000000000000000000000000000000001",
+      "supra_account",
+      "transfer",
+      [],
+      [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)]
     );
-    let supraCoinTransferMultisigRawTransaction =
-      supraClient.createSerializedMultisigPayloadRawTxObject(
-        senderAccount.address(),
-        (await supraClient.getAccountInfo(senderAccount.address()))
-          .sequence_number,
-        multisigAccountAddress,
-        "0000000000000000000000000000000000000000000000000000000000000001",
-        "supra_account",
-        "transfer",
-        [],
-        [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)]
-      );
-
-    console.log(
-      await supraClient.sendTxUsingSerializedRawTransaction(
-        senderAccount,
-        supraCoinTransferMultisigRawTransaction,
-        {
-          enableTransactionSimulation: true,
-          enableWaitForTransaction: true,
-        }
-      )
+  console.log(
+    await supraClient.sendTxUsingSerializedRawTransaction(
+      senderAccount,
+      supraCoinTransferCreateTxRawTransaction,
+      {
+        enableTransactionSimulation: true,
+        enableWaitForTransaction: true,
+      }
+    )
+  );
+  // Executing multisig transaction.
+  // Note: The used multisig account only require single approval which is provided at the time of
+  // tx creation hence no need of approval.
+  let supraCoinTransferMultisigRawTransaction =
+    supraClient.createSerializedMultisigPayloadRawTxObject(
+      senderAccount.address(),
+      (await supraClient.getAccountInfo(senderAccount.address()))
+        .sequence_number,
+      multisigAccountAddress,
+      "0000000000000000000000000000000000000000000000000000000000000001",
+      "supra_account",
+      "transfer",
+      [],
+      [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)]
     );
-  }
+  console.log(
+    await supraClient.sendTxUsingSerializedRawTransaction(
+      senderAccount,
+      supraCoinTransferMultisigRawTransaction,
+      {
+        enableTransactionSimulation: false,
+        enableWaitForTransaction: true,
+      }
+    )
+  );
 })();

@@ -1429,6 +1429,62 @@ export class SupraClient {
   }
 
   /**
+   * Create serialized raw transaction object to create multisig transaction
+   * @param senderAddr Sender account address
+   * @param senderSequenceNumber Sender account sequence number
+   * @param multisigAddress Multisig account address
+   * @param moduleAddr Target module address
+   * @param moduleName Target module name
+   * @param functionName Target function name
+   * @param functionTypeArgs Target function type args
+   * @param functionArgs Target function args
+   * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
+   * @returns Serialized raw transaction object
+   */
+  async createSerializedRawTxObjectToCreateMultisigTx(
+    senderAddr: HexString,
+    senderSequenceNumber: bigint,
+    multisigAddress: HexString,
+    moduleAddr: string,
+    moduleName: string,
+    functionName: string,
+    functionTypeArgs: TxnBuilderTypes.TypeTag[],
+    functionArgs: Uint8Array[],
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+  ): Promise<Uint8Array> {
+    let multisigPayload = new TxnBuilderTypes.MultiSigTransactionPayload(
+      new TxnBuilderTypes.EntryFunction(
+        new TxnBuilderTypes.ModuleId(
+          new TxnBuilderTypes.AccountAddress(
+            new HexString(normalizeAddress(moduleAddr)).toUint8Array()
+          ),
+          new TxnBuilderTypes.Identifier(moduleName)
+        ),
+        new TxnBuilderTypes.Identifier(functionName),
+        functionTypeArgs,
+        functionArgs
+      )
+    );
+    let multisigPayloadHash = new HexString(
+      sha3.sha3_256(BCS.bcsToBytes(multisigPayload))
+    );
+
+    return await this.createSerializedRawTxObject(
+      senderAddr,
+      senderSequenceNumber,
+      SUPRA_FRAMEWORK_ADDRESS,
+      "multisig_account",
+      "create_transaction_with_hash",
+      [],
+      [
+        BCS.bcsToBytes(TxnBuilderTypes.AccountAddress.fromHex(multisigAddress)),
+        BCS.bcsSerializeBytes(multisigPayloadHash.toUint8Array()),
+      ],
+      optionalTransactionPayloadArgs
+    );
+  }
+
+  /**
    * Create signed transaction payload
    * @param senderAccount Sender KeyPair
    * @param rawTxn Raw transaction payload
