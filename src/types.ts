@@ -86,7 +86,8 @@ export interface RawTxnJSON {
 
 export type TransactionPayloadJSON =
   | EntryFunctionPayloadJSON
-  | AutomationRegistrationPayloadJSON;
+  | AutomationRegistrationPayloadJSON
+  | MultisigPayloadJSON;
 
 export interface EntryFunctionPayloadJSON {
   EntryFunction: EntryFunctionJSON;
@@ -100,6 +101,13 @@ export interface EntryFunctionJSON {
   function: string;
   ty_args: Array<FunctionTypeArgs>;
   args: Array<Array<number>>;
+}
+
+export interface MultisigPayloadJSON {
+  Multisig: {
+    multisig_address: string;
+    transaction_payload?: EntryFunctionPayloadJSON;
+  };
 }
 
 export interface AutomationRegistrationPayloadJSON {
