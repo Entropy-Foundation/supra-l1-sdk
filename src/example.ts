@@ -22,7 +22,7 @@ import {
   // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
   let supraClient = await SupraClient.init(
     // "http://localhost:27001/"
-    "https://rpc-autonet.supra.com/"
+    "https://rpc-testnet.supra.com/"
   );
 
   let senderAccount = new SupraAccount(
@@ -329,13 +329,13 @@ import {
   }
 
   // Creating RawTransaction for multi-agent RawTransaction
-  // Note: The `7452ce103328320893993cb9fc656f680a9ed28b0f429ff2ecbf6834eefab3ad::wrapper` module is deployed on testnet
+  // Note: The `0x7c6033ca961856298e1412fddf5ebb732c247436046d33016a5bd10f7e090a07::wrapper` module is deployed on testnet
   let multiAgentRawTransaction = await supraClient.createRawTxObject(
     senderAccount.address(),
     (
       await supraClient.getAccountInfo(senderAccount.address())
     ).sequence_number,
-    "7452ce103328320893993cb9fc656f680a9ed28b0f429ff2ecbf6834eefab3ad",
+    "0x7c6033ca961856298e1412fddf5ebb732c247436046d33016a5bd10f7e090a07",
     "wrapper",
     "two_signers",
     [],
@@ -426,8 +426,8 @@ import {
       [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)],
       BigInt(5000),
       BigInt(100),
-      BigInt(100000000),
-      BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 500),
+      BigInt(1000000000),
+      BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 2 * 60 * 60),
       []
     );
 

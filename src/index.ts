@@ -50,6 +50,7 @@ import {
   DEFAULT_MAX_GAS_FOR_SUPRA_TRANSFER_WHEN_RECEIVER_NOT_EXISTS,
   RAW_TRANSACTION_SALT,
   RAW_TRANSACTION_WITH_DATA_SALT,
+  SUPRA_COIN_TYPE,
 } from "./constants";
 import sha3 from "js-sha3";
 
@@ -116,7 +117,7 @@ export class SupraClient {
     if (resData.status === 500) {
       throw new Error("Server error — please try again later.");
     }
-    return resData;    
+    return resData;
   }
 
   /**
@@ -382,7 +383,7 @@ export class SupraClient {
         txInsights.coinReceiver = txData.payload.Move.arguments[0];
         txInsights.coinChange[0] = {
           amount: amountChange,
-          coinType: "0x1::supra_coin::SupraCoin",
+          coinType: SUPRA_COIN_TYPE,
         };
         txInsights.type = TxTypeForTransactionInsights.CoinTransfer;
       } else if (
@@ -700,7 +701,7 @@ export class SupraClient {
   }
 
   /**
-   * Get Supra balance of given account
+   * Get coin info of the given coin type
    * @param coinType Type of a coin resource
    * @returns CoinInfo
    */
@@ -722,14 +723,7 @@ export class SupraClient {
    * @returns Supra Balance
    */
   async getAccountSupraCoinBalance(account: HexString): Promise<bigint> {
-    return BigInt(
-      (
-        await this.getResourceData(
-          account,
-          "0x1::coin::CoinStore<0x1::supra_coin::SupraCoin>"
-        )
-      ).coin.value
-    );
+    return await this.getAccountCoinBalance(account, SUPRA_COIN_TYPE);
   }
 
   /**
@@ -743,8 +737,13 @@ export class SupraClient {
     coinType: string
   ): Promise<bigint> {
     return BigInt(
-      (await this.getResourceData(account, `0x1::coin::CoinStore<${coinType}>`))
-        .coin.value
+      (
+        await this.invokeViewMethod(
+          "0x1::coin::balance",
+          [coinType],
+          [account.toString()]
+        )
+      )[0]
     );
   }
 
