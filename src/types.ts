@@ -37,6 +37,7 @@ export enum TxTypeForTransactionInsights {
   CoinTransfer = "CoinTransfer",
   EntryFunctionCall = "EntryFunctionCall",
   ScriptCall = "ScriptCall",
+  MultisigPayload = "MultisigPayload",
   AutomationRegistration = "AutomationRegistration",
 }
 

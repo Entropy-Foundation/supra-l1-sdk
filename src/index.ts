@@ -415,6 +415,8 @@ export class SupraClient {
         txData.payload.Move.type === "automation_registration_payload"
       ) {
         txInsights.type = TxTypeForTransactionInsights.AutomationRegistration;
+      } else if (txData.payload.Move.type === "multisig_payload") {
+        txInsights.type = TxTypeForTransactionInsights.MultisigPayload;
       } else {
         throw new Error("Unsupported transaction payload type.");
       }
