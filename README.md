@@ -24,12 +24,13 @@ Check [./src/example.ts](https://github.com/Entropy-Foundation/supra-l1-sdk/blob
 - [x] Transaction insights
 - [x] Transfer coin
 - [x] Publish Package
-- [X] `entry_function_payload` type tx
 - [X] Transaction payload generation
 - [X] Transaction simulation
 - [X] Transaction signing
 - [X] Transaction hash generation
-- [ ] `script_payload` type tx
+- [X] `entry_function_payload` type tx
+- [X] `script_payload` type tx
+- [X] `automation_registration_payload` type tx
 - [X] Sponsor transaction
 - [X] Multi-agent transaction
 - [X] Starkey wallet integration support

@@ -441,4 +441,29 @@ import {
       }
     )
   );
+
+  // To execute move-script
+  let moveScriptCodeHex =
+    "a11ceb0b060000000501000403040a050e0f071d29084620000000010002020300010304010002060c030001060c010503060c0503067369676e65720d73757072615f6163636f756e740a616464726573735f6f66087472616e736665720000000000000000000000000000000000000000000000000000000000000001000001060a000b0011000b01110102";
+
+  let supraCoinTransferScriptRawTransaction =
+    supraClient.createSerializedScriptTxPayloadRawTxObject(
+      senderAccount.address(),
+      (await supraClient.getAccountInfo(senderAccount.address()))
+        .sequence_number,
+      Uint8Array.from(Buffer.from(moveScriptCodeHex, "hex")),
+      [],
+      [new TxnBuilderTypes.TransactionArgumentU64(BigInt(1000))]
+    );
+
+  console.log(
+    await supraClient.sendTxUsingSerializedRawTransaction(
+      senderAccount,
+      supraCoinTransferScriptRawTransaction,
+      {
+        enableTransactionSimulation: true,
+        enableWaitForTransaction: true,
+      }
+    )
+  );
 })();
