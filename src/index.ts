@@ -11,6 +11,7 @@ import {
   fromUint8ArrayToJSArray,
   sleep,
   parseFunctionTypeArgs,
+  parseScriptArgs,
 } from "./utils";
 import {
   TransactionStatus,
@@ -918,6 +919,14 @@ export class SupraClient {
           args: fromUint8ArrayToJSArray(txPayload.value.args),
         },
       };
+    } else if (txPayload instanceof TxnBuilderTypes.TransactionPayloadScript) {
+      return {
+        Script: {
+          code: Array.from(txPayload.value.code),
+          ty_args: parseFunctionTypeArgs(txPayload.value.ty_args),
+          args: parseScriptArgs(txPayload.value.args),
+        },
+      };
     } else if (
       txPayload instanceof
       TxnBuilderTypes.TransactionPayloadAutomationRegistration
@@ -1281,6 +1290,37 @@ export class SupraClient {
         functionName,
         functionTypeArgs,
         functionArgs,
+        optionalTransactionPayloadArgs
+      )
+    );
+  }
+
+  /**
+   * Create serialized raw transaction for `script_payload` type tx
+   * @param senderAddr Sender account address
+   * @param senderSequenceNumber Sender account sequence number
+   * @param scriptCode Move script bytecode
+   * @param scriptTypeArgs Type arguments that move script bytecode requires
+   * @param scriptArgs  Arguments to the move script bytecode function
+   * @param optionalTransactionPayloadArgs Optional arguments for transaction payload
+   * @returns Serialized raw transaction object
+   */
+  createSerializedScriptTxPayloadRawTxObject(
+    senderAddr: HexString,
+    senderSequenceNumber: bigint,
+    scriptCode: Uint8Array,
+    scriptTypeArgs: TxnBuilderTypes.TypeTag[],
+    scriptArgs: TxnBuilderTypes.TransactionArgument[],
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+  ): Uint8Array {
+    let payload = new TxnBuilderTypes.TransactionPayloadScript(
+      new TxnBuilderTypes.Script(scriptCode, scriptTypeArgs, scriptArgs)
+    );
+    return BCS.bcsToBytes(
+      this.createRawTxObjectInner(
+        senderAddr,
+        senderSequenceNumber,
+        payload,
         optionalTransactionPayloadArgs
       )
     );
