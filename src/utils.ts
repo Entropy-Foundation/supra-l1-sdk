@@ -1,4 +1,4 @@
-import { TxnBuilderTypes } from "supra-l1-sdk-core";
+import { BCS, TxnBuilderTypes } from "supra-l1-sdk-core";
 import { FunctionTypeArgs, ScriptArgumentJson } from "./types";
 
 export const parseFunctionTypeArgs = (
@@ -33,7 +33,7 @@ export const parseScriptArgs = (
     } else if (arg instanceof TxnBuilderTypes.TransactionArgumentU128) {
       parsedArgs.push({ U128: Number(arg.value) });
     } else if (arg instanceof TxnBuilderTypes.TransactionArgumentU256) {
-      parsedArgs.push({ U256: Number(arg.value) });
+      parsedArgs.push({ U256: Array.from(BCS.bcsSerializeU256(arg.value)) });
     } else if (arg instanceof TxnBuilderTypes.TransactionArgumentAddress) {
       parsedArgs.push({ Address: arg.value.toHexString().toString() });
     } else if (arg instanceof TxnBuilderTypes.TransactionArgumentU8Vector) {

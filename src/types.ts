@@ -118,7 +118,7 @@ export type ScriptArgumentJson =
   | { U32: number }
   | { U64: number }
   | { U128: number }
-  | { U256: number }
+  | { U256: Array<number> }
   | { Address: string }
   | { U8Vector: Array<number> }
   | { Bool: boolean };
