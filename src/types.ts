@@ -38,6 +38,7 @@ export enum TxTypeForTransactionInsights {
   EntryFunctionCall = "EntryFunctionCall",
   ScriptCall = "ScriptCall",
   AutomationRegistration = "AutomationRegistration",
+  MultisigPayload = "MultisigPayload",
 }
 
 export interface CoinChange {
