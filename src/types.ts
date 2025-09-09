@@ -86,6 +86,7 @@ export interface RawTxnJSON {
 
 export type TransactionPayloadJSON =
   | EntryFunctionPayloadJSON
+  | ScriptPayloadJSON
   | AutomationRegistrationPayloadJSON
   | MultisigPayloadJSON;
 
@@ -109,6 +110,25 @@ export interface MultisigPayloadJSON {
     transaction_payload?: EntryFunctionPayloadJSON;
   };
 }
+
+export interface ScriptPayloadJSON {
+  Script: {
+    code: Array<number>;
+    ty_args: Array<FunctionTypeArgs>;
+    args: Array<ScriptArgumentJson>;
+  };
+}
+
+export type ScriptArgumentJson =
+  | { U8: number }
+  | { U16: number }
+  | { U32: number }
+  | { U64: number }
+  | { U128: number }
+  | { U256: Array<number> }
+  | { Address: string }
+  | { U8Vector: Array<number> }
+  | { Bool: boolean };
 
 export interface AutomationRegistrationPayloadJSON {
   AutomationRegistration: AutomationRegistrationParamV1JSON;

@@ -329,13 +329,13 @@ import {
   }
 
   // Creating RawTransaction for multi-agent RawTransaction
-  // Note: The `7452ce103328320893993cb9fc656f680a9ed28b0f429ff2ecbf6834eefab3ad::wrapper` module is deployed on testnet
+  // Note: The `0x7c6033ca961856298e1412fddf5ebb732c247436046d33016a5bd10f7e090a07::wrapper` module is deployed on testnet
   let multiAgentRawTransaction = await supraClient.createRawTxObject(
     senderAccount.address(),
     (
       await supraClient.getAccountInfo(senderAccount.address())
     ).sequence_number,
-    "7452ce103328320893993cb9fc656f680a9ed28b0f429ff2ecbf6834eefab3ad",
+    "0x7c6033ca961856298e1412fddf5ebb732c247436046d33016a5bd10f7e090a07",
     "wrapper",
     "two_signers",
     [],
@@ -426,8 +426,8 @@ import {
       [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)],
       BigInt(500),
       BigInt(100),
-      BigInt(100000000),
-      BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 7200),
+      BigInt(1000000000),
+      BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 2 * 60 * 60),
       []
     );
 
@@ -491,6 +491,31 @@ import {
       supraCoinTransferMultisigRawTransaction,
       {
         enableTransactionSimulation: false,
+        enableWaitForTransaction: true,
+      }
+    )
+  );
+
+  // To execute move-script
+  let moveScriptCodeHex =
+    "a11ceb0b060000000501000403040a050e0f071d29084620000000010002020300010304010002060c030001060c010503060c0503067369676e65720d73757072615f6163636f756e740a616464726573735f6f66087472616e736665720000000000000000000000000000000000000000000000000000000000000001000001060a000b0011000b01110102";
+
+  let supraCoinTransferScriptRawTransaction =
+    supraClient.createSerializedScriptTxPayloadRawTxObject(
+      senderAccount.address(),
+      (await supraClient.getAccountInfo(senderAccount.address()))
+        .sequence_number,
+      Uint8Array.from(Buffer.from(moveScriptCodeHex, "hex")),
+      [],
+      [new TxnBuilderTypes.TransactionArgumentU64(BigInt(1000))]
+    );
+
+  console.log(
+    await supraClient.sendTxUsingSerializedRawTransaction(
+      senderAccount,
+      supraCoinTransferScriptRawTransaction,
+      {
+        enableTransactionSimulation: true,
         enableWaitForTransaction: true,
       }
     )
