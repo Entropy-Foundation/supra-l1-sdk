@@ -37,8 +37,8 @@ export enum TxTypeForTransactionInsights {
   CoinTransfer = "CoinTransfer",
   EntryFunctionCall = "EntryFunctionCall",
   ScriptCall = "ScriptCall",
-  MultisigPayload = "MultisigPayload",
   AutomationRegistration = "AutomationRegistration",
+  MultisigPayload = "MultisigPayload",
 }
 
 export interface CoinChange {
@@ -88,7 +88,8 @@ export interface RawTxnJSON {
 export type TransactionPayloadJSON =
   | EntryFunctionPayloadJSON
   | ScriptPayloadJSON
-  | AutomationRegistrationPayloadJSON;
+  | AutomationRegistrationPayloadJSON
+  | MultisigPayloadJSON;
 
 export interface EntryFunctionPayloadJSON {
   EntryFunction: EntryFunctionJSON;
@@ -102,6 +103,13 @@ export interface EntryFunctionJSON {
   function: string;
   ty_args: Array<FunctionTypeArgs>;
   args: Array<Array<number>>;
+}
+
+export interface MultisigPayloadJSON {
+  Multisig: {
+    multisig_address: string;
+    transaction_payload?: EntryFunctionPayloadJSON;
+  };
 }
 
 export interface ScriptPayloadJSON {
