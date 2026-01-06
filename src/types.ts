@@ -1,19 +1,12 @@
 import { TxnBuilderTypes } from "supra-l1-sdk-core";
+
 export interface AccountInfo {
   sequence_number: bigint;
   authentication_key: string;
 }
-
-export interface ResourceInfo {
-  address: string;
-  module: string;
-  name: string;
-  type_args: Array<{ struct: TxnBuilderTypes.StructTag }>;
-}
-
-export interface AccountResources {
-  resource: Array<[string, ResourceInfo]>;
-  cursor: string;
+export interface AccountResource {
+  type: TxnBuilderTypes.StructTag;
+  data: any;
 }
 
 export interface CoinInfo {
@@ -68,11 +61,6 @@ export interface TransactionDetail {
   blockHash?: string;
   transactionInsights: TransactionInsights;
   vm_status?: string;
-}
-
-export interface AccountCoinTransactionsDetail {
-  transactions: Array<TransactionDetail>;
-  cursor: number;
 }
 
 export interface RawTxnJSON {
@@ -215,5 +203,19 @@ export interface OptionalTransactionArgs {
 
 export interface PaginationArgs {
   count?: number;
-  start?: string | number;
+  start?: string;
+}
+
+export interface OrderedPaginationArgs extends PaginationArgs {
+  ascending?: boolean;
+}
+
+export interface AccountResourcesResponse {
+  resources: AccountResource[];
+  cursor: String;
+}
+
+export interface AccountCoinTransactionsResponse {
+  transactions: TransactionDetail[];
+  cursor: String;
 }
