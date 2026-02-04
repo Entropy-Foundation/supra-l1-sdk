@@ -68,10 +68,16 @@ export { TxnBuilderTypes, BCS, HexString, SupraAccount };
 export class SupraClient {
   supraNodeURL: string;
   chainId: TxnBuilderTypes.ChainId;
+  // Making it private so in future we can rollback it.
+  private minGasUnitPrice: bigint;
 
   constructor(url: string, chainId: number = DEFAULT_CHAIN_ID) {
     this.supraNodeURL = url;
     this.chainId = new TxnBuilderTypes.ChainId(chainId);
+    // If a user instantiates `SupraClient` in this way, which we never suggested, then the
+    // `DEFAULT_GAS_PRICE` value, which is currently `100_000`, would be used even though at that
+    // time `min_gas_unit_price` is not updated and it's still `100`.
+    this.minGasUnitPrice = DEFAULT_GAS_PRICE;
   }
 
   /**
@@ -89,6 +95,7 @@ export class SupraClient {
   static async init(url: string): Promise<SupraClient> {
     let supraClient = new SupraClient(url);
     supraClient.chainId = await supraClient.getChainId();
+    supraClient.minGasUnitPrice = await supraClient.getMinGasUnitPrice();
     return supraClient;
   }
 
@@ -158,9 +165,23 @@ export class SupraClient {
     return BigInt(
       (
         await this.sendRequest({
-          subURL: "/rpc/v3/gas_price",
+          subURL: "/rpc/v3/transactions/estimate_gas_price",
         })
-      ).data.mean_gas_price
+      ).data.mean_gas_price,
+    );
+  }
+
+  /**
+   * Get current `min_price_per_gas_unit`
+   * @returns Current `min_price_per_gas_unit`
+   */
+  async getMinGasUnitPrice(): Promise<bigint> {
+    return BigInt(
+      (
+        await this.sendRequest({
+          subURL: "/rpc/v3/transactions/estimate_gas_price",
+        })
+      ).data.min_configured_gas_price,
     );
   }
 
@@ -1208,20 +1229,23 @@ export class SupraClient {
     senderAddr: HexString,
     senderSequenceNumber: bigint,
     payload: TxnBuilderTypes.TransactionPayload,
-    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs,
   ): TxnBuilderTypes.RawTransaction {
     return new TxnBuilderTypes.RawTransaction(
       new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
       senderSequenceNumber,
       payload,
       optionalTransactionPayloadArgs?.maxGas ?? DEFAULT_MAX_GAS_UNITS,
-      optionalTransactionPayloadArgs?.gasUnitPrice ?? DEFAULT_GAS_PRICE,
+      // If the user has not passed `gasUnitPrice` value then, we will use cached value of the
+      // `min_gas_unit_price` assigned to `this.minGasUnitPrice` at the time of `SupraClient`
+      // instantiation.
+      optionalTransactionPayloadArgs?.gasUnitPrice ?? this.minGasUnitPrice,
       optionalTransactionPayloadArgs?.txExpiryTime ??
         BigInt(
           Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) +
-            DEFAULT_TX_EXPIRATION_DURATION
+            DEFAULT_TX_EXPIRATION_DURATION,
         ),
-      this.chainId
+      this.chainId,
     );
   }
 
