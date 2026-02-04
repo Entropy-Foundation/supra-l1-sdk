@@ -158,8 +158,8 @@ export class SupraClient {
   }
 
   /**
-   * Get current `mean_gas_price`
-   * @returns Current `mean_gas_price`
+   * Get current `median_gas_price`
+   * @returns Current `median_gas_price`
    */
   async getGasPrice(): Promise<bigint> {
     return BigInt(
@@ -167,7 +167,7 @@ export class SupraClient {
         await this.sendRequest({
           subURL: "/rpc/v3/transactions/estimate_gas_price",
         })
-      ).data.mean_gas_price,
+      ).data.median_gas_price,
     );
   }
 
