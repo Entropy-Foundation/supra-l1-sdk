@@ -5,7 +5,7 @@ import {
   SupraAccount,
   AnyRawTransaction,
 } from "supra-l1-sdk-core";
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosResponse, HttpStatusCode } from "axios";
 import {
   normalizeAddress,
   fromUint8ArrayToJSArray,
@@ -19,7 +19,7 @@ import {
   TransactionDetail,
   SendTxPayload,
   AccountInfo,
-  AccountResources,
+  AccountResource,
   TransactionInsights,
   TxTypeForTransactionInsights,
   CoinInfo,
@@ -29,11 +29,13 @@ import {
   OptionalTransactionPayloadArgs,
   OptionalTransactionArgs,
   PaginationArgs,
-  AccountCoinTransactionsDetail,
   RawTxnJSON,
   AnyAuthenticatorJSON,
   Ed25519AuthenticatorJSON,
   TransactionPayloadJSON,
+  OrderedPaginationArgs,
+  AccountResourcesResponse,
+  AccountCoinTransactionsResponse,
 } from "./types";
 import {
   DEFAULT_CHAIN_ID,
@@ -52,6 +54,7 @@ import {
   RAW_TRANSACTION_SALT,
   RAW_TRANSACTION_WITH_DATA_SALT,
   SUPRA_COIN_TYPE,
+  X_SUPRA_CURSOR,
 } from "./constants";
 import sha3 from "js-sha3";
 
@@ -65,10 +68,16 @@ export { TxnBuilderTypes, BCS, HexString, SupraAccount };
 export class SupraClient {
   supraNodeURL: string;
   chainId: TxnBuilderTypes.ChainId;
+  // Making it private so in future we can rollback it.
+  private minGasUnitPrice: bigint;
 
   constructor(url: string, chainId: number = DEFAULT_CHAIN_ID) {
     this.supraNodeURL = url;
     this.chainId = new TxnBuilderTypes.ChainId(chainId);
+    // If a user instantiates `SupraClient` in this way, which we never suggested, then the
+    // `DEFAULT_GAS_PRICE` value, which is currently `100_000`, would be used even though at that
+    // time `min_gas_unit_price` is not updated and it's still `100`.
+    this.minGasUnitPrice = DEFAULT_GAS_PRICE;
   }
 
   /**
@@ -86,14 +95,21 @@ export class SupraClient {
   static async init(url: string): Promise<SupraClient> {
     let supraClient = new SupraClient(url);
     supraClient.chainId = await supraClient.getChainId();
+    supraClient.minGasUnitPrice = await supraClient.getMinGasUnitPrice();
     return supraClient;
   }
 
-  private async sendRequest(
-    isGetMethod: boolean,
-    subURL: string,
-    data?: any
-  ): Promise<AxiosResponse<any, any>> {
+  private async sendRequest({
+    isGetMethod = true,
+    subURL,
+    data,
+    ignoreStatuses = [],
+  }: Readonly<{
+    isGetMethod?: boolean;
+    subURL: string;
+    data?: any;
+    ignoreStatuses?: HttpStatusCode[];
+  }>): Promise<AxiosResponse<any, any>> {
     if (!isGetMethod && data === undefined) {
       throw new Error("POST request requires a 'data' payload.");
     }
@@ -102,6 +118,8 @@ export class SupraClient {
       method: isGetMethod ? "get" : "post",
       baseURL: this.supraNodeURL,
       url: subURL,
+      validateStatus: (status: HttpStatusCode) =>
+        status === HttpStatusCode.Ok || ignoreStatuses.includes(status),
       ...(isGetMethod
         ? {}
         : {
@@ -112,11 +130,13 @@ export class SupraClient {
           }),
     };
     const resData = await axios(config);
-    if (resData.status === 404) {
-      throw new Error("Invalid URL — path not found (404).");
+    if (resData.status === HttpStatusCode.InternalServerError) {
+      throw new Error("Server side error — please try again later.");
     }
-    if (resData.status === 500) {
-      throw new Error("Server error — please try again later.");
+    if (resData.status === HttpStatusCode.ServiceUnavailable) {
+      throw new Error(
+        "Service Temporarily Unavailable — please try again later.",
+      );
     }
     return resData;
   }
@@ -128,19 +148,40 @@ export class SupraClient {
   async getChainId(): Promise<TxnBuilderTypes.ChainId> {
     return new TxnBuilderTypes.ChainId(
       Number(
-        (await this.sendRequest(true, "/rpc/v1/transactions/chain_id")).data
-      )
+        (
+          await this.sendRequest({
+            subURL: "/rpc/v3/transactions/chain_id",
+          })
+        ).data,
+      ),
     );
   }
 
   /**
-   * Get current `mean_gas_price`
-   * @returns Current `mean_gas_price`
+   * Get current `median_gas_price`
+   * @returns Current `median_gas_price`
    */
   async getGasPrice(): Promise<bigint> {
     return BigInt(
-      (await this.sendRequest(true, "/rpc/v1/transactions/estimate_gas_price"))
-        .data.mean_gas_price
+      (
+        await this.sendRequest({
+          subURL: "/rpc/v3/transactions/estimate_gas_price",
+        })
+      ).data.median_gas_price,
+    );
+  }
+
+  /**
+   * Get current `min_price_per_gas_unit`
+   * @returns Current `min_price_per_gas_unit`
+   */
+  async getMinGasUnitPrice(): Promise<bigint> {
+    return BigInt(
+      (
+        await this.sendRequest({
+          subURL: "/rpc/v3/transactions/estimate_gas_price",
+        })
+      ).data.min_configured_gas_price,
     );
   }
 
@@ -150,24 +191,18 @@ export class SupraClient {
    * @returns `FaucetRequestResponse`
    */
   async fundAccountWithFaucet(
-    account: HexString
+    account: HexString,
   ): Promise<FaucetRequestResponse> {
-    const resData = await this.sendRequest(
-      true,
-      `/rpc/v1/wallet/faucet/${account.toString()}`
-    );
-
-    const response = resData.data;
-    if (typeof response !== "object" || response === null) {
-      throw new Error("Unexpected response format. Please try faucet later.");
-    }
-    if (!("Accepted" in response)) {
+    const resData = await this.sendRequest({
+      subURL: `/rpc/v3/wallet/faucet/${account.toString()}`,
+      ignoreStatuses: [HttpStatusCode.TooManyRequests],
+    });
+    if (resData.status === HttpStatusCode.TooManyRequests) {
       throw new Error(
-        "Faucet request failed — 'Accepted' field not found in response."
+        "Your account recently received some tokens, please try later.",
       );
     }
-
-    const transactionHash = response.Accepted;
+    const transactionHash = resData.data.Accepted;
     return {
       status: await this.waitForTransactionCompletion(transactionHash),
       transactionHash,
@@ -180,15 +215,11 @@ export class SupraClient {
    * @returns `true` if account exists otherwise `false`
    */
   async isAccountExists(account: HexString): Promise<boolean> {
-    let resData = await this.sendRequest(
-      true,
-      `/rpc/v1/accounts/${account.toString()}`
-    );
-
-    if (resData.data === null || resData.status === 202) {
-      return false;
-    }
-    return true;
+    let resData = await this.sendRequest({
+      subURL: `/rpc/v3/accounts/${account.toString()}`,
+      ignoreStatuses: [HttpStatusCode.BadRequest],
+    });
+    return resData.status === HttpStatusCode.Ok;
   }
 
   /**
@@ -197,20 +228,12 @@ export class SupraClient {
    * @returns `AccountInfo`
    */
   async getAccountInfo(account: HexString): Promise<AccountInfo> {
-    const resData = await this.sendRequest(
-      true,
-      `/rpc/v1/accounts/${account.toString()}`
-    );
-
-    const accountData = resData.data;
-    if (!accountData || typeof accountData !== "object") {
-      throw new Error(
-        "Account does not exist or an invalid account was provided."
-      );
-    }
+    const resData = await this.sendRequest({
+      subURL: `/rpc/v3/accounts/${account.toString()}`,
+    });
     return {
-      sequence_number: BigInt(accountData.sequence_number),
-      authentication_key: accountData.authentication_key,
+      sequence_number: BigInt(resData.data.sequence_number),
+      authentication_key: resData.data.authentication_key,
     };
   }
 
@@ -218,28 +241,30 @@ export class SupraClient {
    * Get list of all resources held by given supra account
    * @param account Hex-encoded 32 byte Supra account address
    * @param paginationArgs Arguments for pagination response
-   * @returns `AccountResources`
+   * @returns `AccountResourcesResponse`
    */
   async getAccountResources(
     account: HexString,
-    paginationArgs?: PaginationArgs
-  ): Promise<AccountResources> {
-    let requestPath = `/rpc/v1/accounts/${account.toString()}/resources?count=${
+    paginationArgs?: PaginationArgs,
+  ): Promise<AccountResourcesResponse> {
+    let requestPath = `/rpc/v3/accounts/${account.toString()}/resources?count=${
       paginationArgs?.count ?? DEFAULT_RECORDS_ITEMS_COUNT
     }`;
     if (paginationArgs?.start) {
       requestPath += `&start=${paginationArgs.start}`;
     }
-
-    return (await this.sendRequest(true, requestPath)).data
-      .Resources as AccountResources;
+    let resData = await this.sendRequest({ subURL: requestPath });
+    return {
+      resources: resData.data as AccountResource[],
+      cursor: resData.headers[X_SUPRA_CURSOR],
+    };
   }
 
   /**
    * Get data of resource held by given supra account
    * @param account Hex-encoded 32 byte Supra account address
    * @param resourceType Type of a resource
-   * @returns Resource data
+   * @returns `AccountResource`
    * @example
    * ```typescript
    * let supraCoinInfo = await supraClient.getResourceData(
@@ -250,48 +275,39 @@ export class SupraClient {
    */
   async getResourceData(
     account: HexString,
-    resourceType: string
-  ): Promise<any> {
-    const resData = await this.sendRequest(
-      true,
-      `/rpc/v1/accounts/${account.toString()}/resources/${resourceType}`
-    );
-
-    const result = resData.data?.result;
-    if (!Array.isArray(result) || result.length === 0 || result[0] == null) {
-      throw new Error(
-        `Resource of type '${resourceType}' not found for account ${account.toString()}.`
-      );
-    }
-    return result[0];
+    resourceType: string,
+  ): Promise<AccountResource> {
+    const resData = await this.sendRequest({
+      subURL: `/rpc/v3/accounts/${account.toString()}/resources/${resourceType}`,
+    });
+    return resData.data as AccountResource;
   }
 
   /**
    * Get status of given supra transaction
    * @param transactionHash Hex-encoded 32 byte transaction hash for getting transaction status
-   * @returns `TransactionStatus`
+   * @returns `TransactionStatus` or `null`
    */
   async getTransactionStatus(
-    transactionHash: string
+    transactionHash: string,
   ): Promise<TransactionStatus | null> {
-    let resData = await this.sendRequest(
-      true,
-      `/rpc/v1/transactions/${transactionHash}`
-    );
-    if (resData.data == null) {
+    let resData = await this.sendRequest({
+      subURL: `/rpc/v3/transactions/${transactionHash}`,
+      ignoreStatuses: [HttpStatusCode.NotFound],
+    });
+    if (resData.status === HttpStatusCode.NotFound || !resData.data) {
       return null;
     }
-
-    return resData.data.status == "Unexecuted"
+    return resData.data.status === "Unexecuted"
       ? TransactionStatus.Pending
-      : resData.data.status == "Fail"
-      ? TransactionStatus.Failed
-      : resData.data.status;
+      : resData.data.status === "Fail"
+        ? TransactionStatus.Failed
+        : resData.data.status;
   }
 
   private getCoinChangeAmount(
     userAddress: string,
-    events: any[]
+    events: any[],
   ): Array<CoinChange> {
     let coinChange: Map<
       string,
@@ -348,20 +364,20 @@ export class SupraClient {
           totalDeposit: bigint;
           totalWithdraw: bigint;
         },
-        key: string
+        key: string,
       ) => {
         coinChangeParsed.push({
           coinType: key,
           amount: value.totalDeposit - value.totalWithdraw,
         });
-      }
+      },
     );
     return coinChangeParsed;
   }
 
   private getTransactionInsights(
     userAddress: string,
-    txData: any
+    txData: any,
   ): TransactionInsights {
     let txInsights: TransactionInsights = {
       coinReceiver: "",
@@ -405,7 +421,7 @@ export class SupraClient {
         if (txData.status === TransactionStatus.Success) {
           txInsights.coinChange = this.getCoinChangeAmount(
             userAddress,
-            txData.output.Move.events
+            txData.output.Move.events,
           );
         }
       }
@@ -425,7 +441,7 @@ export class SupraClient {
       if (txData.status === TransactionStatus.Success) {
         txInsights.coinChange = this.getCoinChangeAmount(
           userAddress,
-          txData.output.Move.events
+          txData.output.Move.events,
         );
       }
     }
@@ -436,26 +452,25 @@ export class SupraClient {
    * Get transaction details of given transaction hash
    * @param account Hex-encoded 32 byte Supra account address
    * @param transactionHash Hex-encoded 32 byte transaction hash for getting transaction details
-   * @returns `TransactionDetail`
+   * @returns `TransactionDetail` or `null`
    */
   async getTransactionDetail(
     account: HexString,
-    transactionHash: string
+    transactionHash: string,
   ): Promise<TransactionDetail | null> {
-    let resData = await this.sendRequest(
-      true,
-      `/rpc/v1/transactions/${transactionHash}`
-    );
+    let resData = await this.sendRequest({
+      subURL: `/rpc/v3/transactions/${transactionHash}`,
+    });
 
-    if (resData.data == null) {
+    if (resData.data === null) {
       return null;
     }
 
     // Added Patch to resolve inconsistencies issue of `rpc_node`
     if (
       resData.data.status === TransactionStatus.Pending ||
-      resData.data.output === null ||
-      resData.data.header === null
+      !resData.data.output ||
+      !resData.data.header
     ) {
       return {
         txHash: transactionHash,
@@ -466,7 +481,8 @@ export class SupraClient {
         gasUsed: undefined,
         transactionCost: undefined,
         txExpirationTimestamp: Number(
-          resData.data.header.expiration_timestamp.microseconds_since_unix_epoch
+          resData.data.header.expiration_timestamp
+            .microseconds_since_unix_epoch,
         ),
         txConfirmationTime: undefined,
         status: resData.data.status,
@@ -475,7 +491,7 @@ export class SupraClient {
         blockHash: undefined,
         transactionInsights: this.getTransactionInsights(
           account.toString(),
-          resData.data
+          resData.data,
         ),
         vm_status: undefined,
       };
@@ -490,13 +506,13 @@ export class SupraClient {
       transactionCost:
         resData.data.header.gas_unit_price * resData.data.output?.Move.gas_used,
       txExpirationTimestamp: Number(
-        resData.data.header.expiration_timestamp.microseconds_since_unix_epoch
+        resData.data.header.expiration_timestamp.microseconds_since_unix_epoch,
       ),
       txConfirmationTime: Number(
-        resData.data.block_header.timestamp.microseconds_since_unix_epoch
+        resData.data.block_header.timestamp.microseconds_since_unix_epoch,
       ),
       status:
-        resData.data.status == "Fail" || resData.data.status == "Invalid"
+        resData.data.status === "Fail" || resData.data.status === "Invalid"
           ? "Failed"
           : resData.data.status,
       events: resData.data.output?.Move.events,
@@ -504,7 +520,7 @@ export class SupraClient {
       blockHash: resData.data.block_header.hash,
       transactionInsights: this.getTransactionInsights(
         account.toString(),
-        resData.data
+        resData.data,
       ),
       vm_status: resData.data.output.Move.vm_status,
     };
@@ -513,29 +529,28 @@ export class SupraClient {
   /**
    * Get transactions sent by the account
    * @param account Supra account address
-   * @param paginationArgs Arguments for pagination response
+   * @param paginationArgs Arguments for ordered pagination response
    * @returns List of `TransactionDetail`
    */
   async getAccountTransactionsDetail(
     account: HexString,
-    paginationArgs?: PaginationArgs
+    paginationArgs?: OrderedPaginationArgs,
   ): Promise<TransactionDetail[]> {
-    let requestPath = `/rpc/v1/accounts/${account.toString()}/transactions?count=${
+    let requestPath = `/rpc/v3/accounts/${account.toString()}/transactions?count=${
       paginationArgs?.count ?? DEFAULT_RECORDS_ITEMS_COUNT
     }`;
     if (paginationArgs?.start) {
       requestPath += `&start=${paginationArgs.start}`;
     }
-
-    let resData = await this.sendRequest(true, requestPath);
-    if (resData.data.record == null) {
-      throw new Error(
-        "Account does not exist or an invalid account was provided."
-      );
+    if (paginationArgs?.ascending) {
+      requestPath += `&ascending=${paginationArgs.ascending}`;
     }
 
+    let resData = await this.sendRequest({
+      subURL: requestPath,
+    });
     let accountTransactionsDetail: TransactionDetail[] = [];
-    resData.data.record.forEach((data: any) => {
+    resData.data.forEach((data: any) => {
       accountTransactionsDetail.push({
         txHash: data.hash,
         sender: data.header.sender.Move,
@@ -545,10 +560,10 @@ export class SupraClient {
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
         txExpirationTimestamp: Number(
-          data.header.expiration_timestamp.microseconds_since_unix_epoch
+          data.header.expiration_timestamp.microseconds_since_unix_epoch,
         ),
         txConfirmationTime: Number(
-          data.block_header.timestamp.microseconds_since_unix_epoch
+          data.block_header.timestamp.microseconds_since_unix_epoch,
         ),
         status:
           data.status === "Fail" || data.status === "Invalid"
@@ -559,7 +574,7 @@ export class SupraClient {
         blockHash: data.block_header.hash,
         transactionInsights: this.getTransactionInsights(
           account.toString(),
-          data
+          data,
         ),
         vm_status: data.output.Move.vm_status,
       });
@@ -570,29 +585,28 @@ export class SupraClient {
   /**
    * Get Coin Transfer related transactions associated with the account
    * @param account Supra account address
-   * @param account Supra account address
-   * @returns List of `TransactionDetail`
+   * @param paginationArgs Arguments for ordered pagination response
+   * @returns `AccountCoinTransactionsResponse`
    */
   async getCoinTransactionsDetail(
     account: HexString,
-    paginationArgs?: PaginationArgs
-  ): Promise<AccountCoinTransactionsDetail> {
-    let requestPath = `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${
+    paginationArgs?: OrderedPaginationArgs,
+  ): Promise<AccountCoinTransactionsResponse> {
+    let requestPath = `/rpc/v3/accounts/${account.toString()}/coin_transactions?count=${
       paginationArgs?.count ?? DEFAULT_RECORDS_ITEMS_COUNT
     }`;
     if (paginationArgs?.start) {
       requestPath += `&start=${paginationArgs?.start}`;
     }
-
-    let resData = await this.sendRequest(true, requestPath);
-    if (resData.data.record == null) {
-      throw new Error(
-        "Account does not exist or an invalid account was provided."
-      );
+    if (paginationArgs?.ascending) {
+      requestPath += `&ascending=${paginationArgs.ascending}`;
     }
 
+    let resData = await this.sendRequest({
+      subURL: requestPath,
+    });
     let coinTransactionsDetail: TransactionDetail[] = [];
-    resData.data.record.forEach((data: any) => {
+    resData.data.forEach((data: any) => {
       coinTransactionsDetail.push({
         txHash: data.hash,
         sender: data.header.sender.Move,
@@ -602,10 +616,10 @@ export class SupraClient {
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
         txExpirationTimestamp: Number(
-          data.header.expiration_timestamp.microseconds_since_unix_epoch
+          data.header.expiration_timestamp.microseconds_since_unix_epoch,
         ),
         txConfirmationTime: Number(
-          data.block_header.timestamp.microseconds_since_unix_epoch
+          data.block_header.timestamp.microseconds_since_unix_epoch,
         ),
         status:
           data.status === "Fail" || data.status === "Invalid"
@@ -616,14 +630,14 @@ export class SupraClient {
         blockHash: data.block_header.hash,
         transactionInsights: this.getTransactionInsights(
           account.toString(),
-          data
+          data,
         ),
         vm_status: data.output.Move.vm_status,
       });
     });
     return {
       transactions: coinTransactionsDetail,
-      cursor: resData.data.cursor,
+      cursor: resData.headers[X_SUPRA_CURSOR],
     };
   }
 
@@ -636,28 +650,26 @@ export class SupraClient {
    */
   async getAccountCompleteTransactionsDetail(
     account: HexString,
-    count: number = DEFAULT_RECORDS_ITEMS_COUNT
+    count: number = DEFAULT_RECORDS_ITEMS_COUNT,
   ): Promise<TransactionDetail[]> {
-    let coinTransactions = await this.sendRequest(
-      true,
-      `/rpc/v1/accounts/${account.toString()}/coin_transactions?count=${count}`
-    );
-    let accountSendedTransactions = await this.sendRequest(
-      true,
-      `/rpc/v1/accounts/${account.toString()}/transactions?count=${count}`
-    );
+    let coinTransactions = await this.sendRequest({
+      subURL: `/rpc/v3/accounts/${account.toString()}/coin_transactions?count=${count}`,
+    });
+    let accountSendedTransactions = await this.sendRequest({
+      subURL: `/rpc/v3/accounts/${account.toString()}/transactions?count=${count}`,
+    });
 
     let combinedTxArray: any[] = [];
-    if (coinTransactions.data.record != null) {
-      combinedTxArray.push(...coinTransactions.data.record);
+    if (coinTransactions.data) {
+      combinedTxArray.push(...coinTransactions.data);
     }
-    if (accountSendedTransactions.data.record != null) {
-      combinedTxArray.push(...accountSendedTransactions.data.record);
+    if (accountSendedTransactions.data) {
+      combinedTxArray.push(...accountSendedTransactions.data);
     }
 
     let combinedTx = combinedTxArray.filter(
       (item, index, self) =>
-        index === self.findIndex((data) => data.hash === item.hash)
+        index === self.findIndex((data) => data.hash === item.hash),
     );
     combinedTx.sort((a, b) => {
       if (
@@ -681,10 +693,10 @@ export class SupraClient {
         gasUsed: data.output.Move.gas_used,
         transactionCost: data.header.gas_unit_price * data.output.Move.gas_used,
         txExpirationTimestamp: Number(
-          data.header.expiration_timestamp.microseconds_since_unix_epoch
+          data.header.expiration_timestamp.microseconds_since_unix_epoch,
         ),
         txConfirmationTime: Number(
-          data.block_header.timestamp.microseconds_since_unix_epoch
+          data.block_header.timestamp.microseconds_since_unix_epoch,
         ),
         status:
           data.status === "Fail" || data.status === "Invalid"
@@ -695,7 +707,7 @@ export class SupraClient {
         blockHash: data.block_header.hash,
         transactionInsights: this.getTransactionInsights(
           account.toString(),
-          data
+          data,
         ),
         vm_status: data.output.Move.vm_status,
       });
@@ -711,12 +723,12 @@ export class SupraClient {
   async getCoinInfo(coinType: string): Promise<CoinInfo> {
     let coinInfoResource = await this.getResourceData(
       new HexString(coinType.split("::")[0]),
-      `${SUPRA_FRAMEWORK_ADDRESS}::coin::CoinInfo<${coinType}>`
+      `${SUPRA_FRAMEWORK_ADDRESS}::coin::CoinInfo<${coinType}>`,
     );
     return {
-      name: coinInfoResource.name,
-      symbol: coinInfoResource.symbol,
-      decimals: coinInfoResource.decimals,
+      name: coinInfoResource.data.name,
+      symbol: coinInfoResource.data.symbol,
+      decimals: coinInfoResource.data.decimals,
     };
   }
 
@@ -737,16 +749,16 @@ export class SupraClient {
    */
   async getAccountCoinBalance(
     account: HexString,
-    coinType: string
+    coinType: string,
   ): Promise<bigint> {
     return BigInt(
       (
         await this.invokeViewMethod(
           "0x1::coin::balance",
           [coinType],
-          [account.toString()]
+          [account.toString()],
         )
-      )[0]
+      )[0],
     );
   }
 
@@ -761,13 +773,17 @@ export class SupraClient {
   async invokeViewMethod(
     functionFullName: string,
     typeArguments: Array<string>,
-    functionArguments: Array<string>
+    functionArguments: Array<string>,
   ): Promise<any> {
     return (
-      await this.sendRequest(false, "/rpc/v1/view", {
-        function: functionFullName,
-        type_arguments: typeArguments,
-        arguments: functionArguments,
+      await this.sendRequest({
+        isGetMethod: false,
+        subURL: "/rpc/v3/view",
+        data: {
+          function: functionFullName,
+          type_arguments: typeArguments,
+          arguments: functionArguments,
+        },
       })
     ).data.result;
   }
@@ -784,23 +800,27 @@ export class SupraClient {
     tableHandle: string,
     keyType: string,
     valueType: string,
-    key: string
+    key: string,
   ): Promise<any> {
     return (
-      await this.sendRequest(false, `/rpc/v1/tables/${tableHandle}/item`, {
-        key_type: keyType,
-        value_type: valueType,
-        key: key,
+      await this.sendRequest({
+        isGetMethod: false,
+        subURL: `/rpc/v3/tables/${tableHandle}/item`,
+        data: {
+          key_type: keyType,
+          value_type: valueType,
+          key: key,
+        },
       })
     ).data;
   }
 
   private async waitForTransactionCompletion(
-    txHash: string
+    txHash: string,
   ): Promise<TransactionStatus> {
     for (let i = 0; i < MAX_RETRY_FOR_TRANSACTION_COMPLETION; i++) {
       let txStatus = await this.getTransactionStatus(txHash);
-      if (txStatus === null || txStatus == TransactionStatus.Pending) {
+      if (!txStatus || txStatus === TransactionStatus.Pending) {
         await sleep(DELAY_BETWEEN_POOLING_REQUEST);
       } else {
         return txStatus;
@@ -811,7 +831,7 @@ export class SupraClient {
 
   private async sendTx(
     sendTxJsonPayload: SendTxPayload,
-    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs
+    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs,
   ): Promise<TransactionResponse> {
     if (
       (enableTransactionWaitAndSimulationArgs?.enableTransactionSimulation ??
@@ -820,11 +840,11 @@ export class SupraClient {
       await this.simulateTx(sendTxJsonPayload);
     }
 
-    let resData = await this.sendRequest(
-      false,
-      "/rpc/v1/transactions/submit",
-      sendTxJsonPayload
-    );
+    let resData = await this.sendRequest({
+      isGetMethod: false,
+      subURL: "/rpc/v3/transactions/submit",
+      data: sendTxJsonPayload,
+    });
     console.log("Transaction Request Sent, Waiting For Completion");
 
     return {
@@ -843,22 +863,22 @@ export class SupraClient {
    * @returns Signature message
    */
   static getSupraTransactionSignatureMessage(
-    rawTxn: AnyRawTransaction
+    rawTxn: AnyRawTransaction,
   ): Uint8Array {
     let preHash = Uint8Array.from(
       Buffer.from(
         sha3.sha3_256(
           rawTxn instanceof TxnBuilderTypes.RawTransaction
             ? RAW_TRANSACTION_SALT
-            : RAW_TRANSACTION_WITH_DATA_SALT
+            : RAW_TRANSACTION_WITH_DATA_SALT,
         ),
-        "hex"
-      )
+        "hex",
+      ),
     );
 
     let rawTxSerializedData = new Uint8Array(BCS.bcsToBytes(rawTxn));
     let signatureMessage = new Uint8Array(
-      preHash.length + rawTxSerializedData.length
+      preHash.length + rawTxSerializedData.length,
     );
     signatureMessage.set(preHash);
     signatureMessage.set(rawTxSerializedData, preHash.length);
@@ -873,10 +893,10 @@ export class SupraClient {
    */
   static signSupraTransaction(
     senderAccount: SupraAccount,
-    rawTxn: AnyRawTransaction
+    rawTxn: AnyRawTransaction,
   ): HexString {
     return senderAccount.signBuffer(
-      SupraClient.getSupraTransactionSignatureMessage(rawTxn)
+      SupraClient.getSupraTransactionSignatureMessage(rawTxn),
     );
   }
 
@@ -891,19 +911,19 @@ export class SupraClient {
     signer: SupraAccount,
     rawTxn:
       | TxnBuilderTypes.MultiAgentRawTransaction
-      | TxnBuilderTypes.FeePayerRawTransaction
+      | TxnBuilderTypes.FeePayerRawTransaction,
   ): TxnBuilderTypes.AccountAuthenticatorEd25519 {
     const signerSignature = new TxnBuilderTypes.Ed25519Signature(
-      SupraClient.signSupraTransaction(signer, rawTxn).toUint8Array()
+      SupraClient.signSupraTransaction(signer, rawTxn).toUint8Array(),
     );
     return new TxnBuilderTypes.AccountAuthenticatorEd25519(
       new TxnBuilderTypes.Ed25519PublicKey(signer.signingKey.publicKey),
-      signerSignature
+      signerSignature,
     );
   }
 
   private getTransactionPayloadJSON(
-    txPayload: TxnBuilderTypes.TransactionPayload
+    txPayload: TxnBuilderTypes.TransactionPayload,
   ): TransactionPayloadJSON {
     if (txPayload instanceof TxnBuilderTypes.TransactionPayloadEntryFunction) {
       return {
@@ -950,19 +970,19 @@ export class SupraClient {
                 function:
                   txPayload.value.value.automated_function.function_name.value,
                 ty_args: parseFunctionTypeArgs(
-                  txPayload.value.value.automated_function.ty_args
+                  txPayload.value.value.automated_function.ty_args,
                 ),
                 args: fromUint8ArrayToJSArray(
-                  txPayload.value.value.automated_function.args
+                  txPayload.value.value.automated_function.args,
                 ),
               },
               max_gas_amount: Number(txPayload.value.value.max_gas_amount),
               gas_price_cap: Number(txPayload.value.value.gas_price_cap),
               automation_fee_cap_for_epoch: Number(
-                txPayload.value.value.automation_fee_cap_for_epoch
+                txPayload.value.value.automation_fee_cap_for_epoch,
               ),
               expiration_timestamp_secs: Number(
-                txPayload.value.value.expiration_timestamp_secs
+                txPayload.value.value.expiration_timestamp_secs,
               ),
               aux_data: fromUint8ArrayToJSArray(txPayload.value.value.aux_data),
             },
@@ -1017,14 +1037,14 @@ export class SupraClient {
 
   /**
    * Generate `SendTxPayload` using `RawTransaction` to send transaction request
-   * Generated data can be used to send transaction directly using `/rpc/v1/transactions/submit` endpoint of `rpc_node`
+   * Generated data can be used to send transaction directly using `/rpc/v3/transactions/submit` endpoint of `rpc_node`
    * @param senderAccount Sender KeyPair
    * @param rawTxn Raw transaction data
    * @returns `SendTxPayload`
    */
   getSendTxPayload(
     senderAccount: SupraAccount,
-    rawTxn: TxnBuilderTypes.RawTransaction
+    rawTxn: TxnBuilderTypes.RawTransaction,
   ): SendTxPayload {
     return {
       Move: {
@@ -1034,7 +1054,7 @@ export class SupraClient {
             public_key: senderAccount.pubKey().toString(),
             signature: SupraClient.signSupraTransaction(
               senderAccount,
-              rawTxn
+              rawTxn,
             ).toString(),
           },
         },
@@ -1052,18 +1072,18 @@ export class SupraClient {
   async sendTxUsingSerializedRawTransaction(
     senderAccount: SupraAccount,
     serializedRawTransaction: Uint8Array,
-    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs
+    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs,
   ): Promise<TransactionResponse> {
     let sendTxPayload = this.getSendTxPayload(
       senderAccount,
       TxnBuilderTypes.RawTransaction.deserialize(
-        new BCS.Deserializer(serializedRawTransaction)
-      )
+        new BCS.Deserializer(serializedRawTransaction),
+      ),
     );
 
     return await this.sendTx(
       sendTxPayload,
-      enableTransactionWaitAndSimulationArgs
+      enableTransactionWaitAndSimulationArgs,
     );
   }
 
@@ -1079,14 +1099,14 @@ export class SupraClient {
     senderPubkey: HexString,
     signature: HexString,
     serializedRawTransaction: Uint8Array,
-    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs
+    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs,
   ): Promise<TransactionResponse> {
     let sendTxPayload = {
       Move: {
         raw_txn: this.getRawTxnJSON(
           TxnBuilderTypes.RawTransaction.deserialize(
-            new BCS.Deserializer(serializedRawTransaction)
-          )
+            new BCS.Deserializer(serializedRawTransaction),
+          ),
         ),
         authenticator: {
           Ed25519: {
@@ -1099,7 +1119,7 @@ export class SupraClient {
 
     return await this.sendTx(
       sendTxPayload,
-      enableTransactionWaitAndSimulationArgs
+      enableTransactionWaitAndSimulationArgs,
     );
   }
 
@@ -1121,12 +1141,12 @@ export class SupraClient {
     senderAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519,
     feePayerAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519,
     secondarySignersAuthenticator: Array<TxnBuilderTypes.AccountAuthenticatorEd25519> = [],
-    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs
+    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs,
   ): Promise<TransactionResponse> {
     let secondarySignersAuthenticatorJSON: Array<Ed25519AuthenticatorJSON> = [];
     secondarySignersAuthenticator.forEach((authenticator) => {
       secondarySignersAuthenticatorJSON.push(
-        this.getED25519AuthenticatorJSON(authenticator)
+        this.getED25519AuthenticatorJSON(authenticator),
       );
     });
 
@@ -1140,7 +1160,7 @@ export class SupraClient {
             secondary_signers: secondarySignersAuthenticatorJSON,
             fee_payer_address: feePayerAddress,
             fee_payer_signer: this.getED25519AuthenticatorJSON(
-              feePayerAuthenticator
+              feePayerAuthenticator,
             ),
           },
         },
@@ -1149,7 +1169,7 @@ export class SupraClient {
 
     return await this.sendTx(
       sendTxPayload,
-      enableTransactionWaitAndSimulationArgs
+      enableTransactionWaitAndSimulationArgs,
     );
   }
 
@@ -1167,12 +1187,12 @@ export class SupraClient {
     rawTxn: TxnBuilderTypes.RawTransaction,
     senderAuthenticator: TxnBuilderTypes.AccountAuthenticatorEd25519,
     secondarySignersAuthenticator: Array<TxnBuilderTypes.AccountAuthenticatorEd25519>,
-    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs
+    enableTransactionWaitAndSimulationArgs?: EnableTransactionWaitAndSimulationArgs,
   ): Promise<TransactionResponse> {
     let secondarySignersAuthenticatorJSON: Array<Ed25519AuthenticatorJSON> = [];
     secondarySignersAuthenticator.forEach((authenticator) => {
       secondarySignersAuthenticatorJSON.push(
-        this.getED25519AuthenticatorJSON(authenticator)
+        this.getED25519AuthenticatorJSON(authenticator),
       );
     });
 
@@ -1191,12 +1211,12 @@ export class SupraClient {
 
     return await this.sendTx(
       sendTxPayload,
-      enableTransactionWaitAndSimulationArgs
+      enableTransactionWaitAndSimulationArgs,
     );
   }
 
   private getED25519AuthenticatorJSON(
-    authenticator: TxnBuilderTypes.AccountAuthenticatorEd25519
+    authenticator: TxnBuilderTypes.AccountAuthenticatorEd25519,
   ): Ed25519AuthenticatorJSON {
     return {
       Ed25519: {
@@ -1210,20 +1230,23 @@ export class SupraClient {
     senderAddr: HexString,
     senderSequenceNumber: bigint,
     payload: TxnBuilderTypes.TransactionPayload,
-    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs,
   ): TxnBuilderTypes.RawTransaction {
     return new TxnBuilderTypes.RawTransaction(
       new TxnBuilderTypes.AccountAddress(senderAddr.toUint8Array()),
       senderSequenceNumber,
       payload,
       optionalTransactionPayloadArgs?.maxGas ?? DEFAULT_MAX_GAS_UNITS,
-      optionalTransactionPayloadArgs?.gasUnitPrice ?? DEFAULT_GAS_PRICE,
+      // If the user has not passed `gasUnitPrice` value then, we will use cached value of the
+      // `min_gas_unit_price` assigned to `this.minGasUnitPrice` at the time of `SupraClient`
+      // instantiation.
+      optionalTransactionPayloadArgs?.gasUnitPrice ?? this.minGasUnitPrice,
       optionalTransactionPayloadArgs?.txExpiryTime ??
         BigInt(
           Math.ceil(Date.now() / MILLISECONDS_PER_SECOND) +
-            DEFAULT_TX_EXPIRATION_DURATION
+            DEFAULT_TX_EXPIRATION_DURATION,
         ),
-      this.chainId
+      this.chainId,
     );
   }
 
@@ -1261,26 +1284,26 @@ export class SupraClient {
     functionName: string,
     functionTypeArgs: TxnBuilderTypes.TypeTag[],
     functionArgs: Uint8Array[],
-    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs,
   ): Promise<TxnBuilderTypes.RawTransaction> {
     let payload = new TxnBuilderTypes.TransactionPayloadEntryFunction(
       new TxnBuilderTypes.EntryFunction(
         new TxnBuilderTypes.ModuleId(
           new TxnBuilderTypes.AccountAddress(
-            new HexString(normalizeAddress(moduleAddr)).toUint8Array()
+            new HexString(normalizeAddress(moduleAddr)).toUint8Array(),
           ),
-          new TxnBuilderTypes.Identifier(moduleName)
+          new TxnBuilderTypes.Identifier(moduleName),
         ),
         new TxnBuilderTypes.Identifier(functionName),
         functionTypeArgs,
-        functionArgs
-      )
+        functionArgs,
+      ),
     );
     return this.createRawTxObjectInner(
       senderAddr,
       senderSequenceNumber,
       payload,
-      optionalTransactionPayloadArgs
+      optionalTransactionPayloadArgs,
     );
   }
 
@@ -1306,7 +1329,7 @@ export class SupraClient {
     functionName: string,
     functionTypeArgs: TxnBuilderTypes.TypeTag[],
     functionArgs: Uint8Array[],
-    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs,
   ): Promise<Uint8Array> {
     return BCS.bcsToBytes(
       await this.createRawTxObject(
@@ -1317,8 +1340,8 @@ export class SupraClient {
         functionName,
         functionTypeArgs,
         functionArgs,
-        optionalTransactionPayloadArgs
-      )
+        optionalTransactionPayloadArgs,
+      ),
     );
   }
 
@@ -1338,18 +1361,18 @@ export class SupraClient {
     scriptCode: Uint8Array,
     scriptTypeArgs: TxnBuilderTypes.TypeTag[],
     scriptArgs: TxnBuilderTypes.TransactionArgument[],
-    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs,
   ): Uint8Array {
     let payload = new TxnBuilderTypes.TransactionPayloadScript(
-      new TxnBuilderTypes.Script(scriptCode, scriptTypeArgs, scriptArgs)
+      new TxnBuilderTypes.Script(scriptCode, scriptTypeArgs, scriptArgs),
     );
     return BCS.bcsToBytes(
       this.createRawTxObjectInner(
         senderAddr,
         senderSequenceNumber,
         payload,
-        optionalTransactionPayloadArgs
-      )
+        optionalTransactionPayloadArgs,
+      ),
     );
   }
 
@@ -1383,7 +1406,7 @@ export class SupraClient {
     automation_fee_cap_for_epoch: bigint,
     automation_expiration_timestamp_secs: bigint,
     automation_aux_data: Uint8Array[],
-    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs,
   ): Uint8Array {
     let payload = new TxnBuilderTypes.TransactionPayloadAutomationRegistration(
       new TxnBuilderTypes.AutomationRegistrationParamsV1(
@@ -1391,29 +1414,29 @@ export class SupraClient {
           new TxnBuilderTypes.EntryFunction(
             new TxnBuilderTypes.ModuleId(
               new TxnBuilderTypes.AccountAddress(
-                new HexString(normalizeAddress(moduleAddr)).toUint8Array()
+                new HexString(normalizeAddress(moduleAddr)).toUint8Array(),
               ),
-              new TxnBuilderTypes.Identifier(moduleName)
+              new TxnBuilderTypes.Identifier(moduleName),
             ),
             new TxnBuilderTypes.Identifier(functionName),
             functionTypeArgs,
-            functionArgs
+            functionArgs,
           ),
           automation_max_gas_amount,
           automation_gas_price_cap,
           automation_fee_cap_for_epoch,
           automation_expiration_timestamp_secs,
-          automation_aux_data
-        )
-      )
+          automation_aux_data,
+        ),
+      ),
     );
     return BCS.bcsToBytes(
       this.createRawTxObjectInner(
         senderAddr,
         senderSequenceNumber,
         payload,
-        optionalTransactionPayloadArgs
-      )
+        optionalTransactionPayloadArgs,
+      ),
     );
   }
 
@@ -1439,7 +1462,7 @@ export class SupraClient {
     functionName: string,
     functionTypeArgs: TxnBuilderTypes.TypeTag[],
     functionArgs: Uint8Array[],
-    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs,
   ): Uint8Array {
     let payload = new TxnBuilderTypes.TransactionPayloadMultisig(
       new TxnBuilderTypes.MultiSig(
@@ -1448,24 +1471,24 @@ export class SupraClient {
           new TxnBuilderTypes.EntryFunction(
             new TxnBuilderTypes.ModuleId(
               new TxnBuilderTypes.AccountAddress(
-                new HexString(normalizeAddress(moduleAddr)).toUint8Array()
+                new HexString(normalizeAddress(moduleAddr)).toUint8Array(),
               ),
-              new TxnBuilderTypes.Identifier(moduleName)
+              new TxnBuilderTypes.Identifier(moduleName),
             ),
             new TxnBuilderTypes.Identifier(functionName),
             functionTypeArgs,
-            functionArgs
-          )
-        )
-      )
+            functionArgs,
+          ),
+        ),
+      ),
     );
     return BCS.bcsToBytes(
       this.createRawTxObjectInner(
         senderAddr,
         senderSequenceNumber,
         payload,
-        optionalTransactionPayloadArgs
-      )
+        optionalTransactionPayloadArgs,
+      ),
     );
   }
 
@@ -1491,23 +1514,23 @@ export class SupraClient {
     functionName: string,
     functionTypeArgs: TxnBuilderTypes.TypeTag[],
     functionArgs: Uint8Array[],
-    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs
+    optionalTransactionPayloadArgs?: OptionalTransactionPayloadArgs,
   ): Promise<Uint8Array> {
     let multisigPayload = new TxnBuilderTypes.MultiSigTransactionPayload(
       new TxnBuilderTypes.EntryFunction(
         new TxnBuilderTypes.ModuleId(
           new TxnBuilderTypes.AccountAddress(
-            new HexString(normalizeAddress(moduleAddr)).toUint8Array()
+            new HexString(normalizeAddress(moduleAddr)).toUint8Array(),
           ),
-          new TxnBuilderTypes.Identifier(moduleName)
+          new TxnBuilderTypes.Identifier(moduleName),
         ),
         new TxnBuilderTypes.Identifier(functionName),
         functionTypeArgs,
-        functionArgs
-      )
+        functionArgs,
+      ),
     );
     let multisigPayloadHash = new HexString(
-      sha3.sha3_256(BCS.bcsToBytes(multisigPayload))
+      sha3.sha3_256(BCS.bcsToBytes(multisigPayload)),
     );
 
     return await this.createSerializedRawTxObject(
@@ -1521,7 +1544,7 @@ export class SupraClient {
         BCS.bcsToBytes(TxnBuilderTypes.AccountAddress.fromHex(multisigAddress)),
         BCS.bcsSerializeBytes(multisigPayloadHash.toUint8Array()),
       ],
-      optionalTransactionPayloadArgs
+      optionalTransactionPayloadArgs,
     );
   }
 
@@ -1533,18 +1556,21 @@ export class SupraClient {
    */
   static createSignedTransaction(
     senderAccount: SupraAccount,
-    rawTxn: TxnBuilderTypes.RawTransaction
+    rawTxn: TxnBuilderTypes.RawTransaction,
   ): TxnBuilderTypes.SignedTransaction {
     return new TxnBuilderTypes.SignedTransaction(
       rawTxn,
       new TxnBuilderTypes.AccountAuthenticatorEd25519(
         new TxnBuilderTypes.Ed25519PublicKey(
-          senderAccount.pubKey().toUint8Array()
+          senderAccount.pubKey().toUint8Array(),
         ),
         new TxnBuilderTypes.Ed25519Signature(
-          SupraClient.signSupraTransaction(senderAccount, rawTxn).toUint8Array()
-        )
-      )
+          SupraClient.signSupraTransaction(
+            senderAccount,
+            rawTxn,
+          ).toUint8Array(),
+        ),
+      ),
     );
   }
 
@@ -1564,7 +1590,7 @@ export class SupraClient {
    * ```
    */
   static deriveTransactionHash(
-    signedTransaction: TxnBuilderTypes.SignedTransaction
+    signedTransaction: TxnBuilderTypes.SignedTransaction,
   ): string {
     return sha3.keccak256(BCS.bcsToBytes(signedTransaction));
   }
@@ -1581,18 +1607,18 @@ export class SupraClient {
     senderAccount: SupraAccount,
     receiverAccountAddr: HexString,
     amount: bigint,
-    optionalTransactionArgs?: OptionalTransactionArgs
+    optionalTransactionArgs?: OptionalTransactionArgs,
   ): Promise<TransactionResponse> {
     if (
       optionalTransactionArgs?.optionalTransactionPayloadArgs &&
       !optionalTransactionArgs?.optionalTransactionPayloadArgs?.maxGas
     ) {
       let maxGas = BigInt(
-        DEFAULT_MAX_GAS_FOR_SUPRA_TRANSFER_WHEN_RECEIVER_EXISTS
+        DEFAULT_MAX_GAS_FOR_SUPRA_TRANSFER_WHEN_RECEIVER_EXISTS,
       );
-      if ((await this.isAccountExists(receiverAccountAddr)) == false) {
+      if ((await this.isAccountExists(receiverAccountAddr)) === false) {
         maxGas = BigInt(
-          DEFAULT_MAX_GAS_FOR_SUPRA_TRANSFER_WHEN_RECEIVER_NOT_EXISTS
+          DEFAULT_MAX_GAS_FOR_SUPRA_TRANSFER_WHEN_RECEIVER_NOT_EXISTS,
         );
       }
       optionalTransactionArgs.optionalTransactionPayloadArgs.maxGas = maxGas;
@@ -1602,21 +1628,19 @@ export class SupraClient {
       senderAccount,
       await this.createRawTxObject(
         senderAccount.address(),
-        (
-          await this.getAccountInfo(senderAccount.address())
-        ).sequence_number,
+        (await this.getAccountInfo(senderAccount.address())).sequence_number,
         SUPRA_FRAMEWORK_ADDRESS,
         "supra_account",
         "transfer",
         [],
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)],
-        optionalTransactionArgs?.optionalTransactionPayloadArgs
-      )
+        optionalTransactionArgs?.optionalTransactionPayloadArgs,
+      ),
     );
 
     return await this.sendTx(
       sendTxPayload,
-      optionalTransactionArgs?.enableTransactionWaitAndSimulationArgs
+      optionalTransactionArgs?.enableTransactionWaitAndSimulationArgs,
     );
   }
 
@@ -1634,27 +1658,25 @@ export class SupraClient {
     receiverAccountAddr: HexString,
     amount: bigint,
     coinType: string,
-    optionalTransactionArgs?: OptionalTransactionArgs
+    optionalTransactionArgs?: OptionalTransactionArgs,
   ): Promise<TransactionResponse> {
     let sendTxPayload = this.getSendTxPayload(
       senderAccount,
       await this.createRawTxObject(
         senderAccount.address(),
-        (
-          await this.getAccountInfo(senderAccount.address())
-        ).sequence_number,
+        (await this.getAccountInfo(senderAccount.address())).sequence_number,
         SUPRA_FRAMEWORK_ADDRESS,
         "supra_account",
         "transfer_coins",
         [new TxnBuilderTypes.TypeTagParser(coinType).parseTypeTag()],
         [receiverAccountAddr.toUint8Array(), BCS.bcsSerializeUint64(amount)],
-        optionalTransactionArgs?.optionalTransactionPayloadArgs
-      )
+        optionalTransactionArgs?.optionalTransactionPayloadArgs,
+      ),
     );
 
     return await this.sendTx(
       sendTxPayload,
-      optionalTransactionArgs?.enableTransactionWaitAndSimulationArgs
+      optionalTransactionArgs?.enableTransactionWaitAndSimulationArgs,
     );
   }
 
@@ -1670,13 +1692,13 @@ export class SupraClient {
     senderAccount: SupraAccount,
     packageMetadata: Uint8Array,
     modulesCode: Uint8Array[],
-    optionalTransactionArgs?: OptionalTransactionArgs
+    optionalTransactionArgs?: OptionalTransactionArgs,
   ): Promise<TransactionResponse> {
     let codeSerializer = new BCS.Serializer();
     let modulesTypeCode: TxnBuilderTypes.Module[] = [];
     for (let i = 0; i < modulesCode.length; i++) {
       modulesTypeCode.push(
-        new TxnBuilderTypes.Module(Uint8Array.from(modulesCode[i]))
+        new TxnBuilderTypes.Module(Uint8Array.from(modulesCode[i])),
       );
     }
     BCS.serializeVector(modulesTypeCode, codeSerializer);
@@ -1685,21 +1707,19 @@ export class SupraClient {
       senderAccount,
       await this.createRawTxObject(
         senderAccount.address(),
-        (
-          await this.getAccountInfo(senderAccount.address())
-        ).sequence_number,
+        (await this.getAccountInfo(senderAccount.address())).sequence_number,
         SUPRA_FRAMEWORK_ADDRESS,
         "code",
         "publish_package_txn",
         [],
         [BCS.bcsSerializeBytes(packageMetadata), codeSerializer.getBytes()],
-        optionalTransactionArgs?.optionalTransactionPayloadArgs
-      )
+        optionalTransactionArgs?.optionalTransactionPayloadArgs,
+      ),
     );
 
     return await this.sendTx(
       sendTxPayload,
-      optionalTransactionArgs?.enableTransactionWaitAndSimulationArgs
+      optionalTransactionArgs?.enableTransactionWaitAndSimulationArgs,
     );
   }
 
@@ -1711,20 +1731,20 @@ export class SupraClient {
   async simulateTx(sendTxPayload: SendTxPayload): Promise<any> {
     let txAuthenticatorWithValidSignatures = sendTxPayload.Move.authenticator;
     let txAuthenticatorClone = JSON.parse(
-      JSON.stringify(txAuthenticatorWithValidSignatures)
+      JSON.stringify(txAuthenticatorWithValidSignatures),
     );
     sendTxPayload.Move.authenticator = txAuthenticatorClone;
     this.unsetAuthenticatorSignatures(sendTxPayload.Move.authenticator);
-    let resData = await this.sendRequest(
-      false,
-      "/rpc/v1/transactions/simulate",
-      sendTxPayload
-    );
+    let resData = await this.sendRequest({
+      isGetMethod: false,
+      subURL: "/rpc/v3/transactions/simulate",
+      data: sendTxPayload,
+    });
 
     sendTxPayload.Move.authenticator = txAuthenticatorWithValidSignatures;
     if (resData.data.output.Move.vm_status !== "Executed successfully") {
       throw new Error(
-        `Transaction simulation failed. Reason: ${resData?.data?.output?.Move?.vm_status}`
+        `Transaction simulation failed. Reason: ${resData?.data?.output?.Move?.vm_status}`,
       );
     }
     console.log("Transaction Simulation Done");
@@ -1742,14 +1762,14 @@ export class SupraClient {
       txAuthenticator.FeePayer.secondary_signers.forEach(
         (ed25519Authenticator) => {
           ed25519Authenticator.Ed25519.signature = nullSignature;
-        }
+        },
       );
     } else {
       txAuthenticator.MultiAgent.sender.Ed25519.signature = nullSignature;
       txAuthenticator.MultiAgent.secondary_signers.forEach(
         (ed25519Authenticator) => {
           ed25519Authenticator.Ed25519.signature = nullSignature;
-        }
+        },
       );
     }
   }
@@ -1762,14 +1782,14 @@ export class SupraClient {
    */
   async simulateTxUsingSerializedRawTransaction(
     txAuthenticator: AnyAuthenticatorJSON,
-    serializedRawTransaction: Uint8Array
+    serializedRawTransaction: Uint8Array,
   ): Promise<any> {
     let sendTxPayload = {
       Move: {
         raw_txn: this.getRawTxnJSON(
           TxnBuilderTypes.RawTransaction.deserialize(
-            new BCS.Deserializer(serializedRawTransaction)
-          )
+            new BCS.Deserializer(serializedRawTransaction),
+          ),
         ),
         authenticator: txAuthenticator,
       },
