@@ -1,52 +1,19 @@
 {
-  "name": "supra-l1-sdk",
-  "version": "5.0.2",
-  "description": "Typescript SDK for Supra",
-  "exports": {
-    "browser": {
-      "import": "./dist/browser/index.mjs",
-      "require": "./dist/browser/index.js",
-      "types": "./dist/browser/index.d.ts"
-    },
-    "node": {
-      "import": "./dist/node/index.mjs",
-      "require": "./dist/node/index.js",
-      "types": "./dist/node/index.d.ts"
-    }
-  },
-  "browser": {
-    "./dist/node/index.mjs": "./dist/browser/index.mjs",
-    "./dist/node/index.js": "./dist/browser/index.js"
-  },
-  "main": "./dist/node/index.js",
-  "module": "./dist/node/index.mjs",
-  "types": "./dist/node/index.d.ts",
-  "files": [
-    "./dist/"
+  "name": "supra-l1-sdk-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsup --platform node --out-dir dist/node && tsup --platform browser --out-dir dist/browser",
-    "prepare": "npm run build",
-    "docs": "npx typedoc",
-    "test": "ts-node ./src/example.ts"
-  },
-  "author": "",
-  "keywords": [
-    "supra-sdk",
-    "supra-l1-sdk",
-    "supra-ts-sdk"
-  ],
-  "license": "ISC",
-  "dependencies": {
-    "axios": "^1.8.4",
-    "js-sha3": "^0.9.3",
-    "supra-l1-sdk-core": "^2.0.1"
+    "build": "npm run build -w @supra-l1/sdk -w @supra-l1/mcp-server",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "docs": "npm run docs -w @supra-l1/sdk"
   },
   "devDependencies": {
-    "clean-webpack-plugin": "^4.0.0",
-    "tsup": "^8.0.1",
-    "typedoc": "^0.25.13",
+    "@vitest/coverage-v8": "^4.1.0",
     "typescript": "^5.3.3",
-    "webpack": "^5.89.0"
+    "vitest": "^4.1.0"
   }
 }

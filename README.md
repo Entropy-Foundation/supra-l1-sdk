@@ -1,40 +1,36 @@
-# Typescript SDK for Supra
+# Supra L1 SDK Monorepo
 
-The `supra-l1-sdk` provides a convenient way to interact with the supra chain and perform operations on supra chain. It offers a set of utility functions, classes, and types to simplify the integration process and enhance developer productivity.
+This repository contains the official Supra L1 SDK and its associated tools.
 
-## Installation
+## Repository Structure
 
-Install supra-l1-sdk with npm
+- `packages/sdk`: The core Supra L1 TypeScript SDK.
+- `packages/mcp-server`: Model Context Protocol (MCP) server for AI agent integration.
+
+## Getting Started
+
+### Installation
 
 ```bash
-  npm install supra-l1-sdk
+npm install
 ```
 
-## Reference Docs
+### Building
 
-For SDK documentation, check out the [TypeScript SDK documentation](https://sdk-docs.supra.com/index.html)
+Build all packages:
+```bash
+npm run build
+```
 
-## Usage
+### Packages
 
-Check [./src/example.ts](https://github.com/Entropy-Foundation/supra-l1-sdk/blob/master/src/example.ts) for understating about the usage.
+#### [Supra L1 SDK](./packages/sdk)
+The core library for interacting with the Supra L1 blockchain.
 
-## Functionalities
+#### [Supra L1 MCP Server](./packages/mcp-server)
+Integrate Supra L1 capabilities into AI agents like Claude.
 
-- [x] Significant `rpc_node` endpoint integration
-- [x] Transaction insights
-- [x] Transfer coin
-- [x] Publish Package
-- [X] Transaction payload generation
-- [X] Transaction simulation
-- [X] Transaction signing
-- [X] Transaction hash generation
-- [X] `entry_function_payload` type tx
-- [X] `script_payload` type tx
-- [X] `automation_registration_payload` type tx
-- [X] Sponsor transaction
-- [X] Multi-agent transaction
-- [X] Starkey wallet integration support
+## Documentation
 
-## Contributing
-
-If you found a bug or would like to request a feature, please file an issue. If, based on the discussion on an issue you would like to offer a code change, please make a pull request.
+- [SDK Documentation](https://sdk-docs.supra.com/index.html)
+- [MCP Server Guide](./packages/mcp-server/README.md)

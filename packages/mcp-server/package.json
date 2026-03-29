@@ -1,0 +1,28 @@
+{
+  "name": "@supra-l1/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Supra L1 SDK",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup \"src/**/*.ts\" \"!src/**/*.test.ts\" --format cjs,esm --dts --clean",
+    "dev": "tsup \"src/**/*.ts\" \"!src/**/*.test.ts\" --format cjs,esm --watch --dts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.1",
+    "@scure/bip39": "^1.2.2",
+    "@supra-l1/sdk": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@vitest/coverage-v8": "^4.1.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^4.1.0"
+  }
+}
