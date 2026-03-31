@@ -1,6 +1,6 @@
 {
   "name": "supra-l1-sdk",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "description": "Typescript SDK for Supra",
   "exports": {
     "browser": {
@@ -43,6 +43,7 @@
     "supra-l1-sdk-core": "^2.0.1"
   },
   "devDependencies": {
+    "@swc/core": "^1.15.21",
     "clean-webpack-plugin": "^4.0.0",
     "tsup": "^8.0.1",
     "typedoc": "^0.25.13",
