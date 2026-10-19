@@ -7,7 +7,7 @@
 - `isAccountExists` returns `false` when the node answers HTTP 404 for an absent account (node v12), as it already did for HTTP 400 (node v11). Other statuses and network errors are still thrown. `transferSupraCoin` uses this check when `optionalTransactionPayloadArgs` has no `maxGas`.
 - `getAccountTransactionsDetail`, `getCoinTransactionsDetail` and `getAccountCompleteTransactionsDetail` skip feed items that have no `header`, such as settlement transactions (`txn_type: "settlement"`, node v12), instead of throwing.
 - `getTransactionDetail` returns `null` for a transaction that has no `header`, such as a settlement transaction, instead of throwing.
-- Values that are inserted into a request path (account addresses, resource types, transaction hashes, table handles) are sent as one percent-encoded path segment. The values `""`, `.` and `..` are rejected before any request is made. Pagination values in query strings are percent-encoded.
+- Values that are inserted into a request path (account addresses, resource types, transaction hashes, table handles) are sent as one percent-encoded path segment, so pass them unencoded: a value that is already percent-encoded is encoded again. The values `""`, `.` and `..` are rejected before any request is made. Pagination values in query strings are percent-encoded.
 
 ### Changed
 
