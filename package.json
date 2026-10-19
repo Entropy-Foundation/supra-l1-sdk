@@ -1,6 +1,6 @@
 {
   "name": "supra-l1-sdk",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "description": "Typescript SDK for Supra",
   "exports": {
     "browser": {
@@ -28,7 +28,8 @@
     "build": "rm -rf dist && tsup --platform node --out-dir dist/node && tsup --platform browser --out-dir dist/browser",
     "prepare": "npm run build",
     "docs": "npx typedoc",
-    "test": "ts-node ./src/example.ts"
+    "test": "jest",
+    "example": "ts-node ./src/example.ts"
   },
   "author": "",
   "keywords": [
@@ -43,7 +44,11 @@
     "supra-l1-sdk-core": "^2.0.1"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "clean-webpack-plugin": "^4.0.0",
+    "jest": "^30.5.2",
+    "ts-jest": "^29.4.15",
+    "ts-node": "^10.9.2",
     "tsup": "^8.0.1",
     "typedoc": "^0.25.13",
     "typescript": "^5.3.3",
