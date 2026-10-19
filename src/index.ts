@@ -12,6 +12,7 @@ import {
   sleep,
   parseFunctionTypeArgs,
   parseScriptArgs,
+  encodePathSegment,
 } from "./utils";
 import {
   TransactionStatus,
@@ -194,7 +195,7 @@ export class SupraClient {
     account: HexString,
   ): Promise<FaucetRequestResponse> {
     const resData = await this.sendRequest({
-      subURL: `/rpc/v3/wallet/faucet/${account.toString()}`,
+      subURL: `/rpc/v3/wallet/faucet/${encodePathSegment(account.toString())}`,
       ignoreStatuses: [HttpStatusCode.TooManyRequests],
     });
     if (resData.status === HttpStatusCode.TooManyRequests) {
@@ -212,12 +213,14 @@ export class SupraClient {
   /**
    * Check whether given account exists onchain or not
    * @param account Hex-encoded 32 byte Supra account address
-   * @returns `true` if account exists otherwise `false`
+   * @returns `true` if account exists otherwise `false`. The node answers HTTP 400 (node v11) or
+   * HTTP 404 (node v12) for an absent account; both are reported as `false`. Other statuses and
+   * network errors are thrown.
    */
   async isAccountExists(account: HexString): Promise<boolean> {
     let resData = await this.sendRequest({
-      subURL: `/rpc/v3/accounts/${account.toString()}`,
-      ignoreStatuses: [HttpStatusCode.BadRequest],
+      subURL: `/rpc/v3/accounts/${encodePathSegment(account.toString())}`,
+      ignoreStatuses: [HttpStatusCode.BadRequest, HttpStatusCode.NotFound],
     });
     return resData.status === HttpStatusCode.Ok;
   }
@@ -229,7 +232,7 @@ export class SupraClient {
    */
   async getAccountInfo(account: HexString): Promise<AccountInfo> {
     const resData = await this.sendRequest({
-      subURL: `/rpc/v3/accounts/${account.toString()}`,
+      subURL: `/rpc/v3/accounts/${encodePathSegment(account.toString())}`,
     });
     return {
       sequence_number: BigInt(resData.data.sequence_number),
@@ -247,11 +250,11 @@ export class SupraClient {
     account: HexString,
     paginationArgs?: PaginationArgs,
   ): Promise<AccountResourcesResponse> {
-    let requestPath = `/rpc/v3/accounts/${account.toString()}/resources?count=${
+    let requestPath = `/rpc/v3/accounts/${encodePathSegment(account.toString())}/resources?count=${
       paginationArgs?.count ?? DEFAULT_RECORDS_ITEMS_COUNT
     }`;
     if (paginationArgs?.start) {
-      requestPath += `&start=${paginationArgs.start}`;
+      requestPath += `&start=${encodeURIComponent(paginationArgs.start)}`;
     }
     let resData = await this.sendRequest({ subURL: requestPath });
     return {
@@ -278,7 +281,7 @@ export class SupraClient {
     resourceType: string,
   ): Promise<AccountResource> {
     const resData = await this.sendRequest({
-      subURL: `/rpc/v3/accounts/${account.toString()}/resources/${resourceType}`,
+      subURL: `/rpc/v3/accounts/${encodePathSegment(account.toString())}/resources/${encodePathSegment(resourceType)}`,
     });
     return resData.data as AccountResource;
   }
@@ -292,7 +295,7 @@ export class SupraClient {
     transactionHash: string,
   ): Promise<TransactionStatus | null> {
     let resData = await this.sendRequest({
-      subURL: `/rpc/v3/transactions/${transactionHash}`,
+      subURL: `/rpc/v3/transactions/${encodePathSegment(transactionHash)}`,
       ignoreStatuses: [HttpStatusCode.NotFound],
     });
     if (resData.status === HttpStatusCode.NotFound || !resData.data) {
@@ -452,17 +455,19 @@ export class SupraClient {
    * Get transaction details of given transaction hash
    * @param account Hex-encoded 32 byte Supra account address
    * @param transactionHash Hex-encoded 32 byte transaction hash for getting transaction details
-   * @returns `TransactionDetail` or `null`
+   * @returns `TransactionDetail`, or `null` when the node returns no transaction or a transaction
+   * without a `header` (for example a settlement transaction, `txn_type: "settlement"`), which this
+   * method cannot describe.
    */
   async getTransactionDetail(
     account: HexString,
     transactionHash: string,
   ): Promise<TransactionDetail | null> {
     let resData = await this.sendRequest({
-      subURL: `/rpc/v3/transactions/${transactionHash}`,
+      subURL: `/rpc/v3/transactions/${encodePathSegment(transactionHash)}`,
     });
 
-    if (resData.data === null) {
+    if (resData.data === null || !resData.data.header) {
       return null;
     }
 
@@ -530,27 +535,28 @@ export class SupraClient {
    * Get transactions sent by the account
    * @param account Supra account address
    * @param paginationArgs Arguments for ordered pagination response
-   * @returns List of `TransactionDetail`
+   * @returns List of `TransactionDetail`. Items without a `header`, such as settlement
+   * transactions, are skipped.
    */
   async getAccountTransactionsDetail(
     account: HexString,
     paginationArgs?: OrderedPaginationArgs,
   ): Promise<TransactionDetail[]> {
-    let requestPath = `/rpc/v3/accounts/${account.toString()}/transactions?count=${
+    let requestPath = `/rpc/v3/accounts/${encodePathSegment(account.toString())}/transactions?count=${
       paginationArgs?.count ?? DEFAULT_RECORDS_ITEMS_COUNT
     }`;
     if (paginationArgs?.start) {
-      requestPath += `&start=${paginationArgs.start}`;
+      requestPath += `&start=${encodeURIComponent(paginationArgs.start)}`;
     }
     if (paginationArgs?.ascending) {
-      requestPath += `&ascending=${paginationArgs.ascending}`;
+      requestPath += `&ascending=${encodeURIComponent(String(paginationArgs.ascending))}`;
     }
 
     let resData = await this.sendRequest({
       subURL: requestPath,
     });
     let accountTransactionsDetail: TransactionDetail[] = [];
-    resData.data.forEach((data: any) => {
+    resData.data.filter((data: any) => data.header).forEach((data: any) => {
       accountTransactionsDetail.push({
         txHash: data.hash,
         sender: data.header.sender.Move,
@@ -586,27 +592,28 @@ export class SupraClient {
    * Get Coin Transfer related transactions associated with the account
    * @param account Supra account address
    * @param paginationArgs Arguments for ordered pagination response
-   * @returns `AccountCoinTransactionsResponse`
+   * @returns `AccountCoinTransactionsResponse`. Items without a `header`, such as settlement
+   * transactions, are skipped.
    */
   async getCoinTransactionsDetail(
     account: HexString,
     paginationArgs?: OrderedPaginationArgs,
   ): Promise<AccountCoinTransactionsResponse> {
-    let requestPath = `/rpc/v3/accounts/${account.toString()}/coin_transactions?count=${
+    let requestPath = `/rpc/v3/accounts/${encodePathSegment(account.toString())}/coin_transactions?count=${
       paginationArgs?.count ?? DEFAULT_RECORDS_ITEMS_COUNT
     }`;
     if (paginationArgs?.start) {
-      requestPath += `&start=${paginationArgs?.start}`;
+      requestPath += `&start=${encodeURIComponent(paginationArgs.start)}`;
     }
     if (paginationArgs?.ascending) {
-      requestPath += `&ascending=${paginationArgs.ascending}`;
+      requestPath += `&ascending=${encodeURIComponent(String(paginationArgs.ascending))}`;
     }
 
     let resData = await this.sendRequest({
       subURL: requestPath,
     });
     let coinTransactionsDetail: TransactionDetail[] = [];
-    resData.data.forEach((data: any) => {
+    resData.data.filter((data: any) => data.header).forEach((data: any) => {
       coinTransactionsDetail.push({
         txHash: data.hash,
         sender: data.header.sender.Move,
@@ -646,17 +653,18 @@ export class SupraClient {
    * @param account Supra account address
    * @param count Number of coin transfer transactions and account sent transaction to be considered,
    * For instance if the value is `N` so total `N*2` transactions will be returned.
-   * @returns List of `TransactionDetail`
+   * @returns List of `TransactionDetail`. Items without a `header`, such as settlement
+   * transactions, are skipped.
    */
   async getAccountCompleteTransactionsDetail(
     account: HexString,
     count: number = DEFAULT_RECORDS_ITEMS_COUNT,
   ): Promise<TransactionDetail[]> {
     let coinTransactions = await this.sendRequest({
-      subURL: `/rpc/v3/accounts/${account.toString()}/coin_transactions?count=${count}`,
+      subURL: `/rpc/v3/accounts/${encodePathSegment(account.toString())}/coin_transactions?count=${encodeURIComponent(String(count))}`,
     });
     let accountSendedTransactions = await this.sendRequest({
-      subURL: `/rpc/v3/accounts/${account.toString()}/transactions?count=${count}`,
+      subURL: `/rpc/v3/accounts/${encodePathSegment(account.toString())}/transactions?count=${encodeURIComponent(String(count))}`,
     });
 
     let combinedTxArray: any[] = [];
@@ -669,6 +677,7 @@ export class SupraClient {
 
     let combinedTx = combinedTxArray.filter(
       (item, index, self) =>
+        item.header &&
         index === self.findIndex((data) => data.hash === item.hash),
     );
     combinedTx.sort((a, b) => {
@@ -805,7 +814,7 @@ export class SupraClient {
     return (
       await this.sendRequest({
         isGetMethod: false,
-        subURL: `/rpc/v3/tables/${tableHandle}/item`,
+        subURL: `/rpc/v3/tables/${encodePathSegment(tableHandle)}/item`,
         data: {
           key_type: keyType,
           value_type: valueType,
