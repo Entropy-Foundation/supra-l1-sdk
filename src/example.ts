@@ -7,31 +7,41 @@ import {
   MILLISECONDS_PER_SECOND,
 } from "./index";
 
-// To run this example, install `ts-node` (e.g. `npm install -g ts-node`), enter the directory
-// that contains this file and run `ts-node ./example.ts`.
+// Run with `npm run example`. The example sends transactions, so the sender account must hold
+// funds on the target network.
+//
+// Environment:
+//   SUPRA_PRIVATE_KEY              Hex-encoded 32 byte Ed25519 private key of the sender account
+//                                  (required).
+//   SUPRA_RPC_URL                  RPC node URL (default: https://rpc-devnet.supra.com).
+//   SUPRA_EXAMPLE_WRAPPER_MODULE   Address of a deployed module with a `wrapper::two_signers` entry
+//                                  function; the multi-agent step is skipped when unset.
+//   SUPRA_EXAMPLE_MULTISIG_ACCOUNT Address of a multisig account owned by the sender that needs a
+//                                  single approval; the multisig steps are skipped when unset.
+
+const DEFAULT_RPC_URL = "https://rpc-devnet.supra.com";
 
 (async () => {
-  // // To Create Instance Of Supra Client.
-  // // Note: Here We Need To Pass ChainId, Default ChainId Value Is 3
-  // let supraClient = new supraSDK.SupraClient(
-  //   "https://rpc-wallet.supra.com/",
-  //   3
-  // );
+  const privateKeyHex = process.env.SUPRA_PRIVATE_KEY;
+  if (!privateKeyHex) {
+    console.error(
+      "SUPRA_PRIVATE_KEY is not set. Set it to the hex-encoded private key of an account that " +
+        "holds funds on the target network and run `npm run example` again."
+    );
+    process.exit(1);
+  }
+  const rpcUrl = process.env.SUPRA_RPC_URL || DEFAULT_RPC_URL;
 
-  // To Create Instance Of Supra Client, But In This Method We Don't Need To Pass ChainId.
-  // ChainId Will Be Identified At Instance Creation Time By Making RPC Call.
-  let supraClient = await SupraClient.init(
-    // "http://localhost:27001/"
-    "https://rpc-testnet.supra.com/"
-  );
+  // To Create Instance Of Supra Client.
+  // Note: A chain id can be passed to the constructor (`new SupraClient(url, chainId)`), the
+  // default is `DEFAULT_CHAIN_ID`, which is 6.
+  //
+  // `SupraClient.init` does not need a chain id: it is fetched from the node when the instance
+  // is created.
+  let supraClient = await SupraClient.init(rpcUrl);
 
   let senderAccount = new SupraAccount(
-    Uint8Array.from(
-      Buffer.from(
-        "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d89",
-        "hex"
-      )
-    )
+    Uint8Array.from(Buffer.from(privateKeyHex.replace(/^0x/, ""), "hex"))
   );
   console.log("Sender Address: ", senderAccount.address());
 
@@ -44,10 +54,8 @@ import {
     );
   }
 
-  let receiverAddress = new HexString(
-    // "1000000000000000000000000000000000000000000000000000000000000000"
-    "0xb8922417130785087f9c7926e76542531b703693fdc74c9386b65cf4427f4e80"
-  );
+  // The receiver is generated at run time, so it has no account on the network yet.
+  let receiverAddress = new SupraAccount().address();
   console.log("Receiver: ", receiverAddress);
 
   console.log(
@@ -241,14 +249,7 @@ import {
   // Complete Sponsor transaction flow
 
   // Transaction sponsor keyPair
-  let feePayerAccount = new SupraAccount(
-    Uint8Array.from(
-      Buffer.from(
-        "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d88",
-        "hex"
-      )
-    )
-  );
+  let feePayerAccount = new SupraAccount();
   console.log("FeePayer Address: ", feePayerAccount.address());
 
   if ((await supraClient.isAccountExists(feePayerAccount.address())) == false) {
@@ -307,16 +308,10 @@ import {
   );
 
   // Complete Multi-Agent transaction flow
-
+  const wrapperModuleAddress = process.env.SUPRA_EXAMPLE_WRAPPER_MODULE;
+  if (wrapperModuleAddress) {
   // Secondary signer1 keyPair
-  let secondarySigner1 = new SupraAccount(
-    Uint8Array.from(
-      Buffer.from(
-        "2b9654793a999d1d487dabbd1b8f194156e15281fa1952af121cc97b27578d87",
-        "hex"
-      )
-    )
-  );
+  let secondarySigner1 = new SupraAccount();
   console.log("Secondary Signer1 Address: ", secondarySigner1.address());
 
   if (
@@ -329,13 +324,13 @@ import {
   }
 
   // Creating RawTransaction for multi-agent RawTransaction
-  // Note: The `0x7c6033ca961856298e1412fddf5ebb732c247436046d33016a5bd10f7e090a07::wrapper` module is deployed on testnet
+  // Note: The module at `SUPRA_EXAMPLE_WRAPPER_MODULE` must contain `wrapper::two_signers`.
   let multiAgentRawTransaction = await supraClient.createRawTxObject(
     senderAccount.address(),
     (
       await supraClient.getAccountInfo(senderAccount.address())
     ).sequence_number,
-    "0x7c6033ca961856298e1412fddf5ebb732c247436046d33016a5bd10f7e090a07",
+    wrapperModuleAddress,
     "wrapper",
     "two_signers",
     [],
@@ -374,6 +369,11 @@ import {
       }
     )
   );
+  } else {
+    console.log(
+      "Skipping the multi-agent transaction: SUPRA_EXAMPLE_WRAPPER_MODULE is not set."
+    );
+  }
 
   let ledgerWalletSenderAccountPubkey = new TxnBuilderTypes.Ed25519PublicKey(
     Uint8Array.from(
@@ -427,7 +427,8 @@ import {
       [],
       [receiverAddress.toUint8Array(), BCS.bcsSerializeUint64(1000)],
       BigInt(500),
-      BigInt(100),
+      // The gas price cap must not be below the node's minimum gas price.
+      await supraClient.getMinGasUnitPrice(),
       BigInt(1000000000),
       BigInt(Math.floor(Date.now() / MILLISECONDS_PER_SECOND) + 2 * 60 * 60),
       []
@@ -446,9 +447,9 @@ import {
 
   // To Execute Multisig transaction
   // Creating multisig transaction
-  let multisigAccountAddress = new HexString(
-    "0x20dd7a2e0d70ec85f128d0758a9d6f1f6187b990790194f995fb04be9d2c1bc"
-  );
+  const multisigAccountEnv = process.env.SUPRA_EXAMPLE_MULTISIG_ACCOUNT;
+  if (multisigAccountEnv) {
+  let multisigAccountAddress = new HexString(multisigAccountEnv);
   let supraCoinTransferCreateTxRawTransaction =
     await supraClient.createSerializedRawTxObjectToCreateMultisigTx(
       senderAccount.address(),
@@ -498,6 +499,11 @@ import {
       }
     )
   );
+  } else {
+    console.log(
+      "Skipping the multisig transactions: SUPRA_EXAMPLE_MULTISIG_ACCOUNT is not set."
+    );
+  }
 
   // To execute move-script
   let moveScriptCodeHex =

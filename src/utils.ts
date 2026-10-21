@@ -83,3 +83,15 @@ export const sleep = (timeMs: number): Promise<null> => {
     setTimeout(resolve, timeMs);
   });
 };
+
+/**
+ * Percent-encodes a caller-supplied value so that it forms exactly one request path segment.
+ * Empty values and the dot segments `.` and `..` are rejected because they do not name a
+ * resource.
+ */
+export const encodePathSegment = (value: string): string => {
+  if (typeof value !== "string" || value === "" || value === "." || value === "..") {
+    throw new Error("Invalid request path segment.");
+  }
+  return encodeURIComponent(value);
+};
