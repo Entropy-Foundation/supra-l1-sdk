@@ -18,3 +18,4 @@
 ### Security
 
 - Any private key that was published in an earlier version of `src/example.ts` is compromised. Do not use those keys.
+- `axios` is raised to `^1.20.0` to pick up security fixes in `axios`, `form-data` and `follow-redirects`.
