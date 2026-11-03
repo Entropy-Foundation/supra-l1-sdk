@@ -2,6 +2,9 @@
 
 The `supra-l1-sdk` provides a convenient way to interact with the supra chain and perform operations on supra chain. It offers a set of utility functions, classes, and types to simplify the integration process and enhance developer productivity.
 
+> **Maintenance mode.** This package receives fixes, not new features. New projects should use
+> [supra-ts-sdk](https://github.com/Entropy-Foundation/supra-ts-sdk).
+
 ## Installation
 
 Install supra-l1-sdk with npm
