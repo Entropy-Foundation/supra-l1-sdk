@@ -1,6 +1,6 @@
 # Changelog
 
-## 5.0.3 (YYYY-MM-DD)
+## 5.0.3 (2026-11-03)
 
 ### Fixed
 
@@ -14,6 +14,8 @@
 - `npm test` runs offline unit tests and sends no network requests. The previous example is available as `npm run example`.
 - `src/example.ts` no longer contains private keys. It reads the signing key from `SUPRA_PRIVATE_KEY` and the RPC URL from `SUPRA_RPC_URL` (default `https://rpc-devnet.supra.com`), and generates its other accounts at run time. The multi-agent and multisig steps run when `SUPRA_EXAMPLE_WRAPPER_MODULE` and `SUPRA_EXAMPLE_MULTISIG_ACCOUNT` are set. The automation registration takes its `gas_price_cap` from the node's minimum gas price.
 - `ts-node`, `jest`, `ts-jest` and `@types/jest` are development dependencies.
+- The npm package links to its source repository (`repository`, `homepage` and `bugs` in `package.json`).
+- The README states that the package is in maintenance mode and names `supra-ts-sdk` for new projects.
 
 ### Security
 

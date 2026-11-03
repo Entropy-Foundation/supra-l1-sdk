@@ -38,6 +38,14 @@
     "supra-ts-sdk"
   ],
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Entropy-Foundation/supra-l1-sdk.git"
+  },
+  "homepage": "https://github.com/Entropy-Foundation/supra-l1-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/Entropy-Foundation/supra-l1-sdk/issues"
+  },
   "dependencies": {
     "axios": "^1.20.0",
     "js-sha3": "^0.9.3",
